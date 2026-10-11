@@ -290,139 +290,171 @@ void FUN_L01_002e6518(SplashMoby_u *m, u128 *origin) {
         FUN_L00_0026ced0(&tmp, &vel, *c1, *c2, size, FUN_001f96f8(FUN_L00_00257b90(5, 0xF)));
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L01_002e6790.s", FUN_L01_002e6790);
-#else
-typedef union {
-    u128 q;
-    float f[4];
-} PathPoint;
+#include "qcopy.h"
 
 typedef struct {
-    int count;
-    int pad[3];
-    PathPoint pts[1];
-} PathSelection;
+    s32 count;
+    u8 pad4[0xC];
+    struct {
+        f32 x, y, z, w;
+    } pts[1];
+} PathNodes;
 
 typedef struct {
-    PathPoint pos;
-    PathPoint v10;
-    PathPoint v20;
-    PathPoint v30;
+    s32 cur;
+    s8 dir;
+    u8 pad5[0xB];
+    PathNodes *path;
+} PathFollow;
+
+typedef struct {
+    u8 pad0[0x38];
+    s32 w38;
+    u8 pad3C[0x114];
+    PathFollow follow;
+    u8 pad164[0x3C];
+    f32 radius;
+    u8 pad1A4[8];
+    s16 ordered;
+    s16 stops_only;
+    u8 pad1B0[0x32];
+    s16 h1E2;
+} PathPickVars;
+
+typedef struct {
+    u8 pad0[0x10];
+    SplashVec pos;
+    u8 pad20[0x58];
+    PathPickVars *vars;
+} PathPickMoby;
+
+typedef struct {
+    SplashVec pos;
+    SplashVec v10;
+    SplashVec v20;
+    SplashVec v30;
     void *moby;
-    int kind;
-} PathTarget;
+    s32 kind;
+} PathPickTarget;
 
-extern int FUN_L01_00274b78(void *, PathTarget *, float);
+extern void FUN_L01_00274b78(void *, void *, f32);
 extern float FUN_001f9b48(void *, void *);
 extern float FUN_001f9b80(void *, void *);
-extern float FUN_001f9e90(float, float);
-extern float FUN_001fa688(float, float);
+extern f32 FUN_001f9e90(f32, f32);
+extern float fast_difference_between_rotations(float, float) __asm__("FUN_001fa688");
 
-int FUN_L01_002e6790(void *self, int *index) {
-    char *m = self;
-    char *v = *(char **)(m + 0x78);
-    PathSelection *path = *(PathSelection **)(v + 0x160);
-    PathPoint point;
-    PathTarget ahead;
-    float radius;
-    float nearest_distance;
-    float best_distance;
-    float best_angle;
-    float angle;
-    float distance;
-    int alert;
-    int previous;
-    int nearest;
-    int next;
-    int last;
-    int selected;
-    int i;
-    int current;
+/* Picks the path node the follower should head for: an ordered path just steps to the next stop; otherwise the
+ * nearest node and its two neighbours are scored (distance, or heading change for slow movers) and the best one
+ * is written to *idx. Returns nonzero when the pick differs from the nearest node. */
+int FUN_L01_002e6790(void *arg, int *idx) {
+    PathPickMoby *m = arg;
+    PathPickTarget target;
+    SplashVec pt;
+    PathPickVars *v;
+    PathFollow *f;
+    s32 fast;
+    s32 prev;
+    s32 next;
+    s32 best;
+    s32 last;
+    s32 i;
+    f32 d;
+    f32 a;
+    f32 best_d;
+    f32 best_a;
+    f32 r;
+    f32 dist;
 
-    alert = (*(int *)(v + 0x38) != 0 || *(short *)(v + 0x1e2) != 0);
-    if (alert)
-        radius = *(float *)(v + 0x1a0) + *(float *)(v + 0x1a0);
-    else
-        radius = *(float *)(v + 0x1a0);
-    FUN_L01_00274b78(m, &ahead, radius);
-    nearest_distance = 10000.0f;
-    best_angle = 0.0f;
-    nearest = 0;
-    previous = 0;
+    v = m->vars;
+    fast = 0;
+    f = &v->follow;
+    if (v->w38 != 0 || v->h1E2 != 0) {
+        fast = 1;
+    }
+    r = fast ? v->radius * 2.0f : v->radius;
+    prev = 0;
     next = 0;
-    last = 0;
-    if (*(short *)(v + 0x1ac) != 0) {
-        for (;;) {
-            if (*index < path->count - 1)
-                *index = (*index + path->count + *(signed char *)(v + 0x154)) % path->count;
-            if (*index == path->count - 1 || path->pts[*index].f[3] == 1.0f)
+    FUN_L01_00274b78(m, &target, r);
+    best_d = 10000.0f;
+    best_a = 0.0f;
+    best = 0;
+    if (v->ordered != 0) {
+        do {
+            if (*idx < f->path->count - 1) {
+                *idx = (*idx + f->path->count + f->dir) % f->path->count;
+            }
+            if (*idx == f->path->count - 1) {
                 break;
-        }
+            }
+        } while (f->path->pts[*idx].w != 1.0f);
         return 1;
     }
-    for (i = 0; i < path->count; i++) {
-        if (*(short *)(v + 0x1ae) == 0 || path->pts[i].f[3] == 1.0f) {
-            distance = FUN_001f9b80(&path->pts[i], m + 0x10);
-            if (distance < nearest_distance) {
-                previous = last;
-                nearest_distance = distance;
-                nearest = i;
-            } else if (last == nearest) {
+    last = 0;
+    for (i = 0; i < f->path->count; i++) {
+        if (v->stops_only == 0 || f->path->pts[i].w == 1.0f) {
+            dist = FUN_001f9b80(&f->path->pts[i], &m->pos);
+            if (dist < best_d) {
+                prev = last;
+                best_d = dist;
+                best = i;
+            } else if (last == best) {
                 next = i;
             }
             last = i;
         }
     }
-    if (nearest == path->count - 1)
+    i = best;
+    if (i == f->path->count - 1) {
         next = 0;
-    else if (nearest == 0)
-        previous = path->count - 1;
-    best_distance = alert ? 10000.0f : 0.0f;
-    selected = 0;
-    *index = 0;
-    do {
-        current = *index;
-        if (current == previous || current == nearest || current == next) {
-            point = path->pts[current];
-            if (alert) {
-                distance = FUN_001f9b48(&ahead.pos, &point);
-                if ((*(short *)(v + 0x1ae) == 0 || point.f[3] == 1.0f) && distance < best_distance) {
-                    best_distance = distance;
-                    selected = current;
+    } else if (i == 0) {
+        prev = f->path->count - 1;
+    }
+    best_d = 0.0f;
+    best = 0;
+    if (fast) {
+        best_d = 10000.0f;
+    }
+    *idx = 0;
+    for (;;) {
+        if (*idx == prev || *idx == i || *idx == next) {
+            if (fast) {
+                qcopy(&pt, &f->path->pts[*idx]);
+                d = FUN_001f9b48(&target, &pt);
+                if ((v->stops_only == 0 || pt.f[3] == 1.0f) && d < best_d) {
+                    best = *idx;
+                    best_d = d;
                 }
             } else {
-                angle = FUN_001fa688(
-                    FUN_001f9e90(point.f[0] - *(float *)(m + 0x10), point.f[1] - *(float *)(m + 0x14)),
-                    FUN_001f9e90(ahead.pos.f[0] - *(float *)(m + 0x10), ahead.pos.f[1] - *(float *)(m + 0x14)));
-                distance = FUN_001f9b48(m + 0x10, &point);
-                if (*(short *)(v + 0x1ae) == 0 || point.f[3] == 1.0f) {
-                    if (angle < 1.5707964f) {
-                        if (best_angle < angle) {
-                            best_distance = distance;
-                            best_angle = angle;
-                            selected = current;
+                qcopy(&pt, &f->path->pts[*idx]);
+                a = fast_difference_between_rotations(FUN_001f9e90(pt.f[0] - m->pos.f[0], pt.f[1] - m->pos.f[1]),
+                                                      FUN_001f9e90(target.pos.f[0] - m->pos.f[0],
+                                                                   target.pos.f[1] - m->pos.f[1]));
+                d = FUN_001f9b48(&m->pos, &pt);
+                if (v->stops_only == 0 || pt.f[3] == 1.0f) {
+                    if (a < 1.5707964f) {
+                        if (best_a < a) {
+                            best = *idx;
+                            best_d = d;
+                            best_a = a;
                         }
-                    } else if (distance >= 12.0f) {
-                        if (distance < best_distance || best_distance < 12.0f) {
-                            best_distance = distance;
-                            best_angle = angle;
-                            selected = current;
-                        }
-                    } else if (best_distance < distance) {
-                        best_distance = distance;
-                        best_angle = angle;
-                        selected = current;
+                    } else if ((d >= 12.0f && (d < best_d || best_d < 12.0f)) || (d < 12.0f && best_d < d)) {
+                        best = *idx;
+                        best_d = d;
+                        best_a = a;
                     }
                 }
             }
         }
-        *index = (current + path->count + *(signed char *)(v + 0x154)) % path->count;
-    } while (*index != 0);
-    *index = selected;
-    return selected != nearest;
+        *idx = (*idx + f->path->count + f->dir) % f->path->count;
+        if (*idx == 0) {
+            *idx = best;
+            break;
+        }
+    }
+    /* i is reused for the result so it outlives best (keeps retail's copy of the nearest node) */
+    i = best != i;
+    return i;
 }
-#endif
 
 #define NOT_SDA
 
@@ -2785,7 +2817,357 @@ BeamMoby *FUN_L01_002f68a0(void *owner, u128 *pos, u128 *dir, u128 *color, s32 k
     }
     return m;
 }
-INCLUDE_ASM("config/us/overlays/asm/FUN_L01_002f7728.s", FUN_L01_002f7728);
+typedef union {
+    u128 q;
+    f32 f[4];
+} GunshipVec;
+
+typedef struct {
+    s32 v[4];
+} GunshipQuad;
+
+typedef struct {
+    s32 cur;
+    u8 pad4[0x10];
+    s32 path;
+} GunshipPathFollow;
+
+typedef struct {
+    u8 pad0[0x2B];
+    u8 b2B;
+    u8 b2C;
+    u8 pad2D[0x33];
+    GunshipPathFollow sub;
+    u8 pad78[0x58];
+    f32 vD0[4];
+    f32 vE0[4];
+    u8 padF0[0xC];
+    f32 fFC;
+    u8 pad100[0x40];
+    s32 tethers[4];
+    u8 pad150[0x1C];
+    s32 last;
+    s32 flag170;
+    s32 cam174;
+    f32 scale178;
+    f32 f17C;
+    u8 slots[4];
+    s16 side;
+    s16 timer;
+    s32 flag188;
+    s32 flag18C;
+    s32 targets[4][4];
+    s32 guards[8];
+    s32 turrets[4];
+} GunshipVars;
+
+typedef struct {
+    u8 pad0[0x10];
+    f32 pos[4];
+    u8 state;
+    u8 pad21[2];
+    u8 alpha;
+    u8 pad24[8];
+    f32 scale;
+    u8 b30;
+    u8 pad31;
+    s16 h32;
+    u16 flags;
+    u8 pad36[0x42];
+    void *vars;
+    u8 pad7C[0x18];
+    s32 w94;
+    u8 pad98[0xC];
+    u8 bA4;
+    u8 padA5;
+    s16 cls;
+    u8 padA8[0xA];
+    u16 id;
+    u8 padB4[0x4C];
+} GunshipMoby;
+
+typedef struct {
+    u8 pad0[0x1E8];
+    s32 f1E8;
+    s16 f1EC;
+} GunshipTurretVars;
+
+typedef struct {
+    s32 f0;
+    s16 f4;
+    s16 pad6;
+    s32 f8;
+} GunshipGuardVars;
+
+typedef struct {
+    s32 count;
+    u8 pad4[0x18];
+    f32 w;
+} GunshipPath;
+
+typedef struct {
+    u8 pad0[0x18];
+    GunshipMoby *moby;
+} GunshipHit;
+
+extern f32 D_L01_00161BD0 __attribute__((sda));
+extern f32 D_L01_00161BD4 __attribute__((sda));
+extern f32 D_L01_00161BD8 __attribute__((sda));
+extern GunshipQuad gs_quad_init __asm__("D_L01_00161BE0");
+extern char gs_cam_pos[] __asm__("D_L01_00167240");
+extern u8 gs_banner_shown __asm__("D_0013D408") NOT_SDA;
+extern char gs_fmt[] __asm__("D_L01_0020B4A0");
+extern u8 gs_collected[] __asm__("D_L01_001BBB04");
+extern GunshipHit gs_hit __asm__("D_L01_001742C0");
+extern s32 gs_save_bits[][64] __asm__("D_0014C190");
+extern s32 gs_killed_bits[] __asm__("D_L01_001BA950");
+extern s32 gs_level __asm__("D_0015ED84") MACRO_ADDR;
+extern f32 gs_frame_scale __asm__("D_0015ED6C") MACRO_ADDR;
+extern s32 gs_mobys __asm__("D_L01_0015FFD8") MACRO_ADDR;
+extern char *gs_cams __asm__("D_L01_001600EC") MACRO_ADDR;
+extern char *gs_paths[] __asm__("D_L01_001B0930");
+extern s32 gs_cutscene __asm__("D_L01_0015F404") MACRO_ADDR;
+
+extern f32 gs_vec_dist(void *, void *) __asm__("FUN_001f9b48");
+extern void *gs_hit_check(void *, s32, s32) __asm__("FUN_L00_0025a420");
+extern void gs_voice(s32, s32, s32) __asm__("FUN_0022db10");
+extern void gs_banner(s32, s32) __asm__("FUN_L00_00263d40");
+extern void gs_vec_sub(void *, void *, void *) __asm__("FUN_001f9a28");
+extern void gs_explode(void *, void *, void *, f32, f32, s32, s32, s32, f32, f32, f32, f32, s32, f32, s32, s32, s32, s32) __asm__("FUN_L00_0025e450");
+extern void gs_debris(char *, void *, f32) __asm__("FUN_L01_0030be70");
+extern void gs_delete(void *) __asm__("FUN_0020c828");
+extern int gs_printf() __asm__("FUN_001e93b0");
+extern s32 gs_ftoi(f32) __asm__("FUN_001fa6d0");
+extern void gs_follow(char *) __asm__("FUN_L01_002f5168");
+extern s32 gs_ticks(s32) __asm__("FUN_001f96f8");
+extern s32 gs_in_volume(void *, s32) __asm__("FUN_00214720");
+extern s32 gs_hero_state(s32, s32) __asm__("FUN_L01_0023cf98");
+extern void gs_cam_start(void *, void *, s32, s32, s32) __asm__("FUN_L00_002eaaa0");
+extern void gs_cam_stop(s32) __asm__("FUN_L00_002eac18");
+extern s32 gs_dec_timer(void *) __asm__("FUN_001f9770");
+extern s32 gs_los(void *, void *, s32, void *, void *) __asm__("FUN_001efa68");
+extern s32 gs_rand(s32) __asm__("FUN_00213260");
+extern void gs_gun_pos(void *, s32, void *) __asm__("FUN_L00_0024f7c8");
+extern void gs_normalize(void *, void *, f32) __asm__("FUN_001f9bf8");
+extern GunshipMoby *gs_spawn_beam(void *, void *, void *, void *, s32, s32) __asm__("FUN_L01_002f68a0");
+
+/* Ported from rac1-decomp src/overlays/l01_novalis/vendor_002BA898.c (func_L01_002F8B00) */
+void FUN_L01_002f7728(GunshipMoby *m) {
+    GunshipVars *d = m->vars;
+    GunshipPathFollow *sub = &d->sub;
+    float s;
+    void *hit;
+    int i;
+    int j;
+    GunshipQuad a;
+    GunshipQuad b;
+    GunshipVec dir;
+    GunshipVec pos;
+    GunshipVec col;
+    {
+        float dist = gs_vec_dist(m->pos, gs_cam_pos);
+        float x0 = D_L01_00161BD8;
+        float k = -((1.0f - D_L01_00161BD0) / (D_L01_00161BD4 - x0));
+        s = k * dist + (1.0f - k * x0);
+    }
+    hit = gs_hit_check(m, 0x800000, 0);
+    m->bA4 = 0xFF;
+    if (hit != 0) {
+        if (gs_banner_shown == 0) {
+            gs_banner_shown = 1;
+            gs_voice(1, 0, 0);
+            gs_banner(0x53D6, -1);
+        }
+        gs_vec_sub(&b, d->vD0, d->vE0);
+        *(u128 *)&a = *(u128 *)&b;
+        gs_explode(m, &a, m->pos, 0.0f, 0.0f, 0x14, 3, 4, 4.0f, 2.0f, 100000.0f, 3.0f, 1, 15.0f, 1, 1, -1, 0);
+        gs_debris((char *)m, &a, s * 2.0f);
+        for (i = 0; i < 4; i++) {
+            if (d->tethers[i] != -1) {
+                gs_delete((GunshipMoby *)(gs_mobys + (d->tethers[i] << 8)));
+            }
+        }
+        gs_delete(m);
+        return;
+    }
+    do {
+        if (m->state == 0) {
+            if (sub->path != -1) {
+                GunshipPath *path = (GunshipPath *)gs_paths[sub->path];
+                j = 0;
+                d->fFC = d->fFC * 2.0f;
+                if (gs_vec_dist((char *)path + 0x10, (char *)path + (path->count << 4)) < 0.5f) {
+                    path->count--;
+                }
+                for (i = 0; i < path->count; i++) {
+                    if (((GunshipPath *)((char *)path + (i << 4)))->w == 1.0f) {
+                        d->slots[j] = i;
+                        j++;
+                        if (j >= 4) break;
+                    }
+                }
+                d->side = 0;
+                d->last = -1;
+                d->timer = -1;
+                d->scale178 = m->scale;
+                d->f17C = d->fFC;
+            } else {
+                gs_printf(gs_fmt, m->cls, gs_ftoi((float)(((int)m - gs_mobys) >> 8)));
+            }
+            m->b30 = 0xFF;
+            m->h32 = 0xFF;
+        }
+        if (1.0f < s) s = 1.0f;
+        if (s < D_L01_00161BD0) s = D_L01_00161BD0;
+        m->scale = d->scale178 * s;
+        d->fFC = d->f17C * s;
+        if (175.0f <= m->pos[2]) {
+            m->alpha = 0;
+        } else if (125.0f < m->pos[2] && m->pos[2] < 175.0f) {
+            m->alpha = gs_ftoi((175.0f - m->pos[2]) * 128.0f / 50.0f);
+        } else if (m->pos[2] <= 125.0f) {
+            m->alpha = 0x80;
+        }
+        if (d->flag170 != -1) {
+            if (m->state == 0) {
+                gs_follow((char *)m);
+            }
+            if (d->timer == -1 && gs_in_volume(&hero.motion.pos, d->flag170)) {
+                if (gs_collected[(short)m->id] != 0
+                    || (gs_save_bits[gs_level][(short)m->id >> 5] >> (m->id & 0x1F)) & 1) {
+                    for (j = 0; j < 4; j++) {
+                        if (d->turrets[j] != -1) {
+                            GunshipMoby *o = (GunshipMoby *)(gs_mobys + (d->turrets[j] << 8));
+                            if (o != 0 && o->cls == 0x1CB && o->state != 0xFE && o->state != 0xFD) {
+                                GunshipTurretVars *t = o->vars;
+                                t->f1E8 = 1;
+                                t->f1EC = gs_ticks(2);
+                            }
+                        }
+                    }
+                    gs_delete(m);
+                    return;
+                }
+                m->flags &= 0xFFBE;
+                if (d->cam174 != -1) {
+                    gs_hero_state(0x72, 0);
+                    gs_cam_start(gs_cams + (d->cam174 << 7) + 0x30, gs_cams + (d->cam174 << 7) + 0x70, 0, 0, 0);
+                    gs_cutscene = 1;
+                    m->w94 = 0;
+                    m->flags &= 0xEFFF;
+                    d->timer = gs_ticks(0x1FE);
+                }
+            } else if (d->timer != -1) {
+                if (gs_dec_timer(&d->timer)) {
+                    gs_cam_stop(0);
+                    gs_hero_state(0, 1);
+                    gs_cutscene = 0;
+                    gs_save_bits[gs_level][(short)m->id >> 5] |= 1 << (m->id & 0x1F);
+                    gs_killed_bits[(short)m->id >> 5] |= 1 << (m->id & 0x1F);
+                    gs_delete(m);
+                    return;
+                }
+                if (d->timer == gs_ticks(0x3C)) {
+                    for (j = 0; j < 4; j++) {
+                        if (d->turrets[j] != -1) {
+                            GunshipMoby *o = (GunshipMoby *)((d->turrets[j] << 8) + gs_mobys);
+                            if (o->cls == 0x1CB) {
+                                GunshipTurretVars *t = o->vars;
+                                t->f1E8 = 1;
+                                t->f1EC = gs_ticks(2);
+                            }
+                        }
+                    }
+                }
+                gs_follow((char *)m);
+            } else {
+                m->flags |= 0x41;
+                break;
+            }
+        } else {
+            gs_follow((char *)m);
+        }
+        m->flags |= 0x1000;
+        d->b2B = 1;
+        d->b2C = 0x2F;
+        if (d->last != d->sub.cur) {
+            int found = -1;
+            for (i = 0; i < 4; i++) {
+                unsigned char *t = d->slots;
+                if (d->sub.cur == t[i]) found = i;
+            }
+            if (found != -1) {
+                int cnt;
+                a = gs_quad_init;
+                j = 0;
+                b = gs_quad_init;
+                cnt = 0;
+                for (i = 0; i < 4; i++) {
+                    if (d->targets[found][i] != -1) {
+                        a.v[j] = d->targets[found][i];
+                        j++;
+                        b.v[cnt] = d->targets[found][i];
+                        cnt++;
+                    }
+                }
+                if (j == 0) break;
+                if (gs_in_volume(gs_cam_pos, d->flag188)) break;
+                for (i = j - 1; i >= 0; i--) {
+                    if (gs_los(gs_cam_pos, gs_cams + (a.v[i] << 7) + 0x30, 0x86, m, 0)) {
+                        if (gs_hit.moby == 0 || gs_hit.moby != m) {
+                            b.v[i] = -1;
+                            cnt--;
+                            break;
+                        }
+                    }
+                }
+                if (cnt != 0) {
+                    int k = 0;
+                    for (i = 0; i < j; i++) {
+                        if (b.v[i] != -1) {
+                            a.v[k] = b.v[i];
+                            k++;
+                        }
+                    }
+                    j = cnt;
+                }
+                if (j != 0) {
+                    GunshipMoby *bm;
+                    i = a.v[gs_rand(j)];
+                    d->side ^= 1;
+                    gs_gun_pos(m, d->side, &pos);
+                    gs_vec_sub(&dir, gs_cams + (i << 7) + 0x30, &pos);
+                    gs_normalize(&dir, &dir, gs_frame_scale * 160.0f);
+                    col.q = *(u128 *)((i << 7) + (int)gs_cams + 0x30);
+                    bm = gs_spawn_beam(m, &pos, &dir, &col, gs_in_volume(&hero.motion.pos, d->flag18C), d->flag170 != -1);
+                    if (bm != 0) {
+                        int k = 0;
+                        int *out = (int *)((char *)bm->vars + 0x20);
+                        {
+                            unsigned char *t = d->slots;
+                            d->last = t[found];
+                        }
+                        for (i = 0; i < 8; i++) {
+                            if (d->guards[i] != -1) {
+                                GunshipMoby *o = (GunshipMoby *)((d->guards[i] << 8) + gs_mobys);
+                                if (o->cls == 0x2BC) {
+                                    GunshipGuardVars *g = o->vars;
+                                    if (g->f4 == 0 && g->f0 == 0 && gs_rand(0x64) < 0x64
+                                        && gs_in_volume(&hero.motion.pos, g->f8)
+                                        && gs_in_volume(gs_cam_pos, g->f8)) {
+                                        out[k] = d->guards[i];
+                                        k++;
+                                    }
+                                    if (k >= 4) break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } while (d->timer > gs_ticks(0x1FE) - gs_ticks(0x78));
+}
 f32 FUN_001f99c0(f32);
 
 f32 FUN_L01_002f81c8(f32 *pos, f32 *vel, f32 target, f32 accel, f32 damp, f32 range) {
