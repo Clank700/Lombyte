@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3685,
+  "matching_c": 3690,
   "intentional_asm": 318,
-  "pending_c": 548,
+  "pending_c": 543,
   "bytes_total": 3669004,
-  "bytes_matching_c": 2631396,
+  "bytes_matching_c": 2641656,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 914872,
-  "c_exact_percent_of_recoverable": 74.2018,
-  "c_fuzzy_percent_of_recoverable": 75.6108,
+  "bytes_pending_c": 904612,
+  "c_exact_percent_of_recoverable": 74.4912,
+  "c_fuzzy_percent_of_recoverable": 75.9001,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2529,
-    "pending_c": 485,
+    "matching_c": 2534,
+    "pending_c": 480,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2335464,
-    "bytes_pending_c": 857964,
-    "c_exact_percent_of_recoverable": 73.1334,
+    "bytes_matching_c": 2345724,
+    "bytes_pending_c": 847704,
+    "c_exact_percent_of_recoverable": 73.4547,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -3478,12 +3478,12 @@
         "planet": "Novalis",
         "description": "Tobruk Crater: a village under Blarg attack",
         "functions": 67,
-        "matching_c": 61,
-        "pending_c": 6,
+        "matching_c": 66,
+        "pending_c": 1,
         "bytes_total": 114728,
-        "bytes_matching_c": 101768,
-        "bytes_pending_c": 12960,
-        "c_exact_percent_of_recoverable": 88.7037,
+        "bytes_matching_c": 112028,
+        "bytes_pending_c": 2700,
+        "c_exact_percent_of_recoverable": 97.6466,
         "files": [
           {
             "file": "src/overlays/l01/gameplay/hero/00233de0.c",
@@ -3530,9 +3530,9 @@
           {
             "file": "src/overlays/l01/gameplay/entities/002b96e0.c",
             "functions": 21,
-            "matching_c": 19,
+            "matching_c": 21,
             "bytes_total": 31772,
-            "bytes_matching_c": 27936
+            "bytes_matching_c": 31772
           },
           {
             "file": "src/overlays/l01/gameplay/entities/00262618.c",
@@ -3544,9 +3544,9 @@
           {
             "file": "src/overlays/l01/gameplay/entities/002f9810.c",
             "functions": 22,
-            "matching_c": 21,
+            "matching_c": 22,
             "bytes_total": 14520,
-            "bytes_matching_c": 12288
+            "bytes_matching_c": 14520
           },
           {
             "file": "src/overlays/shared/gameplay/entities/002f6328.c",
@@ -3558,9 +3558,9 @@
           {
             "file": "src/overlays/l01/gameplay/vendor/00309bf8.c",
             "functions": 10,
-            "matching_c": 8,
+            "matching_c": 10,
             "bytes_total": 7144,
-            "bytes_matching_c": 2952
+            "bytes_matching_c": 7144
           }
         ]
       },
@@ -5027,14 +5027,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3685,
+    "matching_c": 3690,
     "intentional_asm": 318,
-    "pending_c": 548,
+    "pending_c": 543,
     "bytes_total": 3669004,
-    "bytes_matching_c": 2631396,
+    "bytes_matching_c": 2641656,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 914872,
-    "c_exact_percent_of_recoverable": 74.2018,
-    "c_fuzzy_percent_of_recoverable": 75.6108
+    "bytes_pending_c": 904612,
+    "c_exact_percent_of_recoverable": 74.4912,
+    "c_fuzzy_percent_of_recoverable": 75.9001
   }
 }
