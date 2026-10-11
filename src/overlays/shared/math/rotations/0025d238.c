@@ -2,6 +2,7 @@
 #include "types.h"
 #include "rnc/globals.h"
 #include "asm.h"
+#include "qcopy.h"
 
 #include "eetypes.h"
 typedef union {
@@ -73,26 +74,26 @@ typedef struct {
     s16 d0;
     s16 d1;
 } S_25d538;
-f32 FUN_001fa6c0_25d538(s32) __asm__("FUN_001fa6c0");
+f32 convert_integer_to_float(s32) __asm__("FUN_001fa6c0");
 s32 FUN_001fa6d0_25d538(f32) __asm__("FUN_001fa6d0");
-s32 FUN_001f9770_25d538(void *) __asm__("FUN_001f9770");
+s32 fast_dec_timer(void *) __asm__("FUN_001f9770");
 s32 FUN_001f96f8_25d538(s32) __asm__("FUN_001f96f8");
-void FUN_L00_002502f0_25d538(s32, s32, s32, s32) __asm__("FUN_L00_002502f0");
+void glow_n(s32, s32, s32, s32) __asm__("FUN_L00_002502f0");
 void FUN_L00_0025d538(s32 id, S_25d538 *s) {
     f32 d, f;
     s32 r, g, b;
     if (s->t == 0)
         return;
-    if (FUN_001f9770_25d538(s)) {
+    if (fast_dec_timer(s)) {
         if (s->phase != 0) {
-            FUN_L00_002502f0_25d538(id, s->r0, s->g0, s->b0);
+            glow_n(id, s->r0, s->g0, s->b0);
             return;
         }
         s->phase = 1;
         s->t = FUN_001f96f8_25d538(s->d1);
     }
     if (s->phase == 0) {
-        d = FUN_001fa6c0_25d538(FUN_001f96f8_25d538(s->d0));
+        d = convert_integer_to_float(FUN_001f96f8_25d538(s->d0));
         f = (d - s->t) / d;
         if (s->r1 != 0)
             r = FUN_001fa6d0_25d538(s->r0 + (s->r1 - s->r0) * f);
@@ -107,7 +108,7 @@ void FUN_L00_0025d538(s32 id, S_25d538 *s) {
         else
             b = s->b0;
     } else {
-        d = FUN_001fa6c0_25d538(FUN_001f96f8_25d538(s->d1));
+        d = convert_integer_to_float(FUN_001f96f8_25d538(s->d1));
         f = (d - s->t) / d;
         if (s->r1 != 0)
             r = FUN_001fa6d0_25d538(s->r1 + (s->r0 - s->r1) * f);
@@ -122,7 +123,7 @@ void FUN_L00_0025d538(s32 id, S_25d538 *s) {
         else
             b = s->b0;
     }
-    FUN_L00_002502f0_25d538(id, r, g, b);
+    glow_n(id, r, g, b);
 }
 s32 FUN_L00_0025d7a0(s32 *tab, s32 i, s32 d, s32 wrap) {
     if (wrap) {
@@ -139,95 +140,83 @@ s32 FUN_L00_0025d7a0(s32 *tab, s32 i, s32 d, s32 wrap) {
     }
     return i;
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_0025d808.s", FUN_L00_0025d808);
-#else
-void FUN_001ff2a8_25d808(void *, void *, void *) __asm__("FUN_001f9a28");
-void FUN_001ff500_25d808(void *, void *, f32) __asm__("FUN_001f9bf8");
-void FUN_001ff278_25d808(void *, void *, void *) __asm__("FUN_001f9a10");
 
-s32 FUN_L00_0025d808(f32 step, s32 *keys, u128 *out, s32 *index, f32 *fraction, s32 stop_at_end) {
-    u128 difference;
-    s32 crossed_end = 0;
-    s32 direction = 1;
-    s32 count, current, next;
-    f32 old_fraction, remaining;
-    s32 advance;
+/* Ported from rac1-decomp (src/overlays/shared/mobyutil_00258BC8.c: func_L00_0025E860), where it is exact; names translated to the US level program. */
+extern void vec_sub_25d808(void *, void *, void *) __asm__("FUN_001f9a28");
+extern void vec_scale_25d808(void *, void *, float) __asm__("FUN_001f9bf8");
+extern void vec_add_25d808(void *, void *, void *) __asm__("FUN_001f9a10");
+typedef struct { float x, y, z, w; } Pt_0025E860;
+typedef struct { int n; int pad[3]; Pt_0025E860 pt[1]; } Spline_0025E860;
 
-    if (step < 0.0f) {
-        step = -step;
-        direction = -1;
+// Moves DIST along a spline from segment *IDX at offset *T, updates both, and writes the point reached to OUT; 1 when an end was passed.
+int FUN_L00_0025d808(Spline_0025E860 *s, float *out, int *idx, float *t, int loop, float dist) {
+    float v[4];
+    int ret = 0;
+    int dir = 1;
+    int i;
+    int j;
+
+    if (dist < 0.0f) {
+        dist = -dist;
+        dir = -1;
     }
-    count = *keys;
-    do {
-        current = *index;
-        if (step == 0.0f || (current == count - 1 && stop_at_end == 0))
-            break;
-        if (direction == 1) {
-            old_fraction = *fraction;
-            advance = *(f32 *)(keys + current * 4 + 7) < old_fraction + step;
+    while (dist != 0.0f && (*idx != s->n - 1 || loop)) {
+        int adv;
+
+        i = *idx;
+        if (dir == 1) {
+            adv = s->pt[i].w < *t + dist;
         } else {
-            old_fraction = *fraction;
-            advance = old_fraction < step;
+            adv = *t < dist;
         }
-        next = current + direction;
-        if (advance) {
-            count = *keys;
-            if (count <= next || next < 0)
-                next = (next + count) % count;
-            if (direction == 1) {
-                f32 duration = *(f32 *)(keys + *index * 4 + 7);
-                *fraction = 0.0f;
-                remaining = *fraction;
-                step = step - (duration - old_fraction);
-                remaining = step;
-                if (remaining < *fraction)
-                    remaining = *fraction;
-            } else {
-                remaining = step - old_fraction;
-                *fraction = *(f32 *)(keys + next * 4 + 7);
+        if (adv) {
+            i += dir;
+            if (i >= s->n || i < 0) {
+                i = (i + s->n) % s->n;
             }
-            if ((direction == 1 && *index == *keys - 1) ||
-                (direction == -1 && *index == 0)) {
-                crossed_end = 1;
-            }
-            *index = next;
-        } else {
-            if (direction == 1)
-                old_fraction = old_fraction + step;
-            else
-                old_fraction = old_fraction - step;
-            *fraction = old_fraction;
-            remaining = 0.0f;
-        }
-        count = *keys;
-        step = remaining;
-    } while (1);
-        {
-            *out = *(u128 *)(keys + current * 4 + 4);
-            if (current == count - 1 && stop_at_end == 0) {
-                crossed_end = 1;
-                if (direction == -1) {
-                    *index = 0;
-                    *out = *(u128 *)(keys + 4);
-                    *fraction = 0.0f;
+            if (dir == 1) {
+                dist -= s->pt[*idx].w - *t;
+                *t = 0.0f;
+                if (dist < 0.0f) {
+                    dist = 0.0f;
                 }
             } else {
-                next = current + 1;
-                if (next < count)
-                    next = next * 16;
-                else
-                    next = next % count << 4;
-                FUN_001ff2a8_25d808(&difference, (char *)keys + next + 0x10,
-                                     keys + current * 4 + 4);
-                FUN_001ff500_25d808(&difference, &difference, *fraction);
-                FUN_001ff278_25d808(out, out, &difference);
+                dist -= *t;
+                *t = s->pt[i].w;
             }
-            return crossed_end;
+            if ((dir == 1 && *idx == s->n - 1) || (dir == -1 && *idx == 0)) {
+                ret = 1;
+            }
+            *idx = i;
+        } else {
+            if (dir == 1) {
+                *t = *t + dist;
+            } else {
+                *t = *t - dist;
+            }
+            dist = 0.0f;
         }
-
+    }
+    i = *idx;
+    qcopy_nc(out, &s->pt[i]);
+    if (i == s->n - 1 && !loop) {
+        if (dir == -1) {
+            *idx = 0;
+            qcopy_nc(out, &s->pt[0]);
+            *t = 0.0f;
+        }
+        return 1;
+    }
+    j = i + 1;
+    if (j >= s->n) {
+        j %= s->n;
+    }
+    vec_sub_25d808(v, &s->pt[j], &s->pt[i]);
+    vec_scale_25d808(v, v, *t);
+    vec_add_25d808(out, out, v);
+    return ret;
 }
-#endif
+
 typedef unsigned int u128_0025da70 __attribute__((mode(TI), aligned(16)));
 typedef struct {
     float x, y, z, w_0025da70;
@@ -250,7 +239,7 @@ void FUN_L00_0025da70(u128_0025da70 *a, u128_0025da70 *b, float lim) {
 #include "qcopy.h"
 #include "rnc/overlay/quad.h"
 void FUN_001f9a28_25db00(void *, void *, void *) __asm__("FUN_001f9a28");
-void FUN_001f9c48_25db00(void *, void *, float) __asm__("FUN_001f9c48");
+void trooper_scale(void *, void *, float) __asm__("FUN_001f9c48");
 float FUN_001f9ab0_25db00(void *, void *) __asm__("FUN_001f9ab0");
 float FUN_001f9b80_25db00(void *, void *) __asm__("FUN_001f9b80");
 float FUN_L00_0025db00(float *out, float *p, OvlQuad *a, OvlQuad *b) {
@@ -267,7 +256,7 @@ float FUN_L00_0025db00(float *out, float *p, OvlQuad *a, OvlQuad *b) {
     *(int *)&n[2] = 0;
     qcopy(c, a);
     *(int *)&((float *)c)[2] = 0;
-    FUN_001f9c48_25db00(n, n, 1.0f);
+    trooper_scale(n, n, 1.0f);
     k = -FUN_001f9ab0_25db00(n, c) + (n[0] * p[0] + n[1] * p[1]);
     out[0] = p[0] - k * n[0];
     out[1] = p[1] - k * n[1];
@@ -298,7 +287,7 @@ extern void b6b8_25dcd8(void *, void *, void *, float) __asm__("FUN_L00_0025b6b8
 extern void vsub_25dcd8(void *, void *, void *) __asm__("FUN_001f9a28");
 extern void vadd_25dcd8(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void vscl_25dcd8(void *, void *, float) __asm__("FUN_001f9bf8");
-extern void vmul_25dcd8(void *, void *, float) __asm__("FUN_001f9a68");
+extern void scale_vector_xyz(void *, void *, float) __asm__("FUN_001f9a68");
 extern float dot_25dcd8(void *, void *) __asm__("FUN_001f9ab0");
 extern float da70_25dcd8(void *, void *, float) __asm__("FUN_L00_0025da70");
 float FUN_L00_0025dcd8(OvlQuad *out, OvlQuad *p, OvlQuad *a, OvlQuad *b, float r) {
@@ -325,7 +314,7 @@ float FUN_L00_0025dcd8(OvlQuad *out, OvlQuad *p, OvlQuad *a, OvlQuad *b, float r
     qcopy(c, d);
     t = -dot_25dcd8(p, d);
     u = dot_25dcd8(&d[1], c);
-    vmul_25dcd8(out, d, -(t + u) / dot_25dcd8(d, c));
+    scale_vector_xyz(out, d, -(t + u) / dot_25dcd8(d, c));
     vadd_25dcd8(out, out, &d[1]);
     i = 0;
     fb = (float *)b;
@@ -357,7 +346,7 @@ INCLUDE_ASM("config/us/overlays/asm/FUN_L00_0025df68.s", FUN_L00_0025df68);
 #else
 extern f32 path_distance_25df68(void *, void *, f32) __asm__("FUN_L00_0025da70");
 extern void clear_vector_25df68(void *) __asm__("FUN_001f99f8");
-extern s32 path_step_25df68(s32 *, OvlQuad *, s32 *, f32 *, s32, f32)
+extern s32 sample_path(s32 *, OvlQuad *, s32 *, f32 *, s32, f32)
     __asm__("FUN_L00_0025d808");
 
 s32 FUN_L00_0025df68(s32 *path, OvlQuad *point, OvlQuad *nearest,
@@ -382,7 +371,7 @@ s32 FUN_L00_0025df68(s32 *path, OvlQuad *point, OvlQuad *nearest,
 
     limit += step;
     do {
-        crossed = path_step_25df68(path, &work[0], &current,
+        crossed = sample_path(path, &work[0], &current,
                                    &current_fraction, wrap, step);
         work[1] = *point;
         next_distance = path_distance_25df68(&work[0], &work[1], height_tolerance);
@@ -397,10 +386,10 @@ s32 FUN_L00_0025df68(s32 *path, OvlQuad *point, OvlQuad *nearest,
 
     current_fraction = best_fraction;
     start = best_segment;
-    path_step_25df68(path, &work[0], &start, &current_fraction, wrap, -step);
+    sample_path(path, &work[0], &start, &current_fraction, wrap, -step);
     current_fraction = best_fraction;
     end = best_segment;
-    path_step_25df68(path, &work[0], &end, &current_fraction, wrap, step);
+    sample_path(path, &work[0], &end, &current_fraction, wrap, step);
     end = FUN_L00_0025d7a0(path, end, 1, wrap);
     current = start;
     distance = 1000000000.0f;

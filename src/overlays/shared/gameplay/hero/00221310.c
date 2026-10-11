@@ -4,96 +4,87 @@
 #include "rnc/globals.h"
 #include "asm.h"
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00221310.s", FUN_L00_00221310);
-#else
-extern s32 D_L00_0015F5CC_221310 __asm__("D_L00_0015F5CC");
-extern u8 D_L00_00173E80_221310[] __asm__("D_L00_00173E80");
-extern void *D_L00_00173E58_221310 __asm__("D_L00_00173E58");
-extern u8 D_L00_00173E60_221310[] __asm__("D_L00_00173E60");
+#include "rnc/overlay/collision.h"
 
+extern s32 D_L00_0015F5CC;
+extern CollisionHit coll_hit __asm__("D_L00_00173E40") __attribute__((section(".data")));
 extern void FUN_L00_00213880(void);
-extern s32 FUN_L00_0020a240_221310(f32 *, f32, f32) __asm__("FUN_L00_0020a240");
-extern f32 FUN_001f9b20_221310(void *) __asm__("FUN_001f9b20");
-extern f32 FUN_001f9e90_221310(f32, f32) __asm__("FUN_001f9e90");
-extern s32 FUN_L00_0025e3b8_221310(void *) __asm__("FUN_L00_0025e3b8");
-extern void FUN_L00_00233660_221310(void *, f32, f32, f32) __asm__("FUN_L00_00233660");
-extern s32 FUN_001efa68_221310(void *, void *, s32, s32, s32) __asm__("FUN_001efa68");
-extern f32 FUN_001f9b48_221310(void *, void *) __asm__("FUN_001f9b48");
-extern s32 FUN_L00_001f0d60_221310(f32, void *, s32, void *) __asm__("FUN_L00_001f0d60");
+extern s32 FUN_L00_0020a240(f32 *, f32, f32);
+extern f32 vector_length_xy(void *) __asm__("FUN_001f9b20");
+extern f32 atan2_f(f32, f32) __asm__("FUN_001f9e90");
+extern s32 FUN_L00_0025e3b8(s32);
+extern void FUN_L00_00233660(Vec4 *, f32, f32, f32);
+extern int collision_line(void *from, void *to, int mask, void *ignore, int) __asm__("FUN_001efa68");
+extern f32 fast_vec_dist(void *, void *) __asm__("FUN_001f9b48");
+extern s32 FUN_L00_001f0d60(f32, Vec4 *, s32, s32);
 
 void FUN_L00_00221310(void) {
     Vec4 first;
     Vec4 second;
     Vec4 probe;
-    f32 distance;
-    f32 offset;
+    f32 base;
+    f32 dist;
+    f32 off;
     s32 hit;
-    s32 frame;
-    struct Hero *hero_data = &hero;
 
     if (hero.unk20AD == 0) {
         FUN_L00_00213880();
     }
-    frame = D_L00_0015F5CC_221310;
-    if (frame % 3 == 0) {
+    if (D_L00_0015F5CC % 3 == 0) {
         hero.unk248 = 4.0f;
-        hero_data->unk254 = 0;
-        hero_data->unk255 = 0;
-        if (FUN_L00_0020a240_221310(&hero.unk248, 0.7f, 4.0f)) {
-            hero_data->unk250 =
-                FUN_001f9e90_221310(*(f32 *)(D_L00_00173E80_221310 + 8),
-                                     FUN_001f9b20_221310(D_L00_00173E80_221310));
-            if (D_L00_00173E58_221310 != 0) {
-                hero_data->unk255 = 1;
-                if (FUN_L00_0025e3b8_221310(D_L00_00173E58_221310)) {
-                    hero_data->unk254 = 1;
+        hero.unk254 = 0;
+        hero.unk255 = 0;
+        if (FUN_L00_0020a240(&hero.unk248, 0.7f, 4.0f)) {
+            hero.unk250 = atan2_f(coll_hit.normal_z, vector_length_xy(&coll_hit.normal_x));
+            if (coll_hit.moby != 0) {
+                hero.unk255 = 1;
+                if (FUN_L00_0025e3b8(coll_hit.moby)) {
+                    hero.unk254 = 1;
                 }
             }
         }
     }
-    frame = D_L00_0015F5CC_221310;
-    if (frame % 5 == 0) {
-        hero_data->unk260 = 0;
-        hero_data->unk258 = 0.0f;
+    if (D_L00_0015F5CC % 5 == 0) {
+        hero.unk260 = 0;
+        hero.unk258 = 0.0f;
         if (hero.unk300 != 0) {
-            f32 zero = hero_data->unk258;
-            FUN_L00_00233660_221310(&first, 1.1f, zero, 1.0f);
-            FUN_L00_00233660_221310(&second, 1.1f, zero, -20.0f);
+            base = hero.unk258;
+            FUN_L00_00233660(&first, 1.1f, base, 1.0f);
+            FUN_L00_00233660(&second, 1.1f, base, -20.0f);
             if (second.f[2] < 0.5f) {
                 second.f[2] = 0.5f;
             }
-            distance = 20.0f;
-            hit = FUN_001efa68_221310(&first, &second, 2,
-                                       ((s32)hero_data->moby), 0);
+            dist = 20.0f;
+            hit = collision_line(&first, &second, 2, hero.moby, 0);
             if (hit != 0) {
-                distance = FUN_001f9b48_221310(&first, D_L00_00173E60_221310);
+                dist = fast_vec_dist(&first, &coll_hit.point);
+                if (!(3.0f < dist)) {
+                    return;
+                }
             }
-            if (hit == 0 || distance > 3.0f) {
-                f32 default_distance = 20.0f;
-                offset = -0.4f;
-                do {
-                    FUN_L00_00233660_221310(&probe, 1.1f + offset, zero, zero);
-                    if (!FUN_L00_001f0d60_221310(hero.unk234, &probe, 2, 0)) {
-                        break;
+            /* The loop spells its constants out again. loop.c hoists them and
+               cse2 turns 1.1f and 0.0f into copies of the registers that
+               already hold them (base is known to be the 0.0f just stored),
+               which gives retail's two mov.s before the loop. */
+            for (off = -0.4f; off < 0.5f; off += 0.1f) {
+                FUN_L00_00233660(&probe, off + 1.1f, 0.0f, 0.0f);
+                if (!FUN_L00_001f0d60(hero.unk234, &probe, 2, 0)) {
+                    hero.unk260 = 1;
+                    if (hit == 0) {
+                        hero.unk258 = 20.0f;
+                    } else {
+                        hero.unk258 = dist;
                     }
-                    offset += 0.1f;
-                    if (offset >= 0.5f) {
-                        return;
+                    hero.unk25C = hero.unk234 + off;
+                    if (hero.unk25C < 0.0f) {
+                        hero.unk25C = 0.0f;
                     }
-                } while (1);
-                hero_data->unk260 = 1;
-                if (hit == 0) hero_data->unk258 = default_distance;
-                else hero_data->unk258 = distance;
-                hero_data->unk25C = hero.unk234 + offset;
-                if (hero_data->unk25C < 0.0f) {
-                    hero_data->unk25C = 0.0f;
+                    return;
                 }
             }
         }
     }
 }
-#endif
 #include "eetypes.h"
 #include "qcopy.h"
 #include "rnc/gameplay/entities/moby.h"
@@ -112,18 +103,18 @@ extern f32 D_0015ED6C_2215c8 __asm__("D_0015ED6C");
 
 extern void FUN_L00_002165b8_2215c8(void) __asm__("FUN_L00_002165b8");
 extern s32 FUN_001f9740_2215c8(s32 *) __asm__("FUN_001f9740");
-extern s16 FUN_001f9770_2215c8(s16 *) __asm__("FUN_001f9770");
+extern s16 fast_dec_timer(s16 *) __asm__("FUN_001f9770");
 extern void FUN_L00_00210b30_2215c8(void) __asm__("FUN_L00_00210b30");
 extern s32 FUN_001f96f8_2215c8(s32) __asm__("FUN_001f96f8");
 extern s32 FUN_L00_00266d60_2215c8(s32, s32, s32) __asm__("FUN_L00_00266d60");
-extern struct Moby *FUN_0020c4f8_2215c8(s32) __asm__("FUN_0020c4f8");
+extern struct Moby *create_moby(s32) __asm__("FUN_0020c4f8");
 extern void FUN_L00_00250df8_2215c8(struct Moby *) __asm__("FUN_L00_00250df8");
 extern void FUN_L00_00210a08_2215c8(s32, s32, struct Moby *) __asm__("FUN_L00_00210a08");
-extern f32 FUN_L00_00233a78_2215c8(void *) __asm__("FUN_L00_00233a78");
-extern void FUN_001f99f8_2215c8(void *) __asm__("FUN_001f99f8");
+extern f32 gravity_z(void *) __asm__("FUN_L00_00233a78");
+extern void clear_u64_value(void *) __asm__("FUN_001f99f8");
 extern void FUN_001f9a28_2215c8(void *, void *, void *) __asm__("FUN_001f9a28");
-extern void FUN_001f9a10_2215c8(void *, void *, void *) __asm__("FUN_001f9a10");
-extern void FUN_001f9a68_2215c8(void *, void *, f32) __asm__("FUN_001f9a68");
+extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
+extern void scale_vector_xyz(void *, void *, f32) __asm__("FUN_001f9a68");
 extern f32 FUN_001f9af0_2215c8(void *) __asm__("FUN_001f9af0");
 extern void FUN_L00_00221b68_2215c8(void) __asm__("FUN_L00_00221b68");
 extern void FUN_L00_00233660_2215c8(void *, f32, f32, f32) __asm__("FUN_L00_00233660");
@@ -146,30 +137,30 @@ void FUN_L00_002215c8(void) {
     hero.unk1A4++;
     FUN_001f9740_2215c8(&hero.unk1C4);
     FUN_001f9740_2215c8(&hero.unk1C0);
-    FUN_001f9770_2215c8(&hero.unk1B2);
+    fast_dec_timer(&hero.unk1B2);
     FUN_001f9740_2215c8(&hero.unk1B8);
-    FUN_001f9770_2215c8(&hero.unk1D8);
-    FUN_001f9770_2215c8(&hero.unk1DE);
+    fast_dec_timer(&hero.unk1D8);
+    fast_dec_timer(&hero.unk1DE);
     FUN_001f9740_2215c8(&hero.unk1B4);
-    FUN_001f9770_2215c8(&hero.unk1F0);
-    FUN_001f9770_2215c8(&hero.unk1B0);
-    FUN_001f9770_2215c8(&hero.unk1C8);
-    FUN_001f9770_2215c8(&hero.unk1CA);
-    FUN_001f9770_2215c8(&hero.unk1E4);
-    FUN_001f9770_2215c8(&hero.unk1E6);
+    fast_dec_timer(&hero.unk1F0);
+    fast_dec_timer(&hero.unk1B0);
+    fast_dec_timer(&hero.unk1C8);
+    fast_dec_timer(&hero.unk1CA);
+    fast_dec_timer(&hero.unk1E4);
+    fast_dec_timer(&hero.unk1E6);
     FUN_001f9740_2215c8(&hero.unk1CC);
     FUN_001f9740_2215c8(&hero.unk1D0);
     FUN_001f9740_2215c8(&hero.unk1D4);
-    FUN_001f9770_2215c8(&hero.unk1E8);
-    FUN_001f9770_2215c8(&hero.unk1E0);
-    FUN_001f9770_2215c8(&hero.unk1EE);
-    FUN_001f9770_2215c8(&hero.unk1EA);
-    FUN_001f9770_2215c8(&hero.unk1F4);
-    FUN_001f9770_2215c8(&hero.unk1F2);
-    FUN_001f9770_2215c8(&hero.unk1DC);
-    FUN_001f9770_2215c8(&hero.unk1F6);
-    FUN_001f9770_2215c8(&hero.unk1DA);
-    FUN_001f9770_2215c8(&hero.unk1F8);
+    fast_dec_timer(&hero.unk1E8);
+    fast_dec_timer(&hero.unk1E0);
+    fast_dec_timer(&hero.unk1EE);
+    fast_dec_timer(&hero.unk1EA);
+    fast_dec_timer(&hero.unk1F4);
+    fast_dec_timer(&hero.unk1F2);
+    fast_dec_timer(&hero.unk1DC);
+    fast_dec_timer(&hero.unk1F6);
+    fast_dec_timer(&hero.unk1DA);
+    fast_dec_timer(&hero.unk1F8);
     if (!(D_0013C940_2215c8.held & 5)) {
         hero.unk1EC = 0;
     }
@@ -185,7 +176,7 @@ void FUN_L00_002215c8(void) {
         hero.unk1AC = 0;
         hero.unk1A8++;
     }
-    if (hero.unk22DE != 0 && FUN_001f9770_2215c8(&hero.unk22DE) != 0 &&
+    if (hero.unk22DE != 0 && fast_dec_timer(&hero.unk22DE) != 0 &&
         hero.health.hp != 0 && D_L00_0015F5C4_2215c8 == 0) {
         if (hero.unk20A4 == 3) {
             FUN_L00_00210b30_2215c8();
@@ -193,7 +184,7 @@ void FUN_L00_002215c8(void) {
                 hero.unk20A6 = 1;
             }
         } else {
-            m = FUN_0020c4f8_2215c8(0x27A);
+            m = create_moby(0x27A);
             hero.unkA8C = m;
             if (m != 0) {
                 qcopy(&m->pos, &hero.motion.pos);
@@ -208,15 +199,15 @@ void FUN_L00_002215c8(void) {
         }
     }
     if (hero.unk20A4 == 2) {
-        FUN_001f9770_2215c8(&hero.unk1636);
+        fast_dec_timer(&hero.unk1636);
     }
     for (i = 0; i < 5; i++) {
         FUN_001f9740_2215c8(&D_L00_001798F0_2215c8[i].w0);
     }
     hero.unk22B8 = 9999.0f;
-    if (hero.air_frames.s != 0 && FUN_L00_00233a78_2215c8(&hero.motion.velocity) < 0.0f) {
+    if (hero.air_frames.s != 0 && gravity_z(&hero.motion.velocity) < 0.0f) {
         if (hero.unk21B4 != 0x20) goto skip;
-        FUN_001f99f8_2215c8(&sum);
+        clear_u64_value(&sum);
         n8 = 8;
         for (i = 0; i < n8; i++) {
             n = hero.unk21B0 - i;
@@ -225,9 +216,9 @@ void FUN_L00_002215c8(void) {
                 s32 b = (n + 0x1E) % 32;
                 FUN_001f9a28_2215c8(&d, &hero.unk1B00[a], &hero.unk1B00[b]);
             }
-            FUN_001f9a10_2215c8(&sum, &sum, &d);
+            add_vector_xyz(&sum, &sum, &d);
         }
-        FUN_001f9a68_2215c8(&sum, &sum, 1.0f / (f32)n8);
+        scale_vector_xyz(&sum, &sum, 1.0f / (f32)n8);
         if (FUN_001f9af0_2215c8(&sum) < D_0015ED6C_2215c8) {
             hero.unk1E2++;
             goto skip;
@@ -653,7 +644,7 @@ extern void FUN_L00_002323b8(int, int, float);
 extern void FUN_L00_002325e0(int bank, int seq);
 extern void FUN_L00_00233b20(float *dst, float *src, float z);
 extern void FUN_L00_00250320(void *, void *, void *, void *);
-extern void FUN_L00_0025d808(int a, char *pos, char *b, char *c, int d, float f) __asm__("FUN_L00_0025d808");
+extern void sample_path(int a, char *pos, char *b, char *c, int d, float f) __asm__("FUN_L00_0025d808");
 extern void FUN_L00_0025f730(void *a, float x);
 extern void FUN_L00_00262500(int a, char *b);
 extern void FUN_L00_00262528(char *o, int a, int b);
@@ -1464,7 +1455,7 @@ int hero_set_state(int a, int b) {
         p->unk5B8 = 0;
         p->unk5BC = 0;
         p->unk5C0 = 0;
-        FUN_L00_0025d808(p->unk560, (char *)&out, (char *)&i, (char *)&f,
+        sample_path(p->unk560, (char *)&out, (char *)&i, (char *)&f,
                          p->unk584, 1.0f);
         subtract_vector_xyz(&d.v, &out, &p->motion.pos);
         if (0.001f < vector_length_xyz(&d.v)) {
@@ -1507,7 +1498,7 @@ int hero_set_state(int a, int b) {
         t = p->unk5F8;
         i = p->unk5F4;
         f = t;
-        FUN_L00_0025d808(((int)p->unk5F0), (char *)&out, (char *)&i, (char *)&f,
+        sample_path(((int)p->unk5F0), (char *)&out, (char *)&i, (char *)&f,
                          p->unk60C, 1.0f);
         subtract_vector_xyz(&d.v, &out, &p->motion.pos);
         if (0.001f < vector_length_xyz(&d.v)) {
@@ -3048,79 +3039,6 @@ int FUN_L00_002276c0(void) {
     }
     return 0;
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00227778.s", FUN_L00_00227778);
-#else
-extern unsigned char D_0013D4C0[];
-extern unsigned int D_0013CAE0 __attribute__((section(".data")));
-extern int D_L00_00167014[];
-extern int FUN_L00_001fef20(int);
-extern void FUN_L00_00235700(int, int, void *, void *, void *, void *, int);
-extern void FUN_L00_00236268(void);
-extern void FUN_L00_00236458(void);
-extern void FUN_L00_002365a8(void);
-extern int FUN_L00_001efc70(void *, void *, int, void *, int);
-
-int FUN_L00_00227778(void) {
-    Vec4 start;
-    Vec4 end;
-    int decrement;
-    int state;
-
-    if (hero.state.control_mode == 0x11) {
-        if (D_0013D4C0[6] != 0) {
-            decrement = 0;
-            goto decrement_timer;
-        } else {
-            decrement = 10000 / (FUN_L00_001fef20(0x3C) * 15);
-            FUN_L00_00235700(4, 0x753F, FUN_L00_00236268,
-                FUN_L00_00236458, FUN_L00_002365a8, &hero.unk22A0, 10000);
-        }
-decrement_timer:
-        hero.unk22A0 -= decrement;
-        if (hero.unk22A0 < 0) {
-            hero.unk22A0 = 0;
-        }
-        if (hero.unk22A0 == 0 &&
-            (!(hero.height_threshold - 2.0f < hero.motion.pos.f[2]) ||
-             !(hero.motion.rot.f[1] < -0.87266463f) ||
-             !(D_0015ED6C_2215c8 < hero.motion.unk100.f[2]))) {
-            state = 0x6A;
-            goto change_state;
-        }
-        if (hero.height_threshold + 0.4f < hero.motion.pos.f[2]) {
-            D_L00_00167014[0] = 0;
-            state = 6;
-        } else {
-            goto collision_mode;
-        }
-change_state:
-        hero_set_state(state, 1);
-        return 1;
-    }
-    if (hero.state.current != 0x6A && hero.state.current != 0x76) {
-        hero.unk22A0 = 10000;
-    }
-
-collision_mode:
-    if (hero.state.control_mode != 0x12) {
-        return 0;
-    }
-    qcopy(&start, &hero.motion.pos);
-    start.f[2] = hero.height_threshold + 0.01f;
-    qcopy(&end, &start);
-    end.f[2] = start.f[2] + 0.3f;
-    if (!FUN_L00_001efc70(&start, &end, 2, hero.moby, 0)) {
-        return 0;
-    }
-    if (D_0013D4C0[4] != 0 && (D_0013CAE0 & 10) != 0) {
-        hero_set_state(0x35, 1);
-        return 1;
-    }
-    hero_set_state(0x33, 1);
-    return 1;
-}
-#endif
 /* Ported from rac1-decomp (src/overlays/shared/help_00221A98.c: func_L00_00228180), where it is exact; names translated to the US level program. */
 
 extern float D_L00_00173E68 __attribute__((section(".data")));
@@ -3246,7 +3164,7 @@ extern f32 D_0015ED6C_227d40 __asm__("D_0015ED6C");
 s32 FUN_001f96f8_227d40(s32) __asm__("FUN_001f96f8");
 f32 FUN_001f99c0_227d40(f32) __asm__("FUN_001f99c0");
 void FUN_L00_0025b8c0_227d40(f32 *, f32 *, f32, f32, f32, f32) __asm__("FUN_L00_0025b8c0");
-void FUN_00213ed8_227d40(f32 *, f32, f32) __asm__("FUN_00213ed8");
+void approach_value(f32 *, f32, f32) __asm__("FUN_00213ed8");
 #define G D_0013F350_227d40
 void FUN_L00_00227d40(void) {
     if (G.i198 > FUN_001f96f8_227d40(10) || G.f690 < 0.0f || G.i2094 == 0x11 || G.i20A0 == 0x11) {
@@ -3264,7 +3182,7 @@ void FUN_L00_00227d40(void) {
     if (G.i2084 == 0x36 && 0.0f < G.f690) {
         if (0.0f < G.f694)
             G.f694 = 0.0f;
-        FUN_00213ed8_227d40(&G.f690, 0.0f, D_0015ED6C_227d40 * 0.7f);
+        approach_value(&G.f690, 0.0f, D_0015ED6C_227d40 * 0.7f);
     }
     if (G.i2084 != 0x7F) {
         f32 h = G.f2F0;
@@ -3275,7 +3193,421 @@ void FUN_L00_00227d40(void) {
     }
     G.f88 = G.f69C + -0.12f + G.f690;
 }
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00227fa0.s", FUN_L00_00227fa0);
+/* Ported from rac1-decomp (src/overlays/shared/help_00221A98.c: func_L00_00228770), where it is exact; names translated to the US level program. */
+typedef struct {
+    char p0[0x20];
+    u8 state;
+    char p21[0x57];
+    u8 *pvars;
+    char p7C[0x2A];
+    s16 oclass;
+} Moby_227fa0;
+typedef struct {
+    char p0[0xC];
+    int fC;
+} PVar_228770;
+typedef struct {
+    char p0[0x80] __attribute__((aligned(16)));
+    char p80[0x118];
+    int f198;
+    char p19C[0x4A];
+    short f1E6;
+    char p1E8[0xF4];
+    float f2DC;
+    char p2E0[0x20];
+    int f300;
+    char p304[0x4];
+    short f308;
+    short f30A;
+    short f30C;
+    short f30E;
+    char p310[0x108];
+    int f418;
+    short f41C;
+    short f41E;
+    char p420[0x30];
+    int f450;
+    char p454[0x58];
+    short f4AC;
+    char p4AE[0x14E];
+    int f5FC;
+    char p600[0x368];
+    int f968;
+    char p96C[0x18];
+    float f984;
+    char p988[0x10];
+    float f998;
+    short f99C;
+    short f99E;
+    char p9A0[0xC0];
+    int fA60;
+    char pA64[0x38];
+    int fA9C;
+    char pAA0[0x8];
+    float fAA8;
+    char pAAC[0x5E4];
+    Moby_227fa0 *f1090;
+    char p1094[0xC];
+    int f10A0;
+    char p10A4[0xC];
+    int f10B0;
+    int f10B4;
+    int f10B8;
+    char p10BC[0x22E];
+    unsigned char f12EA;
+    char p12EB[0xD99];
+    int f2084;
+    int f2088;
+    int f208C;
+    char p2090[0x14];
+    unsigned char f20A4;
+    char p20A5[0x3];
+    unsigned char f20A8;
+    char p20A9[0x3];
+    unsigned char f20AC;
+    char p20AD[0x1EF];
+    float f229C;
+    char p22A0[0x2A];
+    unsigned char f22CA;
+    char p22CB[0xD];
+    short f22D8;
+    char p22DA[0x2];
+    short f22DC;
+    short f22DE;
+} Hero_228770;
+typedef struct {
+    char p0[0x1A0] __attribute__((aligned(16)));
+    int f1A0;
+    int f1A4;
+} Pad_228770;
+typedef struct {
+    char p0[0xC];
+    int fC;
+    int f10;
+    char p14[0x18];
+} Rec2C_228770;
+extern Hero_228770 D_0013F450_h228770 __asm__("D_0013F350");
+extern Pad_228770 D_0013CA40_p228770 __asm__("D_0013C940");
+extern int D_00141760_228770 __asm__("D_00141660") __attribute__((section(".data")));
+extern unsigned char item_available[] __asm__("D_0013D4C0");
+extern Rec2C_228770 D_L00_0017BD28_228770[] __asm__("D_L00_0017BC28");
+extern int D_L00_0015F674_227fa0 __asm__("D_L00_0015F674") __attribute__((sda));
+
+/* Gadget and weapon input for the current hero state: starts the matching move and returns 1 when the state changed. */
+extern int f_fun_l00_00211360_227fa0(char *) __asm__("FUN_L00_00211360");
+extern void f_fun_l00_00217658_227fa0(void) __asm__("FUN_L00_00217658");
+extern int f_fun_l00_002223f8_227fa0(int, int) __asm__("FUN_L00_002223f8");
+extern void f_fun_l00_00221ee0_227fa0(void) __asm__("FUN_L00_00221ee0");
+extern int f_fun_l00_00222158_227fa0(void) __asm__("FUN_L00_00222158");
+extern int f_fun_l00_0020fe30_227fa0(void) __asm__("FUN_L00_0020fe30");
+extern int f_fun_l00_00216de8_227fa0(int, int) __asm__("FUN_L00_00216de8");
+extern void f_fun_l00_0029a6b0_227fa0(void *) __asm__("FUN_L00_0029a6b0");
+extern int f_fun_l00_00233e98_227fa0(int) __asm__("FUN_L00_00233e98");
+extern void f_fun_l00_0020e4c8_227fa0(void) __asm__("FUN_L00_0020e4c8");
+extern int engine_voice_playing(void *, int) __asm__("FUN_L00_0028d8c0");
+extern int f_fun_0022da68_227fa0(int, int, int) __asm__("FUN_0022da68");
+extern int f_fun_l00_0020d498_227fa0(int) __asm__("FUN_L00_0020d498");
+extern int f_fun_l00_00266d60_227fa0(int, int, int *) __asm__("FUN_L00_00266d60");
+extern int f_fun_001f9740_227fa0(int *) __asm__("FUN_001f9740");
+extern int f_fun_001f96f8_227fa0(int) __asm__("FUN_001f96f8");
+extern int f_fun_001fa6d0_227fa0(float) __asm__("FUN_001fa6d0");
+
+int FUN_L00_00227fa0(void) {
+    int out[3];
+    int start;
+    int mask;
+
+    if (D_0013F450_h228770.f20AC != 0 && (D_0013F450_h228770.f10B8 != 8 || D_0013F450_h228770.f308 != 1)) {
+        return 0;
+    }
+    if (D_0013F450_h228770.f20A4 != 0) {
+        return 0;
+    }
+    if (D_0013F450_h228770.f1090 == 0) {
+        return 0;
+    }
+    if (D_0013F450_h228770.f10B4 != 2) {
+        return 0;
+    }
+    start = D_0013F450_h228770.f198;
+    mask = D_0013F450_h228770.f10A0;
+    switch (D_0013F450_h228770.f10B8) {
+    case 8:
+        if (D_0013F450_h228770.f208C < 2U || (D_0013F450_h228770.f208C == 4 && D_0013F450_h228770.f418 != 0)) {
+            Moby_227fa0 *m;
+
+            if (D_0013F450_h228770.f12EA != 0) {
+                break;
+            }
+            if (!f_fun_l00_00266d60_227fa0(mask, f_fun_001f96f8_227fa0(7), &out[0])) {
+                break;
+            }
+            m = D_0013F450_h228770.f1090;
+            if (m == 0) {
+                break;
+            }
+            if (!f_fun_l00_00211360_227fa0((char *)m)) {
+                break;
+            }
+            if (m->state != 0) {
+                break;
+            }
+            if ((D_0013CA40_p228770.f1A0 & 0xA) || ((D_0013F450_h228770.f2084 == 1 || D_0013F450_h228770.f2084 == 0x1E) && D_0013F450_h228770.f198 > f_fun_001f96f8_227fa0(0x14))) {
+                if ((D_0013F450_h228770.f2084 == 1 || D_0013F450_h228770.f2084 == 0x1E) && D_0013F450_h228770.f198 > f_fun_001f96f8_227fa0(0x14)) {
+                    f_fun_l00_00217658_227fa0();
+                    break;
+                }
+                f_fun_l00_002223f8_227fa0(0x15, 1);
+                break;
+            }
+            if (D_0013F450_h228770.f308 == 1) {
+                f_fun_l00_002223f8_227fa0(0x70, 1);
+            } else {
+                f_fun_l00_002223f8_227fa0(0x13, 1);
+            }
+            break;
+        }
+        if (D_0013F450_h228770.f2084 == 7 || D_0013F450_h228770.f2084 == 9 || D_0013F450_h228770.f2084 == 8 || D_0013F450_h228770.f2084 == 6
+            || (D_0013F450_h228770.f2084 == 0xE && D_0013F450_h228770.fAA8 > 32.0f)
+            || (D_0013F450_h228770.f2084 == 0xB && D_0013F450_h228770.f450 != 3 && D_0013F450_h228770.fAA8 > 18.0f) || (D_0013F450_h228770.f2084 == 0xB && D_0013F450_h228770.f450 == 3 && D_0013F450_h228770.fAA8 > 20.0f)
+            || D_0013F450_h228770.f2084 == 0x2D || D_0013F450_h228770.f2084 == 0x11) {
+            if (D_0013F450_h228770.f198 > f_fun_001f96f8_227fa0(0xA)) {
+                int t = f_fun_001f96f8_227fa0(0xA);
+
+                if (D_0013F450_h228770.f2084 == 0xB || D_0013F450_h228770.f2084 == 0xE) {
+                    t = f_fun_001f96f8_227fa0(0x12);
+                }
+                if (!f_fun_l00_00266d60_227fa0(mask, t, 0)) {
+                    break;
+                }
+                if ((D_0013F450_h228770.f41E == 0 && D_0013F450_h228770.f2DC > 0.1f) || (D_0013F450_h228770.f41E != 0 && D_0013F450_h228770.f2DC > 0.57f)
+                    || (D_0013F450_h228770.f2084 == 8 && D_0013F450_h228770.f2DC > 0.57f)) {
+                    if (D_0013F450_h228770.f5FC != 0) {
+                        break;
+                    }
+                    f_fun_l00_002223f8_227fa0(0x14, 1);
+                    break;
+                }
+                if (D_0013F450_h228770.f12EA != 0) {
+                    break;
+                }
+                f_fun_l00_002223f8_227fa0(0x13, 1);
+                break;
+            }
+        }
+        if (D_0013F450_h228770.f208C == 6) {
+            Rec2C_228770 *rec = &D_L00_0017BD28_228770[D_0013F450_h228770.fA60];
+            int t;
+
+            if (D_0013F450_h228770.f2084 == 0x15) {
+                if (D_0013F450_h228770.f198 > f_fun_001f96f8_227fa0(0x1E)) {
+                    if (D_0013F450_h228770.fA9C != 0) {
+                        break;
+                    }
+                    if (D_0013F450_h228770.fAA8 >= (float)rec->f10 && (D_0013CA40_p228770.f1A0 & 0xA) && f_fun_l00_00266d60_227fa0(mask, f_fun_001f96f8_227fa0(0xF), 0)) {
+                        f_fun_l00_002223f8_227fa0(0x15, 1);
+                        break;
+                    }
+                }
+            }
+            if (D_0013F450_h228770.fA9C != 0) {
+                break;
+            }
+            if (!(D_0013F450_h228770.fAA8 >= (float)rec->f10)) {
+                break;
+            }
+            t = (f_fun_001fa6d0_227fa0(D_0013F450_h228770.fAA8) - rec->fC) * 2;
+            if (t <= 0) {
+                t = 1;
+            }
+            if (t > f_fun_001f96f8_227fa0(0xF)) {
+                t = f_fun_001f96f8_227fa0(0xF);
+            }
+            if (D_0013F450_h228770.f12EA != 0) {
+                break;
+            }
+            if (!f_fun_l00_00266d60_227fa0(mask, t, 0)) {
+                break;
+            }
+            if (D_0013CA40_p228770.f1A0 & 0xA) {
+                f_fun_l00_002223f8_227fa0(0x15, 1);
+                break;
+            }
+            if (D_0013F450_h228770.f308 == 1) {
+                f_fun_l00_002223f8_227fa0(0x70, 1);
+            } else {
+                f_fun_l00_002223f8_227fa0(0x13, 1);
+            }
+        }
+        break;
+    case 12:
+        {
+            int t;
+
+            f_fun_l00_00221ee0_227fa0();
+            f_fun_l00_00222158_227fa0();
+            t = f_fun_001f96f8_227fa0(5);
+            if (D_0013F450_h228770.f30E != 0) {
+                t = f_fun_001f96f8_227fa0(8);
+            }
+            if (D_0013F450_h228770.f208C < 2U || D_0013F450_h228770.f208C == 4 || D_0013F450_h228770.f208C == 2 || D_0013F450_h228770.f208C == 0xF
+                || D_0013F450_h228770.f208C == 5 || D_0013F450_h228770.f2084 == 0x1E) {
+                if (f_fun_l00_00266d60_227fa0(mask, t, 0) || ((D_0013CA40_p228770.f1A0 & mask) && D_0013F450_h228770.f10B0 > f_fun_001f96f8_227fa0(0xF))) {
+                    if (D_0013F450_h228770.f99E != 0) {
+                        if (D_0013F450_h228770.f968 != 0) {
+                            if (D_0013F450_h228770.f998 < D_0013F450_h228770.f984) {
+                                D_0013F450_h228770.f968 = 0;
+                            } else {
+                                D_0013F450_h228770.f99E = 0;
+                            }
+                        }
+                        if (D_0013F450_h228770.f99E != 0 && D_0013F450_h228770.f1E6 == 0 && D_0013F450_h228770.f2084 != 0x2C) {
+                            f_fun_l00_002223f8_227fa0(0x2C, 1);
+                            break;
+                        }
+                    }
+                    if (D_0013F450_h228770.f968 != 0 && D_0013F450_h228770.f1E6 == 0) {
+                        f_fun_l00_002223f8_227fa0(0x24, 1);
+                    }
+                }
+            }
+        }
+        break;
+    case 31:
+        if (D_0013F450_h228770.f20A4 != 0) {
+            break;
+        }
+        if (!f_fun_l00_0020fe30_227fa0()) {
+            break;
+        }
+        if (!f_fun_l00_00266d60_227fa0(mask, f_fun_001f96f8_227fa0(7), 0)) {
+            break;
+        }
+        if (D_00141760_228770 != 0x1F) {
+            break;
+        }
+        if (D_0013F450_h228770.f1090->oclass != 0x1E3) {
+            break;
+        }
+        if (D_0013F450_h228770.f22DE != 0) {
+            break;
+        }
+        f_fun_l00_00216de8_227fa0(0x18, 0);
+        D_0013F450_h228770.f22DE = 0x12;
+        D_0013F450_h228770.f22DC = 1;
+        break;
+    case 32:
+        if (D_0013F450_h228770.f208C < 3U || D_0013F450_h228770.f208C == 4 || D_0013F450_h228770.f208C == 5) {
+            if (f_fun_l00_00266d60_227fa0(mask, f_fun_001f96f8_227fa0(8), 0)) {
+                f_fun_l00_0029a6b0_227fa0(0);
+            }
+        }
+        break;
+    case 15:
+        if (D_0013F450_h228770.f208C < 2U || D_0013F450_h228770.f208C == 0xC || D_0013F450_h228770.f208C == 2 || D_0013F450_h228770.f208C == 4
+            || D_0013F450_h228770.f208C == 5 || D_0013F450_h228770.f208C == 0xF || D_0013F450_h228770.f2084 == 0x1E) {
+            PVar_228770 *pv;
+
+            if (D_0013F450_h228770.f1090 == 0) {
+                break;
+            }
+            pv = *(PVar_228770 **)&D_0013F450_h228770.f1090->pvars;
+            if (((D_0013CA40_p228770.f1A0 & mask) && D_0013F450_h228770.f10B0 > f_fun_001f96f8_227fa0(5)) || (D_0013CA40_p228770.f1A4 & mask)) {
+                if (f_fun_l00_00233e98_227fa0(-1)) {
+                    if (D_0013F450_h228770.f20A8 == 0) {
+                        f_fun_l00_0020e4c8_227fa0();
+                    }
+                    break;
+                }
+            }
+            if (D_0013CA40_p228770.f1A0 & mask) {
+                if (!f_fun_l00_00233e98_227fa0(-1)) {
+                    if (!engine_voice_playing(D_0013F450_h228770.f1090, pv->fC)) {
+                        pv->fC = f_fun_0022da68_227fa0(0, 0, (int)D_0013F450_h228770.f1090);
+                    }
+                }
+            }
+        }
+        break;
+    case 10:
+    case 17:
+    case 20:
+    case 24:
+    case 25:
+        if ((D_0013F450_h228770.f208C == 0 && D_0013F450_h228770.f2084 != 0x1E) || D_0013F450_h228770.f208C == 1 || D_0013F450_h228770.f208C == 0xC
+            || D_0013F450_h228770.f208C == 5 || D_0013F450_h228770.f208C == 0xF || (D_0013F450_h228770.f208C == 4 && D_0013F450_h228770.f4AC != 0)
+            || (D_0013F450_h228770.f2084 == 0x23 && D_0013F450_h228770.fAA8 > 25.0f)) {
+            int t;
+            int n;
+
+            if (D_0013F450_h228770.f20A8 != 0) {
+                break;
+            }
+            t = f_fun_001f96f8_227fa0(7);
+            n = D_0013F450_h228770.f10B0;
+            if (f_fun_l00_00266d60_227fa0(mask, t <= n ? t : n, &out[1])
+                || ((D_0013CA40_p228770.f1A0 & 0x20) && n > f_fun_001f96f8_227fa0(8) && n < f_fun_001f96f8_227fa0(0x11))) {
+                if (f_fun_l00_00233e98_227fa0(-1)) {
+                    if (D_0013F450_h228770.f208C == 0xC || D_0013F450_h228770.f208C == 0 || D_0013F450_h228770.f2084 == 3
+                        || (D_0013F450_h228770.f208C == 1 && D_0013F450_h228770.f229C < 0.7f)) {
+                        f_fun_l00_002223f8_227fa0(0x23, 1);
+                    } else {
+                        f_fun_l00_0020e4c8_227fa0();
+                    }
+                    break;
+                }
+                if (D_0013F450_h228770.f1090 != 0) {
+                    f_fun_0022da68_227fa0(0, 0, (int)D_0013F450_h228770.f1090);
+                }
+            }
+        }
+        break;
+    case 18:
+        if (D_0013F450_h228770.f208C < 2U || (D_0013F450_h228770.f208C == 4 && D_0013F450_h228770.f418 != 0)) {
+            if (D_0013F450_h228770.f2084 != 1) {
+                int t = f_fun_001f96f8_227fa0(0xA);
+                int n = D_0013F450_h228770.f10B0;
+
+                if (f_fun_l00_00266d60_227fa0(mask, t <= n ? t : n, &out[2])) {
+                    if (D_0013F450_h228770.f1090 != 0) {
+                        f_fun_l00_002223f8_227fa0(0x20, 1);
+                        if (D_0013F450_h228770.f1090 != 0) {
+                            f_fun_0022da68_227fa0(0, 0, (int)D_0013F450_h228770.f1090);
+                        }
+                    }
+                }
+            }
+        }
+        break;
+    case 21:
+        if (D_0013F450_h228770.f1090 != 0) {
+            if (D_0013CA40_p228770.f1A4 & mask) {
+                f_fun_l00_0020e4c8_227fa0();
+            }
+        }
+        break;
+    }
+    if (D_0013F450_h228770.f198 == start) {
+        if (f_fun_l00_0020d498_227fa0(3) == 3 && D_0013F450_h228770.f2084 != 0x81 && (D_0013F450_h228770.f308 == 0 || item_available[0x1C] == 0)
+            && D_0013F450_h228770.f22D8 == 0) {
+            f_fun_001f9740_227fa0(&D_L00_0015F674_227fa0);
+            if (D_L00_0015F674_227fa0 != 0) {
+                if (D_0013F450_h228770.f208C < 2U || D_0013F450_h228770.f208C == 0xC
+                    || ((D_0013F450_h228770.f208C == 2 || D_0013F450_h228770.f208C == 4) && D_0013F450_h228770.f300 != 0)) {
+                    if ((D_0013CA40_p228770.f1A0 & 8) && (D_0013CA40_p228770.f1A4 & 8)) {
+                        f_fun_l00_002223f8_227fa0(0x81, 1);
+                    }
+                }
+            }
+            if ((D_0013CA40_p228770.f1A4 & 8) && D_0013F450_h228770.f2084 != 0x81) {
+                D_L00_0015F674_227fa0 = f_fun_001f96f8_227fa0(0x1E);
+            }
+        } else if (D_0013F450_h228770.f2084 != 0x13 && D_0013F450_h228770.f2084 != 0x81 && D_0013F450_h228770.f2084 != 0x15 && D_0013F450_h228770.f2084 != 0x16) {
+            D_0013F450_h228770.f22CA = 0;
+        }
+    }
+    return D_0013F450_h228770.f198 < start;
+}
 #define NOT_SDA
 
 #define MACRO_ADDR
