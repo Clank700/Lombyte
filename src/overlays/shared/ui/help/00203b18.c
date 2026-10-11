@@ -32,7 +32,134 @@ extern char D_L00_00179448[];
 void FUN_L00_00203b78(void) {
     *(short *)D_L00_00179448 = 0;
 }
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00204c60.s", FUN_L00_00204c60);
+#else
+#include "rnc/overlay/quad.h"
+extern char D_0013F350_204c60[] __asm__("D_0013F350");
+extern char D_L00_0017A680_204c60[] __asm__("D_L00_0017A680");
+extern u32 D_L00_0015FFD8;
+extern volatile s32 D_00141660 __attribute__((section(".data")));
+extern s32 D_L00_00160540;
+extern u32 D_0015EDA0;
+extern void fill_transfer_words_204c60(void *, s32, s32) __asm__("FUN_001f97e8");
+extern void clear_u64_value_204c60(void *) __asm__("FUN_001f99f8");
+extern f32 ground_height_204c60(f32, void *, s32) __asm__("FUN_00213508");
+extern void FUN_L00_002127b8(void);
+extern void FUN_L00_00208820(void);
+extern s32 FUN_001f96f8_204c60(s32) __asm__("FUN_001f96f8");
+extern s32 FUN_L00_00257b90(s32, s32);
+
+void FUN_L00_00204c60(void) {
+    char *g;
+    u32 *src;
+    volatile u32 saved[7];
+    u32 *entry;
+    u32 end;
+    s32 i;
+    f32 value;
+    char *record;
+    char *p40, *p50, *p60, *p70, *p80, *p90, *active;
+    u32 *saved_entry;
+    OvlQuad *quad_src, *quad_dst;
+    s32 *slot;
+    s32 low, high;
+    u32 *cursor;
+    volatile u32 *dest;
+
+    src = (u32 *)(D_0013F350_204c60 + 0x10B8);
+    cursor = src;
+    dest = saved;
+    for (i = 6; i >= 0; i--) {
+        *dest++ = *cursor;
+        cursor = (u32 *)((char *)cursor + 0x50);
+    }
+    fill_transfer_words_204c60(D_0013F350_204c60, 0, 0x2310);
+    g = D_0013F350_204c60;
+    src = (u32 *)(g + 0x10B8);
+    cursor = src;
+    dest = saved;
+    for (i = 6; i >= 0; i--) {
+        *dest++ = *cursor;
+        cursor = (u32 *)((char *)cursor + 0x50);
+    }
+
+    end = D_L00_0015FFDC;
+    entry = (u32 *)D_L00_0015FFD8;
+    if ((u32)entry < end) {
+        do {
+            if (*(s16 *)((char *)entry + 0xA6) == 0) {
+                *(u32 *)(g + 0x2080) = (u32)entry;
+                value = ground_height_204c60(0.5f, (char *)entry + 0x10, 0);
+                if (value > 0.0f) {
+                    saved_entry = (u32 *)*(u32 *)(g + 0x2080);
+                    *(f32 *)((char *)saved_entry + 0x18) = value;
+                }
+                saved_entry = (u32 *)*(u32 *)(g + 0x2080);
+                *(u16 *)((char *)saved_entry + 0x34) |= 2;
+                saved_entry = (u32 *)*(u32 *)(g + 0x2080);
+                *(u32 *)(g + 0xA88) = (u32)saved_entry;
+                *(f32 *)(g + 0x98) = *(f32 *)((char *)saved_entry + 0x48);
+                quad_src = (OvlQuad *)((char *)saved_entry + 0x10);
+                quad_dst = (OvlQuad *)(g + 0x80);
+                *quad_dst = *quad_src;
+                FUN_L00_002127b8();
+                FUN_L00_00208820();
+                if (D_L00_00160540 == 0) {
+                    quad_src = (OvlQuad *)(g + 0x80);
+                    quad_dst = (OvlQuad *)0x13E090;
+                    *quad_dst = *quad_src;
+                    quad_src = (OvlQuad *)(g + 0x90);
+                    quad_dst = (OvlQuad *)0x13E0A0;
+                    *quad_dst = *quad_src;
+                }
+                break;
+            }
+            entry = (u32 *)((char *)entry + 0x100);
+        } while ((u32)entry < end);
+    }
+    if (D_00141660 == 0)
+        D_00141660 = 10;
+    record = D_L00_0017A680_204c60;
+    active = record + 1;
+    p80 = record + 0x80;
+    p70 = record + 0x70;
+    p90 = record + 0x90;
+    p50 = record + 0x50;
+    p40 = record + 0x40;
+    p60 = record + 0x60;
+    for (i = 30; i >= 0; i--) {
+        *active = 0;
+        clear_u64_value_204c60(p60);
+        p60 += 0xB0;
+        active += 0xB0;
+        clear_u64_value_204c60(p40);
+        p40 += 0xB0;
+        clear_u64_value_204c60(p50);
+        p50 += 0xB0;
+        clear_u64_value_204c60(p90);
+        p90 += 0xB0;
+        clear_u64_value_204c60(p70);
+        p70 += 0xB0;
+        clear_u64_value_204c60(p80);
+        p80 += 0xB0;
+    }
+    slot = (s32 *)(D_0013F350_204c60 + 0x2234);
+    for (i = 7; i >= 0; i--, slot--)
+        *slot = -1;
+    *(u32 *)(g + 0x22A8) = D_0015EDA0;
+    *(f32 *)(g + 0x2288) = 2.125f;
+    *(f32 *)(g + 0x228C) = 1.25f;
+    *(s32 *)(g + 0x22AC) = 4;
+    *(u16 *)(g + 0x22B0) = *(u16 *)(g + 0x22A8);
+    low = FUN_001f96f8_204c60(0xB4);
+    high = FUN_001f96f8_204c60(0x12C);
+    *(s32 *)(g + 0x1010) = FUN_L00_00257b90(low, high);
+    *(f32 *)(g + 0xD20) = 0.97f;
+    *(f32 *)(g + 0x1014) = 0.007f;
+    *(f32 *)(g + 0x1018) = 0.3f;
+}
+#endif
 #define NOT_SDA
 
 #define MACRO_ADDR
@@ -272,7 +399,73 @@ void FUN_L00_00205600(void) {
         }
     }
 }
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002056a8.s", FUN_L00_002056a8);
+#else
+typedef u32 Quad_56a8 __attribute__((mode(TI), aligned(16)));
+extern u8 D_L00_0017A680_56a8[] __asm__("D_L00_0017A680");
+
+void FUN_L00_002056a8(void) {
+    u8 *g = (u8 *)&hero;
+    u8 *e = D_L00_0017A680_56a8;
+    s32 i;
+    s32 *timer = (s32 *)(g + 0xff0);
+    f32 *pitch = (f32 *)(e + 0x8a4);
+    f32 *yaw = (f32 *)(e + 0x8a8);
+
+    *yaw = *(f32 *)(e + 0x278) * 0.25f;
+    if (*yaw > 0.14835298f)
+        *yaw = 0.14835298f;
+    else if (*yaw < -0.14835298f)
+        *yaw = -0.14835298f;
+    *pitch = *(f32 *)(e + 0x274) / 2.8f;
+    if (*pitch > 0.29670596f)
+        *pitch = 0.29670596f;
+    if (*pitch < -0.17453292f)
+        *pitch = -0.17453292f;
+    if ((u8)(*(u8 *)(*(u32 *)(g + 0x2080) + 0x53) - 1) < 2) {
+        if (*yaw > 0.034906585f)
+            *yaw = 0.034906585f;
+        if (*yaw < -0.034906585f)
+            *yaw = -0.034906585f;
+        if (*pitch > 0.12217305f)
+            *pitch = 0.12217305f;
+        if (*pitch < -0.12217305f)
+            *pitch = -0.12217305f;
+    }
+    FUN_L00_00205600();
+    if (*timer != 0) {
+        *timer = *timer + 1;
+        if (*timer > 11)
+            *timer = 0;
+        if (*timer == 0) {
+            u8 *slot = g + 0xd30;
+            u8 *active = g + 0xd31;
+            for (i = 6; i >= 0; i--, slot += 0x40, active += 0x40) {
+                if (*active != 0)
+                    detach_manipulator(*(s32 *)(g + 0x2080), slot);
+            }
+        } else {
+            u8 *slot = g + 0xd30;
+            Quad_56a8 *src_a = (Quad_56a8 *)0x17c040;
+            Quad_56a8 *src_b = (Quad_56a8 *)0x17c0b0;
+            Quad_56a8 *src_c = (Quad_56a8 *)0x17c120;
+            s32 *kind = (s32 *)0x17c1c0;
+            for (i = 0; i < 7; i++, slot += 0x40, src_a++, src_b++, src_c++, kind++) {
+                if (slot[1] == 0) {
+                    attach_manipulator(*(s32 *)(g + 0x2080), *kind, slot);
+                    slot[3] = 1;
+                    *(Quad_56a8 *)(slot + 0x10) = *src_a;
+                    *(Quad_56a8 *)(slot + 0x20) = *src_b;
+                    *(Quad_56a8 *)(slot + 0x30) = *src_c;
+                }
+            }
+            for (i = 0; i < 7; i++)
+                *(f32 *)(g + 0xd3c + i * 0x40) = *(f32 *)(0x17c190 + *timer * 4);
+        }
+    }
+}
+#endif
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002059d8.s", FUN_L00_002059d8);
 #define NOT_SDA
 
@@ -511,63 +704,95 @@ extern s32 FUN_001f96f8(s32);
 extern void queue_dialogue_message_00206e00(s32, s32) __asm__("FUN_L00_00263d40");
 
 void FUN_L00_00206e00(void) {
-    s32 input = 0;
+    struct Hero *g;
+    s32 input;
     s32 level;
     s32 i, j, length, position;
     u8 *sequence;
+    u8 *history;
     s32 *history_count;
     if (D_0015EEA0 == 0 && D_0015EE20 == 0)
         return;
+    g = &hero;
     level = FUN_001f96f8(15);
-    if (hero.state_timer == level) {
-        if (hero.state.control_mode == 4) {
-            if (hero.state.current == 0xB) {
-                if (hero.unk450 == 0)
-                    input = D_0015EDB4 ? 2 : 1;
-                else if (hero.unk450 == 1)
-                    input = D_0015EDB4 ? 1 : 2;
-                else if (hero.unk450 == 3)
-                    input = 3;
-            } else if (hero.state.current == 0x11)
+    input = 0;
+    if (g->state_timer == level) {
+        if (g->state.control_mode == 4) {
+            if (g->state.current == 0xB) {
+                if (g->unk450 == 0) {
+                    input = 1;
+                    if (D_0015EDB4)
+                        input = 2;
+                    goto append;
+                }
+                if (g->unk450 == 1) {
+                    input = 2;
+                    if (D_0015EDB4)
+                        input = 1;
+                    goto append;
+                }
+                input = 3;
+                if (g->unk450 != 3)
+                    input = 0;
+            } else if (g->state.current == 0x11) {
                 input = 9;
-            else if (hero.state.current == 0xA)
+                goto append;
+            } else if (g->state.current == 0xA) {
                 input = 10;
-            else if (hero.state.current == 0xE)
+                goto append;
+            } else {
                 input = 5;
-        } else if (hero.state.control_mode == 6) {
-            if (hero.state.current == 0x14)
+                if (g->state.current != 0xE)
+                    input = 0;
+            }
+        } else if (g->state.control_mode == 6) {
+            if (g->state.current == 0x14) {
                 input = 6;
-            else if (hero.state.current == 0x13)
-                input = hero.unkA60 + 12;
-            else if (hero.state.current == 0x15)
-                input = 4;
-        } else if (hero.state.current == 0x22)
+                goto append;
+            }
+            if (g->state.current == 0x13) {
+                input = g->unkA60 + 12;
+                goto append;
+            }
+            input = 4;
+            if (g->state.current != 0x15)
+                input = 0;
+        } else {
             input = 11;
-    } else if (hero.state_timer == FUN_001f96f8(0x3C)) {
-        if (hero.state.current == 4)
-            input = 7;
-        else if (hero.state.current == 8)
+            if (g->state.current != 0x22)
+                input = 0;
+        }
+    } else {
+        level = FUN_001f96f8(0x3C);
+        if (g->state_timer == level) {
+            if (g->state.current == 4) {
+                input = 7;
+                goto append;
+            }
             input = 8;
+            if (g->state.current != 8)
+                input = 0;
+        }
     }
+append:
     if (input == 0)
         return;
-    history_count = (s32 *)((u8 *)&hero + 0x21D4);
-    ((u8 *)&hero + 0x21C4)[*history_count] = input;
+    history_count = (s32 *)((u8 *)g + 0x21D4);
+    history = (u8 *)g + 0x21C4;
+    history[*history_count] = input;
     (*history_count)++;
     sequence = D_L00_00179700;
     for (i = 0; i < 12; i++, sequence += 16) {
         length = 0;
         if (*sequence != 0) {
-            do {
-                length++;
-            } while (sequence[length] != 0);
+            for (length = 1; sequence[length] != 0; length++) { }
         }
         if (length != 0) {
             position = *history_count - length;
             if (position < 0)
                 position += 16;
             j = 0;
-            if (((u8 *)&hero + 0x21C4)[position] == sequence[0]) {
+            if (history[position] == sequence[0]) {
                 do {
                     position++;
                     j++;
@@ -575,7 +800,7 @@ void FUN_L00_00206e00(void) {
                         position -= 16;
                     if (j >= length)
                         break;
-                } while (((u8 *)&hero + 0x21C4)[position] == sequence[j]);
+                } while (history[position] == sequence[j]);
             }
             if (j == length) {
                 selector_available_00206e00[i] = 1;
@@ -2112,6 +2337,8 @@ void FUN_L00_0020a9e8(void) {
     G_a540 *g = &D_0013F350_a540;
     char *base = (char *)g;
     s32 *timers;
+    s32 *check_timer;
+    s32 *store_timer;
     char *record;
     s32 i;
 
@@ -2119,28 +2346,30 @@ void FUN_L00_0020a9e8(void) {
         return;
 
     timers = (s32 *)(base + 0x1060);
+    check_timer = timers;
+    store_timer = timers;
     record = base;
     i = 0;
     do {
         s32 j;
-        f32 x, y;
-        if (FUN_001fef68_a9e8(&timers[i]) != 0) {
+        f32 y, x;
+        if (FUN_001fef68_a9e8(check_timer) != 0) {
             s32 low, high;
             if (i == 0) {
                 *(f32 *)(record + 0x1028) = FUN_L00_00257c48_a540(0.17453292f, 0.5235988f);
                 low = FUN_001fef20_a9e8(0x46);
                 high = FUN_001fef20_a9e8(0x96);
-                timers[i] = FUN_L00_00257b90_a540(low, high);
+                *(s32 *)0x001403b0 = FUN_L00_00257b90_a540(low, high);
             } else if (i == 1) {
                 *(f32 *)(record + 0x1028) = FUN_L00_00257c48_a540(0.17453292f, 0.5235988f);
                 low = FUN_001fef20_a9e8(0x28);
                 high = FUN_001fef20_a9e8(0x5A);
-                timers[i] = FUN_L00_00257b90_a540(low, high);
+                *timers = FUN_L00_00257b90_a540(low, high);
             } else if (i == 2) {
                 *(f32 *)(record + 0x1028) = FUN_L00_00257c48_a540(0.2617994f, 0.87266463f);
                 low = FUN_001fef20_a9e8(0x28);
                 high = FUN_001fef20_a9e8(0x5A);
-                timers[i] = FUN_L00_00257b90_a540(low, high);
+                *timers = FUN_L00_00257b90_a540(low, high);
             } else {
                 f32 old;
                 f32 value;
@@ -2155,19 +2384,22 @@ void FUN_L00_0020a9e8(void) {
                     goto negate_fourth;
                 goto fourth_sign_done;
 negate_fourth:
-                *(f32 *)(record + 0x1028) = -value;
+                *(f32 *)(record + 0x1028) = -*(f32 *)(record + 0x1028);
 fourth_sign_done:
                 low = FUN_001fef20_a9e8(0x23);
                 high = FUN_001fef20_a9e8(0x46);
-                timers[i] = FUN_L00_00257b90_a540(low, high);
+                *store_timer = FUN_L00_00257b90_a540(low, high);
             }
         }
         j = i + 13;
-        x = *(f32 *)(record + 0x1024);
         y = *(f32 *)(record + 0x1028);
-        ((struct HeroEase *)&D_L00_0017A680_a540)[j].rot_target.f[1] = x;
-        ((struct HeroEase *)&D_L00_0017A680_a540)[j].rot_target.f[2] = y;
+        x = *(f32 *)(record + 0x1024);
+        *(f32 *)((char *)&D_L00_0017A680_a540 + j * 0xb0 + 0x64) = x;
+        *(f32 *)((char *)&D_L00_0017A680_a540 + j * 0xb0 + 0x68) = y;
         record += 0x10;
+        timers++;
+        check_timer++;
+        store_timer++;
         i++;
     } while (i < 4);
 }
