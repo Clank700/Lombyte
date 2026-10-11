@@ -171,7 +171,7 @@ extern int FUN_001f9740(int *);
 extern short D_L18_00161CA0_d __asm__("D_L18_00161CA0") __attribute__((sda));
 extern void FUN_001f9a28(void *, void *, void *);
 extern void FUN_001f9bf8(void *, void *, float);
-extern void FUN_L00_00259888(char *arg, int a, int b, void *src, float scale);
+extern void make_hit_descriptor(char *arg, int a, int b, void *src, float scale) __asm__("FUN_L00_00259888");
 extern void FUN_L00_002598b0(int, float, void *, int, float, float, int, int, int);
 extern void FUN_L00_00259a88(int, void *);
 extern void FUN_L18_002dc4b8(void);
@@ -197,7 +197,7 @@ void FUN_L18_002dc260(struct Moby *moby) {
         v[2] = 0.0f;
         FUN_001f9bf8(v, v, frame_time * 4.0f);
         v[2] = frame_time * 4.0f;
-        FUN_L00_00259888(buf, (int)moby, 0x10001, v, 1.0f);
+        make_hit_descriptor(buf, (int)moby, 0x10001, v, 1.0f);
         FUN_L00_00259a88(*(int *)(tgt + 0x2000), buf);
     }
     flag = D_L18_0015F5CC & 4;
@@ -385,7 +385,7 @@ void FUN_L18_002a7220(char *moby) {
     } else {
         normalize_vector_xyz(b, data, 2.0f);
     }
-    FUN_L00_00259888(c, (int)moby, 1, b, 2.0f);
+    make_hit_descriptor(c, (int)moby, 1, b, 2.0f);
     *(short *)(c + 0x1A) = *(unsigned short *)(moby + 0xA6);
     if (FUN_001efa68(moby + 0x10, a, 0, *(void **)(data + 0x14), c) != 0 ||
         FUN_001f9770(data + 0x10) != 0) {
@@ -627,7 +627,7 @@ void FUN_L18_002d5610(void *m, void *src) {
     func_L00_0025F4A8_alt(moby, qp, moby + 0x10, d, 1.0f, 0x14, 6, 0x20, a, b, 9.0f, c, 1, 5.0f, 0,
                           0, -1, 0);
     if (d != 0.0f) {
-        if (hero.unk20A4 == 2) {
+        if (hero.vehicle_mode == 2) {
             FUN_L00_002598b0((int)moby, 2.0f, moby + 0x10, 2, *(float *)&D_L18_0016196C, 1.0f, 0, 1,
                              0);
         }
@@ -1739,7 +1739,7 @@ void FUN_L18_002dbe80(struct Moby *moby) {
     v[2] = 0.0f;
     FUN_001f9bf8(v, v, frame_time * 4.0f);
     v[2] = frame_time * 4.0f;
-    FUN_L00_00259888(hit, (int)moby, 0x10001, v, 3.0f);
+    make_hit_descriptor(hit, (int)moby, 0x10001, v, 3.0f);
     step = 1.0f / convert_integer_to_float(0x40) * 6.28318f;
     p = -3.14159f;
     q = FUN_001fa580(p, step);
@@ -1977,7 +1977,7 @@ void FUN_L18_002dfaa0(struct Moby *moby, void *v0, void *v1, void *v2, void *v3,
     *(float *)(data + 0x70) = 1.0f / (float)scale_game_frames(a6);
     *(int *)(data + 0x74) = scale_game_frames(a7);
     *(int *)(data + 0x78) = a8;
-    hero.unk1C0 = scale_game_frames(a6);
+    hero.invulnerable_frames = scale_game_frames(a6);
 }
 /* Maps states 2 and 3 to results 1 and 2; all other states return 0. */
 s32 FUN_L18_002dfba0(const u8 *moby) {

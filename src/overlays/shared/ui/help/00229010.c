@@ -7,18 +7,19 @@
 #include "rnc/overlay/hero_tables.h"
 #include "rnc/globals.h"
 
-extern HeroTableEntry70 D_L00_00179890[] __attribute__((section(".data"))); /* idle fidgets */
+extern HeroTableEntry70 idle_fidgets[] __asm__("D_L00_00179890") __attribute__((section(".data")));
 extern s32 D_L00_00179AB0 __attribute__((section(".data")));
 extern f32 random_float_between(f32, f32) __asm__("FUN_002132a8");
-extern s32 FUN_L00_0020d498(s32);
+extern s32 hero_slot_item_id(s32) __asm__("FUN_L00_0020d498");
 extern s32 FUN_L00_001efc70(void *, void *, s32, void *, s32);
 extern s32 scale_game_frames(s32) __asm__("FUN_001f96f8");
 extern f32 FUN_001f96b0(f32);
 
-/* Idle fidget picker: lists the eligible entries of D_L00_00179890, then
+/* Idle fidget picker: lists the eligible entries of idle_fidgets, then
    picks one weighted by 1 / (interval * 60). Returns 1 and the index in
    *index when one is picked. At 1 hit point it offers only entry 4. */
-s32 FUN_L00_00229010(s32 *index) {
+s32 pick_idle_fidget(s32 *index) __asm__("FUN_L00_00229010");
+s32 pick_idle_fidget(s32 *index) {
     s32 choices[20];
     Vec4 end;
     Vec4 start;
@@ -30,7 +31,7 @@ s32 FUN_L00_00229010(s32 *index) {
     f32 total, pick;
 
     count = 0;
-    if (hero.unk1E8 != 0) return 0;
+    if (hero.fidget_cooldown != 0) return 0;
     if (hero.health.hp == 1) {
         *index = 4;
         if (D_L00_00179AB0 != 0) return 0;
@@ -42,16 +43,16 @@ s32 FUN_L00_00229010(s32 *index) {
     endp = &end;
     next = choices;
     for (; i < 5; i++) {
-        table = D_L00_00179890;
+        table = idle_fidgets;
         entry = &table[i];
         if (entry->duration_frames != 0) continue;
         if (entry->interval == 0.0f) continue;
-        item = FUN_L00_0020d498(0);
+        item = hero_slot_item_id(0);
         if (entry->item_id != -1 && entry->item_id != item) continue;
         if (entry->use_state_40 != 0 && hero.ground_moby != 0) continue;
         if (i == 3) {
             if (current_level_index != 12) continue;
-            if (FUN_L00_0020d498(0) == 23) continue;
+            if (hero_slot_item_id(0) == 23) continue;
             /* Room for it: nothing in the 8 units above the hero. */
             qcopy(startp, &hero.motion.unkD0);
             qcopy(endp, startp);
@@ -70,7 +71,7 @@ s32 FUN_L00_00229010(s32 *index) {
     if (count == 0) return 0;
     total = 0.0f;
     for (i = 0; i < count; i++) {
-        HeroTableEntry70 *choice = &D_L00_00179890[choices[i]];
+        HeroTableEntry70 *choice = &idle_fidgets[choices[i]];
         total += 1.0f / (f32)(s32)(FUN_001f96b0(choice->interval) * 60.0f);
     }
     pick = random_float_between(0.0f, 1.0f);
@@ -79,7 +80,7 @@ s32 FUN_L00_00229010(s32 *index) {
             s32 picked = choices[j];
             HeroTableEntry70 *choice;
             *index = picked;
-            choice = &D_L00_00179890[picked];
+            choice = &idle_fidgets[picked];
             total -= 1.0f / (f32)(s32)(FUN_001f96b0(choice->interval) * 60.0f);
             if (total < pick) break;
         }
@@ -109,7 +110,7 @@ void FUN_L00_002293a8(void) {
     }
     FUN_L00_002118c8_002293a8(0, 1.0f);
     if (D_0013CAE0_002293a8 & 0xA) {
-        hero_set_state(4, 0);
+        hero_set_state(HERO_STATE_CROUCH, 0);
         FUN_L00_002323b8_002293a8(0xD, 2, -2.0f);
         FUN_L00_002325e0_002293a8(3, 0x12);
         return;
@@ -117,10 +118,10 @@ void FUN_L00_002293a8(void) {
     c = D_0013F350_002293a8;
     if (0.3f < *(f32 *)(c + 0x229C) && *(s32 *)(c + 0x1C4) == 0) {
         if (c[0x12E2] != 0 || c[0x20A9] != 0) {
-            hero_set_state(2, 1);
+            hero_set_state(HERO_STATE_RUN, 1);
             return;
         }
-        if (hero_set_state(2, 0)) {
+        if (hero_set_state(HERO_STATE_RUN, 0)) {
             *(s32 *)(c + 0x2088) = 1;
             n = FUN_001f96f8_002293a8(8);
             if (FUN_001f96f8_002293a8(5) < *(s32 *)(c + 0x418))
@@ -134,14 +135,14 @@ void FUN_L00_002293a8(void) {
     if ((D_0015ED6C_002293a8 * 3.0f < *(f32 *)(d + 0x168) &&
          FUN_001f96f8_002293a8(3) < *(s32 *)(d + 0x418)) ||
         *(s32 *)(d + 0x2084) == 0x10) {
-        if (hero_set_state(3, 0)) {
+        if (hero_set_state(HERO_STATE_STOP, 0)) {
             FUN_L00_002323b8_002293a8(5, 0, -1.0f);
             FUN_L00_0025f730_002293a8(&hero.motion.unk150, D_0015ED6C_002293a8 * 5.0f);
         }
         return;
     }
     if (FUN_001f96f8_002293a8(12) < *(s32 *)(d + 0x418) || (*(s32 *)(d + 0xA98) & 2)) {
-        if (hero_set_state(0, 0)) {
+        if (hero_set_state(HERO_STATE_IDLE, 0)) {
             if (FUN_L00_00205000_002293a8(0) == 0x54) {
                 n = FUN_L00_00205000_002293a8(0);
                 FUN_L00_002323b8_002293a8(n, 0, (f32)FUN_001f96f8_002293a8(15));
@@ -163,7 +164,8 @@ extern int hero_set_state(int, int) __asm__("FUN_L00_002223f8");
 /* A second C name for hero_set_state: retail keeps the two calls apart. */
 extern void hero_set_state_2(int, int) __asm__("FUN_L00_002223f8");
 
-int FUN_L00_00229660(void) {
+int hero_handle_jump_press(void) __asm__("FUN_L00_00229660");
+int hero_handle_jump_press(void) {
     int n, t, a;
     int m;
 
@@ -183,14 +185,14 @@ int FUN_L00_00229660(void) {
         if (!FUN_L00_00266d60_229660(0x40, a, 0))
             return 0;
         if (FUN_L00_0020d498_229660(3) == 2 && D_0013D4C2_229660 != 0 && hero.unk22D8 == 0) {
-            if ((2.5f < hero.unk248 || hero.unk250 < 0.7853982f) && 0.7f < hero.unk229C &&
+            if ((2.5f < hero.wall_probe_distance || hero.unk250 < 0.7853982f) && 0.7f < hero.unk229C &&
                 D_0015ED6C_229660 * 0.9f < hero.motion.unk168) {
                 m = 0xA;
                 goto found;
             }
         }
         if (FUN_L00_0020d498_229660(3) == 3 && hero.unk22D8 == 0 && 0.7f < hero.unk229C &&
-            (2.5f < hero.unk248 || hero.unk254) && D_0015ED6C_229660 * 0.9f < hero.motion.unk168) {
+            (2.5f < hero.wall_probe_distance || hero.unk254) && D_0015ED6C_229660 * 0.9f < hero.motion.unk168) {
             if (hero.unk1B8)
                 return 1;
             m = 0x10;
@@ -251,26 +253,26 @@ typedef struct {
     s32 x24;
     u8 p2[0x24];
 } E00229a98;
-extern E00229a98 D_L00_00179AC0[];
-s32 FUN_L00_0020d498(s32);
+extern E00229a98 item_defs[] __asm__("D_L00_00179AC0");
+s32 hero_slot_item_id(s32) __asm__("FUN_L00_0020d498");
 void FUN_L00_0020e698(void);
 extern int hero_set_state(int, int) __asm__("FUN_L00_002223f8");
 s32 scale_game_frames(s32) __asm__("FUN_001f96f8");
-void FUN_L00_002323b8(s32, s32, f32);
+void set_hero_animation(s32, s32, f32) __asm__("FUN_L00_002323b8");
 s32 FUN_L00_00229a98(void) {
     struct Hero *b = &hero;
     s32 id, k;
     if (b->unk20A8 == 0 || b->unk20AA == 0 || b->unk22C8 != 0)
         return 0;
-    id = FUN_L00_0020d498(0);
+    id = hero_slot_item_id(0);
     if (id != b->unk2298) {
         FUN_L00_0020e698();
         return 0;
     }
-    k = D_L00_00179AC0[id].x24;
-    if (hero_set_state(0, 0) == 0)
+    k = item_defs[id].x24;
+    if (hero_set_state(HERO_STATE_IDLE, 0) == 0)
         return 0;
-    FUN_L00_002323b8(k, 0, (f32)scale_game_frames(0xB));
+    set_hero_animation(k, 0, (f32)scale_game_frames(0xB));
     if (((s32)b->unkD08[0]) != 0)
         b->unkD14 = 1;
     b->unk2294 = k;

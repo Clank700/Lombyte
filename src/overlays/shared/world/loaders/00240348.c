@@ -479,10 +479,10 @@ extern short D_L00_001B07B0[];
 extern short D_L00_001B0830[];
 extern u8 D_00100AE0[];
 extern unsigned char *D_L00_001604A0 MACRO_ADDR;
-extern unsigned char D_L00_0015FC88[] MACRO_ADDR;
+extern unsigned char mission_state[] __asm__("D_L00_0015FC88") MACRO_ADDR;
 extern unsigned char D_L00_001802C0[];
 extern unsigned char D_L00_001804C0[];
-extern unsigned char D_L00_001BB684[];
+extern unsigned char moby_killed[] __asm__("D_L00_001BB684");
 extern unsigned char D_L00_001BC1B0[];
 extern unsigned char D_L00_001C5B00[];
 extern void enable_global_state_flag(void) __asm__("func_001F61E8");
@@ -491,7 +491,7 @@ extern void FUN_001f9a80(void *, void *, float);
 extern void FUN_0022a5e0(void *);
 extern void FUN_00234f98(void *);
 extern void FUN_00237370(void *);
-extern void FUN_L00_001ed358(void);
+extern void setup_level_cameras(void) __asm__("FUN_L00_001ed358");
 extern void FUN_L00_00204c60(void);
 extern void FUN_L00_00204f80(void);
 extern void FUN_L00_0024a798(int, int);
@@ -519,7 +519,8 @@ void init_moby_instance(void *moby_mem, int oClass) __asm__("FUN_0020c5f0");
 extern void load(void *, int, int) __asm__("FUN_00216828");
 extern GameState137B80 D_00137B80;
 
-char *FUN_L00_00241940(int arg0) {
+char *load_level_gameplay(int arg0) __asm__("FUN_L00_00241940");
+char *load_level_gameplay(int arg0) {
     LevelHeader *hdr;
     char *mem;
     float *ship;
@@ -979,10 +980,10 @@ char *FUN_L00_00241940(int arg0) {
                 } else {
                     vis = 0xFF;
                 }
-                if (D_L00_001BB684[uid] != 0) {
+                if (moby_killed[uid] != 0) {
                     skip = 1;
                 } else if (flags & 3) {
-                    if (D_L00_0015FC88[mission] == 0xFF) {
+                    if (mission_state[mission] == 0xFF) {
                         if (flags & 2) {
                             b1 = bolts2;
                             if ((D_L00_001BA4D0[uid >> 5] >> (uid & 0x1F)) & 1) {
@@ -1651,7 +1652,7 @@ char *FUN_L00_00241940(int arg0) {
     reset_draw_globals();
     FUN_L00_00204c60();
     FUN_L00_00204f80();
-    FUN_L00_001ed358();
+    setup_level_cameras();
     update_camera();
     reset_global_state_fields();
     enable_global_state_flag();

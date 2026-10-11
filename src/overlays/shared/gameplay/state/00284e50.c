@@ -55,7 +55,7 @@ void FUN_L00_00284e50(OvlQuad *a, OvlQuad *b) {
         *(int *)(s + 0x30) = *(int *)(o + 0x38);
         *(int *)(s + 0x34) = *(int *)(o + 0x3C);
         *(int *)(s + 0x38) = *(int *)(o + 0x80);
-        *(int *)(s + 0x44) = p->unk20A4;
+        *(int *)(s + 0x44) = p->vehicle_mode;
         *(char **)(s + 0x48) = o;
         *(int *)(s + 0x4C) = p->unk22CC;
         *(int *)(s + 0x3C) = *(int *)(g + 0x64);
@@ -82,7 +82,7 @@ extern void FUN_001f97b0(void);
 extern void FUN_L00_00210a08(s32, s32);
 extern void FUN_L00_00250df8(void *);
 extern void FUN_001fa030(void *, void *);
-extern void FUN_L00_001ed280(void);
+extern void init_camera_system(void) __asm__("FUN_L00_001ed280");
 extern void FUN_L00_002852c0(void);
 
 void FUN_L00_00285008(void) {
@@ -128,7 +128,7 @@ void FUN_L00_00285008(void) {
     }
     FUN_L00_00250df8(p->moby);
     FUN_001fa030((char *)p->moby + 0xC0, &hero.motion.rot);
-    FUN_L00_001ed280();
+    init_camera_system();
     FUN_L00_002852c0();
 }
 #endif /* NON_MATCHING */

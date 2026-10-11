@@ -413,7 +413,7 @@ void FUN_L00_002a57a8(P_2a57a8 *p) {
             a = 0;
             b = 0;
         }
-        if (hero_data.unk20A4) {
+        if (hero_data.vehicle_mode) {
             a = 0;
             b = 0;
         }
@@ -523,11 +523,11 @@ typedef struct {
 extern s32 D_L00_0015F5C4;
 extern CollisionHit D_L00_00173E40 __attribute__((section(".data")));
 extern Vec4 D_L00_001D73D0[];
-extern BoltTrailSlot D_L00_0016EA40[];
+extern BoltTrailSlot glints[] __asm__("D_L00_0016EA40");
 extern u8 *D_L00_0015FFDC;
 extern s32 D_L00_0015FFBC;
 extern u8 *D_L00_0015FFD8;
-extern u8 D_L00_0015FC88[] __attribute__((section(".sdata")));
+extern u8 mission_state[] __asm__("D_L00_0015FC88") __attribute__((section(".sdata")));
 extern s32 D_0015ED84;
 extern MobyKillTable D_L00_001BA5D0 __attribute__((section(".data")));
 extern MobyKillTable D_L00_001BB230 __attribute__((section(".data")));
@@ -684,8 +684,8 @@ void FUN_L00_002a5dd8(Bolt *obj) {
         v->rot.f[1] = FUN_001f9e90(D_L00_00173E40.normal_z, FUN_001f9b20(&D_L00_00173E40.normal_x));
         FUN_001f9a28(&a, &obj->pos, &D_L00_00173E40.point);
         FUN_L00_001ff660(&v->vel, &v->vel, &a);
-        if (FUN_001f9b80(&obj->pos, &hero.motion.pos) < hero.unk2288 &&
-            FUN_001f99c0(obj->pos.f[2] - hero.motion.pos.f[2]) < hero.unk228C) {
+        if (FUN_001f9b80(&obj->pos, &hero.motion.pos) < hero.reach_distance &&
+            FUN_001f99c0(obj->pos.f[2] - hero.motion.pos.f[2]) < hero.reach_height) {
             if (hero.health.hp == 0) {
                 return;
             }
@@ -731,7 +731,7 @@ void FUN_L00_002a5dd8(Bolt *obj) {
         return;
     case 3:
         dist = FUN_001f9b80(&obj->pos, &hero.motion.pos);
-        if (dist < hero.unk2288 && FUN_001f99c0(obj->pos.f[2] - hero.motion.pos.f[2]) < hero.unk228C) {
+        if (dist < hero.reach_distance && FUN_001f99c0(obj->pos.f[2] - hero.motion.pos.f[2]) < hero.reach_height) {
             FUN_L00_002a7210_c(obj, hero.moby, 0.0f, 0.0f);
             return;
         }
@@ -749,8 +749,8 @@ void FUN_L00_002a5dd8(Bolt *obj) {
         }
         if (v->slot >= 0) {
             FUN_001f9cf8(&a, &D_L00_001D73D0[obj->oclass], &obj->rot);
-            FUN_001f9a10(&D_L00_0016EA40[v->slot], &a, &obj->pos);
-            if (D_L00_0016EA40[v->slot].moby != (((u8 *)obj - D_L00_0015FFD8) >> 8)) {
+            FUN_001f9a10(&glints[v->slot], &a, &obj->pos);
+            if (glints[v->slot].moby != (((u8 *)obj - D_L00_0015FFD8) >> 8)) {
                 v->slot = -1;
             }
             return;
@@ -814,7 +814,7 @@ void FUN_L00_002a5dd8(Bolt *obj) {
         FUN_L00_002a6b70_c(obj);
         if ((u8 *)obj < D_L00_0015FFDC) {
             D_L00_001BA5D0.killed[obj->unkB2] = obj->unkB0 + 2;
-            if (obj->unkB0 == 0xFF || (D_L00_0015FC88[obj->unkB0] != 0xFF && D_0014C050[D_0015ED84][obj->unkB0] == 0xFF)) {
+            if (obj->unkB0 == 0xFF || (mission_state[obj->unkB0] != 0xFF && D_0014C050[D_0015ED84][obj->unkB0] == 0xFF)) {
                 D_L00_001BB230.killed[obj->unkB2] = obj->unkB0 + 2;
             }
         }
@@ -1587,7 +1587,7 @@ typedef union {
     struct { WrenchVec pad0; HitQuery query; } shifted;
 } WrenchScratch;
 
-extern WrenchAttack D_L00_0017BC28[];
+extern WrenchAttack attack_records[] __asm__("D_L00_0017BC28");
 extern WrenchMoby *D_L00_00177F00[];
 extern char *FUN_002141f8(void *);
 extern char D_0013A4E0[];
@@ -1606,11 +1606,11 @@ extern float probe_ground_height(void *, int, float) __asm__("func_00213508");
 extern int D_L00_00173E40_u[] __asm__("D_L00_00173E40");
 extern int FUN_001efa68(void*,void*,int,int,int);
 extern int FUN_001f0b58(void);
-extern int FUN_L00_001f2868();
+extern int collect_mobies_in_sphere() __asm__("FUN_L00_001f2868");
 extern int FUN_L00_00211870(float);
 extern int FUN_L00_00216de8(int,int);
 extern int FUN_L00_002223f8(int,int);
-extern int FUN_L00_00259d08(void*,void*,void*,void*,void*,void*,int);
+extern int sweep_hit_segment(void*,void*,void*,void*,void*,void*,int) __asm__("FUN_L00_00259d08");
 extern int FUN_L00_0025e368(char*);
 extern int FUN_L00_0025e3b8(int);
 extern int allocate_voice_for_target_entry_alt(int, int, int) __asm__("FUN_0022da68");
@@ -1619,8 +1619,8 @@ extern int tick_countdown_32_alt(int*) __asm__("FUN_001f9740");
 extern void FUN_001f9c48(void*,void*,float);
 extern void FUN_L00_00232640(int);
 extern void FUN_L00_002336e8(float*,float*,float);
-extern void FUN_L00_0024f7c8(void*,int,void*);
-extern void FUN_L00_00259888(void*,void*,int,float,void*);
+extern void moby_point_position(void*,int,void*) __asm__("FUN_L00_0024f7c8");
+extern void make_hit_descriptor(void*,void*,int,float,void*) __asm__("FUN_L00_00259888");
 extern void FUN_L00_00259bc8(void*,int,int,void*,void*,float);
 extern void FUN_L00_0025b6b8(void*,void*,void*,float);
 extern void FUN_L00_00262480(char*,float,float,float);
@@ -1661,7 +1661,8 @@ static __inline__ float *hero_velocity(void) { return (float*)(D_0013E533+0xF5D)
 static __inline__ unsigned char *voice_slot(int slot) { return D_0013E550+slot*0x70; }
 static __inline__ WrenchHero *sweep_hero(void) { return (WrenchHero*)((char*)sweep_end()-0xA00); }
 
-void FUN_L00_002a84c8(WrenchMoby *m) {
+void wrench_update(WrenchMoby *m) __asm__("FUN_L00_002a84c8");
+void wrench_update(WrenchMoby *m) {
     WrenchVars *d=m->data;
     WrenchScratch work;
     WrenchHero *player=wrench_hero();
@@ -1718,7 +1719,7 @@ void FUN_L00_002a84c8(WrenchMoby *m) {
         if (player_moby->current_animation!=player_moby->animation || (int)player_moby->frame_end-player_moby->frame>=3)
             d->animation_count++;
         m->animation_scale=wrench_hero()->animation_scale;
-        attack=&D_L00_0017BC28[wrench_hero()->attack_index];
+        attack=&attack_records[wrench_hero()->attack_index];
         if (wrench_hero()->move_mode!=6 && wrench_hero()->state!=43) break;
         active=1; reaction=0;
         if (wrench_hero()->blocked || wrench_hero()->animation_frame<(float)attack->first_frame || (float)attack->last_frame<wrench_hero()->animation_frame) active=0;
@@ -1739,11 +1740,11 @@ void FUN_L00_002a84c8(WrenchMoby *m) {
         difference=0.0f; yaw=wrench_hero()->yaw;
         qcopy(wrench_hero()->previous_end,wrench_hero()->sweep_end);
         qcopy(wrench_hero()->previous_start,wrench_hero()->sweep_start);
-        FUN_L00_0024f7c8(m,1,wrench_hero()->sweep_end);
-        FUN_L00_0024f7c8(wrench_hero()->moby,0,wrench_hero()->sweep_start);
+        moby_point_position(m,1,wrench_hero()->sweep_end);
+        moby_point_position(wrench_hero()->moby,0,wrench_hero()->sweep_start);
         if (wrench_hero()->state==19 || wrench_hero()->state==112 || wrench_hero()->state==43) {
             yaw=FUN_001f9e90(wrench_hero()->sweep_end[0]-wrench_hero()->position[0],wrench_hero()->sweep_end[1]-wrench_hero()->position[1]);
-            if (D_L00_0017BC28[wrench_hero()->attack_index].side==1)
+            if (attack_records[wrench_hero()->attack_index].side==1)
                 yaw=fast_add_rotations(yaw,-1.5707964f);
             else yaw=fast_add_rotations(yaw,1.5707964f);
         }
@@ -1783,9 +1784,9 @@ void FUN_L00_002a84c8(WrenchMoby *m) {
             float scale=1.0f,radius;
             if (wrench_hero()->state==20) { scale=1.55f; count=2; }
             work.v[3][0]=fast_cos(yaw); work.v[3][1]=fast_sin(yaw); work.v[3][2]=0.0f;
-            FUN_L00_00259888(work.v[0],m,0x10000,(float)count,work.v[3]); FUN_001f9c48(work.v[0],work.v[0],scale);
+            make_hit_descriptor(work.v[0],m,0x10000,(float)count,work.v[3]); FUN_001f9c48(work.v[0],work.v[0],scale);
             work.query.force=1.0f; work.query.range=5627.925f; work.query.enabled=1; work.query.class_id=m->class_id; work.query.flags=0;
-            if (FUN_L00_00259d08(wrench_hero()->sweep_start,wrench_hero()->sweep_end,wrench_hero()->previous_start,wrench_hero()->previous_end,wrench_hero()->moby,&work,5) && collision_hit.moby) {
+            if (sweep_hit_segment(wrench_hero()->sweep_start,wrench_hero()->sweep_end,wrench_hero()->previous_start,wrench_hero()->previous_end,wrench_hero()->moby,&work,5) && collision_hit.moby) {
                 if (FUN_L00_002a7de0()) reaction=1;
                 else if (!wrench_hero()->attack_cooldown) {
                     if (!collision_hit.moby || !collision_hit.moby->model || collision_hit.moby->model->kind!=20) {
@@ -1878,11 +1879,11 @@ void FUN_L00_002a84c8(WrenchMoby *m) {
         }
         radius=1.2f; if (m->state==11) radius=-0.37f;
         normalize_vector_xyz(work.v[4],d->direction,radius);
-        FUN_L00_00259888(work.v[1],m,0x10000,1.0f,work.v[4]);
+        make_hit_descriptor(work.v[1],m,0x10000,1.0f,work.v[4]);
         work.shifted.query.force=1.0f; work.shifted.query.range=5627.925f;
         work.shifted.query.enabled=1; work.shifted.query.class_id=wrench_hero()->hit_index+1; work.shifted.query.flags=0;
-        FUN_L00_0024f7c8(m,1,work.v[5]);
-        if (collide_sphere(work.v[5],0.4f,0,wrench_hero()->moby,work.v[1]) || (FUN_L00_0024f7c8(m,0,work.v[5]),collide_sphere(work.v[5],0.4f,0,wrench_hero()->moby,work.v[1]))) {
+        moby_point_position(m,1,work.v[5]);
+        if (collide_sphere(work.v[5],0.4f,0,wrench_hero()->moby,work.v[1]) || (moby_point_position(m,0,work.v[5]),collide_sphere(work.v[5],0.4f,0,wrench_hero()->moby,work.v[1]))) {
             if (!wrench_hero()->attack_cooldown && collision_hit.moby && (!collision_hit.moby->model || collision_hit.moby->model->kind!=20)) {
                 MobyHitState *hit=(MobyHitState*)FUN_002141f8(collision_hit.moby);
                 if (!hit || hit->hit_count<2 || hit->hit_index!=work.shifted.query.class_id) {
@@ -2124,7 +2125,8 @@ extern float D_0015ED6C_2a9ed0 __asm__("D_0015ED6C");
 extern int D_L00_0015F5CC_2a9ed0 __asm__("D_L00_0015F5CC");
 float FUN_002132a8_2a9ed0(float, float) __asm__("FUN_002132a8");
 void FUN_L00_00250df8_2a9ed0(void *) __asm__("FUN_L00_00250df8");
-unsigned char *FUN_L00_002a9ed0(int owner, OvlQuad *pos) {
+unsigned char *spawn_mine(int owner, OvlQuad *pos) __asm__("FUN_L00_002a9ed0");
+unsigned char *spawn_mine(int owner, OvlQuad *pos) {
     unsigned char *m = create_moby(0x4A);
     if (m) {
         unsigned char *v = *(unsigned char **)(m + 0x78);

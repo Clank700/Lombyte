@@ -114,7 +114,7 @@ typedef struct Path_2E2B80 {
     float pts[4];
 } Path_2E2B80;
 
-extern char *FUN_L00_0025a420(void *, int, int);
+extern char *find_moby_hit(void *, int, int) __asm__("FUN_L00_0025a420");
 extern char D_0013F3D0[];
 extern float FUN_001f96b0(float);
 extern float FUN_001f9e90(float, float);
@@ -432,9 +432,9 @@ extern unsigned char D_0013E533[];
 extern unsigned char D_0014C050[];
 extern void *FUN_L00_00263fd8(char *, int, float *, void *, int, int, float, float *, float *,
                               float *);
-extern void FUN_L00_001f2868(void *, float, int, void *, void *);
+extern void collect_mobies_in_sphere(void *, float, int, void *, void *) __asm__("FUN_L00_001f2868");
 extern void FUN_L00_001ff290(void *, void *, void *);
-extern void FUN_L00_0024f7c8(void *, int, void *);
+extern void moby_point_position(void *, int, void *) __asm__("FUN_L00_0024f7c8");
 extern void FUN_L00_00257470(void *, int, int);
 extern void FUN_L00_00258278(char *moby, float *vel, float target, float k, float d, float max);
 extern void FUN_L00_0025a120(void *);
@@ -656,7 +656,7 @@ void FUN_L10_002e1d38(Moby2E30F8 *m) {
             v[1] = fast_sin(aim) * (*(short *)(t + 0xA6) == 0x359 ? 2.0f : 3.57f);
             v[2] = 0.0f;
             add_vector_xyz(v, v, t + 0x10);
-            if (hero.unk20A4 != 1) {
+            if (hero.vehicle_mode != 1) {
                 float rot = m->f48;
                 int r;
                 m->f48 = FUN_001f9e90(v[0] - m->pos[0], v[1] - m->pos[1]);
@@ -726,13 +726,13 @@ void FUN_L10_002e1d38(Moby2E30F8 *m) {
             m->f58 = 1.2f;
             {
                 float home = FUN_001f9b48(m->pos, d->v170);
-                if ((hero.unk20A4 == 1 ? 1.0f : 30.0f) < home ||
+                if ((hero.vehicle_mode == 1 ? 1.0f : 30.0f) < home ||
                     d->i164 == 2) {
                     m->state = 8;
                     blend_moby_animation(m, 4, 0, scale_game_frames(0xC));
                 } else if (FUN_001f9b80(m->pos, t + 0x10) <
                            (*(short *)(t + 0xA6) == 0x359 ? 2.45f : 4.02f)) {
-                    if (hero.unk1C0 < scale_game_frames(10) &&
+                    if (hero.invulnerable_frames < scale_game_frames(10) &&
                         diff < 0.34906584f && see) {
                         int anim = 7;
                         if (random_integer_below(100) & 1) {
@@ -784,13 +784,13 @@ void FUN_L10_002e1d38(Moby2E30F8 *m) {
         }
         {
             float home = FUN_001f9b48(m->pos, d->v170);
-            if ((hero.unk20A4 == 1 ? 1.0f : 30.0f) < home ||
+            if ((hero.vehicle_mode == 1 ? 1.0f : 30.0f) < home ||
                 d->i164 == 2) {
                 m->state = 8;
                 blend_moby_animation(m, 4, 0, scale_game_frames(0xC));
             } else if (FUN_001f9b80(m->pos, t + 0x10) <
                        (*(short *)(t + 0xA6) == 0x359 ? 2.45f : 4.02f)) {
-                if (hero.unk1C0 < scale_game_frames(10) &&
+                if (hero.invulnerable_frames < scale_game_frames(10) &&
                     diff < *(float *)&D_L10_00161E4C * DEG_TO_RAD && see) {
                     int anim = 7;
                     if (random_integer_below(100) & 1) {
@@ -827,16 +827,16 @@ void FUN_L10_002e1d38(Moby2E30F8 *m) {
             hit.b1 = 1;
             hit.id = m->cls;
             if (m->anim == 6) {
-                FUN_L00_0024f7c8(m, 0, v);
-                FUN_L00_001f2868(v, 0.75f, 0, m, &hit);
+                moby_point_position(m, 0, v);
+                collect_mobies_in_sphere(v, 0.75f, 0, m, &hit);
                 v[2] += 0.5f;
-                FUN_L00_001f2868(v, 0.75f, 0, m, &hit);
+                collect_mobies_in_sphere(v, 0.75f, 0, m, &hit);
                 FUN_001efa68(pos, v, 9, m, &hit);
             } else {
-                FUN_L00_0024f7c8(m, 1, v);
-                FUN_L00_001f2868(v, 0.75f, 0, m, &hit);
+                moby_point_position(m, 1, v);
+                collect_mobies_in_sphere(v, 0.75f, 0, m, &hit);
                 v[2] += 0.5f;
-                FUN_L00_001f2868(v, 0.75f, 0, m, &hit);
+                collect_mobies_in_sphere(v, 0.75f, 0, m, &hit);
                 FUN_001efa68(pos, v, 9, m, &hit);
             }
         } else if (m->anim >= 6 && m->anim <= 7 && (m->b70 & 2)) {
@@ -1145,7 +1145,7 @@ void FUN_L10_002e5968(struct Moby *m) {
     }
     m->unkA4 = 0xFF;
     trooper_anim_finish(m, d + 0xC0);
-    if (hero.unk20A4 == 1) {
+    if (hero.vehicle_mode == 1) {
         seek_5968(101.0f, m, d + 0x110);
         if (*(char **)(d + 0x110) == 0) {
             *(int *)(d + 0x114) = 2;

@@ -119,7 +119,7 @@ typedef struct {
 extern S_297f78 D_L00_0016C058;
 extern C_297f78 D_0013C940_c __asm__("D_0013C940");
 extern s32 D_L00_0015F5C0_m[] __asm__("D_L00_0015F5C0") __attribute__((section(".sdata")));
-extern s32 D_L00_0015F5C8;
+extern s32 level_timer __asm__("D_L00_0015F5C8");
 extern s32 game_frame __asm__("D_L00_0015F5CC");
 extern s32 D_L00_001B9DE0 __attribute__((section(".data")));
 extern P_297f78 *D_L00_00166E00 __attribute__((section(".data")));
@@ -135,8 +135,8 @@ extern void mode_freeze_init(s32, s32) __asm__("FUN_001fbab8");
 extern void pause_all_sounds(s32) __asm__("FUN_00218d78");
 extern s32 FUN_001f96f8_c(s32) __asm__("FUN_001f96f8");
 extern void FUN_L00_00264328(void);
-extern s32 FUN_L00_00234e00(void);
-extern void FUN_L00_00235e18(s32, s32);
+extern s32 show_health_hud(void) __asm__("FUN_L00_00234e00");
+extern void hud_keep_visible(s32, s32) __asm__("FUN_L00_00235e18");
 extern s32 queue_animation_update(s32, s32, void *, void *, void *, void *,
                                   s32) __asm__("FUN_001ff308");
 extern void FUN_L00_00239cc8(void);
@@ -167,7 +167,8 @@ extern void FUN_L00_00297e70_c(void) __asm__("FUN_L00_00297e70");
     ((D_L00_0016C058.w8 & (b)) || ((D_L00_0016C058.w8 & 0x10) && (D_0013C940_c.w1A4 & 0x200)))
 #define HELD ((D_0013C940_c.w1A4 & 0x800) || noctl)
 
-void FUN_L00_00297f78(void) {
+void handle_pause_input(void) __asm__("FUN_L00_00297f78");
+void handle_pause_input(void) {
     s32 lvl, area, noctl, special;
     if (D_L00_0016C058.wEC) {
         if (--D_L00_0016C058.wEC == 0)
@@ -179,7 +180,7 @@ void FUN_L00_00297f78(void) {
         D_L00_0016C058.wA0 = D_0013C940_c.w1A0 & ~0x200;
     }
     lvl = D_L00_0015F5C0_m[1];
-    if (lvl == 0 && (mode_freeze_flags & 1) && D_L00_0015F5C8 >= 8) {
+    if (lvl == 0 && (mode_freeze_flags & 1) && level_timer >= 8) {
         mode_freeze_init(3, 0);
         return;
     }
@@ -189,7 +190,7 @@ void FUN_L00_00297f78(void) {
         return;
     }
     area = current_level_index;
-    if (area == 15 && D_L00_0015F5C8 >= 8 && hero.unk20A4 == 2 && HELD &&
+    if (area == 15 && level_timer >= 8 && hero.vehicle_mode == 2 && HELD &&
         hero.state.current != 0x72) {
         if (D_L00_00166E00->h86 == 0x13)
             return;
@@ -202,7 +203,7 @@ void FUN_L00_00297f78(void) {
         if (k == 0x45 || k == 0x563 || k == 0x4DA)
             special = 1;
     }
-    if (special && D_L00_0015F5C8 >= 8 && HELD && hero.state.current != 0x72 &&
+    if (special && level_timer >= 8 && HELD && hero.state.current != 0x72 &&
         D_L00_00166E00->h86 != 0x13) {
         mode_freeze_init(1, 0);
         return;
@@ -211,24 +212,24 @@ void FUN_L00_00297f78(void) {
         mode_freeze_init(1, 0);
         return;
     }
-    if (HELD && D_L00_0015F5C8 >= 8 && hero.state.current != 0x72 && hero.state.control_mode == 0x16) {
+    if (HELD && level_timer >= 8 && hero.state.current != 0x72 && hero.state.control_mode == 0x16) {
         mode_freeze_init(0, 0);
         return;
     }
-    if (HELD && D_L00_0015F5C8 >= 8 && hero.state.current != 0x72 && hero.items[0].unk1C != 2 &&
+    if (HELD && level_timer >= 8 && hero.state.current != 0x72 && hero.items[0].unk1C != 2 &&
         hero.state.current != 0x32 && hero.state.current != 0x1D && !hero.unk20B1 &&
         hero.health.hp && lvl == 0) {
         pause_all_sounds(0);
         return;
     }
-    if (!(D_L00_0016C058.w8 & 0x10) && D_L00_0015F5C8 >= 8 && (D_0013C940_c.w1A4 & 0x500) &&
+    if (!(D_L00_0016C058.w8 & 0x10) && level_timer >= 8 && (D_0013C940_c.w1A4 & 0x500) &&
         hero.state.control_mode != 0x16 && hero.state.current != 0x72 && hero.state.current != 0x32 &&
         hero.state.current != 0x1D && !hero.unk20B1 && hero.health.hp && lvl == 0 &&
         !special && !D_L00_0016C058.wEC) {
         pause_all_sounds(10);
         return;
     }
-    if (D_0013D384 && !D_0013D388.b10 && D_L00_0015F5C8 >= 8 && !D_0015EE20 &&
+    if (D_0013D384 && !D_0013D388.b10 && level_timer >= 8 && !D_0015EE20 &&
         !hero.unk20B1 && hero.health.hp && FUN_001f96f8_c(0x1E) < game_frame &&
         current_level_index) {
         mode_freeze_init(5, 0);
@@ -239,11 +240,11 @@ void FUN_L00_00297f78(void) {
         FUN_L00_00264328();
     if ((D_0013C940_c.w1A4 & 0x200) && hero.state.current != 0x1D && hero.state.current != 0x32) {
         s32 x;
-        x = FUN_L00_00234e00();
-        FUN_L00_00235e18(x, FUN_001f96f8_c(0xB4));
+        x = show_health_hud();
+        hud_keep_visible(x, FUN_001f96f8_c(0xB4));
         x = queue_animation_update(2, 0x754E, FUN_L00_00239cc8, FUN_L00_00239d00, FUN_L00_00239df8,
                                    &current_bolt_count, 9999999);
-        FUN_L00_00235e18(x, FUN_001f96f8_c(0xB4));
+        hud_keep_visible(x, FUN_001f96f8_c(0xB4));
     }
     if (D_L00_00184214) {
         H_297f78 *h = &D_00141848;
@@ -500,7 +501,7 @@ void FUN_L00_00298b18(void) {
         if (!(o->st & 0x80) && (o->type == 0x4A || o->type == 0xCB))
             o->flags &= ~0x80;
     }
-    hero_set_state(0, 1);
+    hero_set_state(HERO_STATE_IDLE, 1);
     g = f213508_298b18(&hero.motion.pos, 0, 0.5f);
     if (2.0f < g && absolute_float(hero.motion.pos.f[2] - g) < 4.5f)
         hero.motion.pos.f[2] = g;
@@ -779,7 +780,7 @@ typedef struct {
 extern s32 D_0015ED80;
 extern Tab D_00137B80;
 void FUN_L00_002995d0(s32, s32, s32);
-void FUN_L00_00211250();
+void hero_respawn() __asm__("FUN_L00_00211250");
 void FUN_L00_00299460(s32 i) {
     s32 a, b;
     struct Hero *s;
@@ -794,7 +795,7 @@ void FUN_L00_00299460(s32 i) {
     }
     s = &hero;
     if (s->health.hp == 0) {
-        FUN_L00_00211250();
+        hero_respawn();
     } else if (s->unk20B1 == 0) {
         FUN_L00_002995d0(a, b, game_language);
     }
@@ -1523,7 +1524,7 @@ void FUN_L00_0029ab70(int a) {
     f1ff768_29ab70();
     D_L00_0015F5D8_29ab70 = 1;
     D_L00_0015F5C4_29ab70 = 0;
-    hero_set_state(0, 1);
+    hero_set_state(HERO_STATE_IDLE, 1);
     hero.unk20A5 = 0;
     f2330d0_29ab70();
     if (*(int *)(g + 0x40) == 0) {
@@ -1667,7 +1668,7 @@ void FUN_L00_0029af80(void) {
     char *g;
     D_L00_0015F5D8 = 1;
     D_L00_0015F5C4 = 0;
-    hero_set_state(0, 1);
+    hero_set_state(HERO_STATE_IDLE, 1);
     hero.unk20A5 = 0;
     FUN_L00_002330d0();
     g = D_L00_001CA4C0_u;

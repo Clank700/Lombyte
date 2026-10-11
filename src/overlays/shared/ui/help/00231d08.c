@@ -58,19 +58,19 @@ typedef struct {
 
 extern SeqEntry D_L00_0017BBD0[];
 extern SeqEntry D_L00_0017BBF0[];
-extern int FUN_L00_0020d498(int);
+extern int hero_slot_item_id(int) __asm__("FUN_L00_0020d498");
 extern short D_L00_0015F6B8;
 
 int FUN_L00_00231db0(int key, int *out) {
     SeqEntry *tbl;
     int i;
 
-    if (FUN_L00_0020d498(3) == 2) {
+    if (hero_slot_item_id(3) == 2) {
         tbl = D_L00_0017BBF0;
-    } else if (FUN_L00_0020d498(3) == 3) {
+    } else if (hero_slot_item_id(3) == 3) {
         tbl = D_L00_0017BBD0;
     } else {
-        int mode = FUN_L00_0020d498(3);
+        int mode = hero_slot_item_id(3);
         tbl = (SeqEntry *)&D_L00_0015F6B8;
         if (mode != 4) {
             tbl = 0;
@@ -89,7 +89,7 @@ int FUN_L00_00231db0(int key, int *out) {
 }
 /* Ported from rac1-decomp (src/overlays/shared/help_00232560.c: func_L00_002326D0), where it is exact; names translated to the US level program. */
 
-extern int FUN_L00_0020d498(int);
+extern int hero_slot_item_id(int) __asm__("FUN_L00_0020d498");
 void blend_moby_animation(MobyAnim *arg0, int arg1, int arg2, int arg3) __asm__("FUN_00212f90");
 
 void FUN_L00_00231e78(int id, int arg, float t) {
@@ -131,7 +131,7 @@ void FUN_L00_00231e78(int id, int arg, float t) {
     }
     seq = scale_game_frames(7);
     blk3 = &hero;
-    if (blk3->state.prev == 8 && FUN_L00_0020d498(3) == 2) {
+    if (blk3->state.prev == 8 && hero_slot_item_id(3) == 2) {
         seq = scale_game_frames(0x13);
     }
     if (*(unsigned char *)(a + 0x53) != 1) {
@@ -202,12 +202,12 @@ int FUN_L00_00231ff8(int a, int *b, int *c) {
 
 extern int FUN_L00_00231ff8(int, int *, int *);
 
-/* Copies &hero.unkA90 to +0x58 of the objects at 0x1180/0x1184 when the lookup succeeds. */
+/* Copies &hero.anim_speed to +0x58 of the objects at 0x1180/0x1184 when the lookup succeeds. */
 void FUN_L00_00232128(void) {
     struct Hero *base = &hero;
     int buf[2];
 
-    if (base->unk20A4 != 0) {
+    if (base->vehicle_mode != 0) {
         return;
     }
     if (base->items[3].state != 2) {
@@ -218,10 +218,10 @@ void FUN_L00_00232128(void) {
         return;
     }
     if (((char *)base->items[3].moby) != 0) {
-        *(float *)(((char *)base->items[3].moby) + 0x58) = base->unkA90;
+        *(float *)(((char *)base->items[3].moby) + 0x58) = base->anim_speed;
     }
     if (((char *)base->items[3].moby2) != 0) {
-        *(float *)(((char *)base->items[3].moby2) + 0x58) = base->unkA90;
+        *(float *)(((char *)base->items[3].moby2) + 0x58) = base->anim_speed;
     }
 }
 extern s16 *D_001415CC[];
@@ -278,14 +278,14 @@ void FUN_L00_00232220(int a0, int a1, float a2) {
 
 extern int FUN_L00_002321c0_u(int, int *) __asm__("FUN_L00_002321c0");
 
-/* Copies &hero.unkA90 to +0x58 of the object at +0x2278 when FUN_L00_002321c0 succeeds. */
+/* Copies &hero.anim_speed to +0x58 of the object at +0x2278 when FUN_L00_002321c0 succeeds. */
 void FUN_L00_002322c8(void) {
     struct Hero *base = &hero;
     int buf[4];
 
     if (((void *)base->unk2278) != 0 && base->unk227C != 0 &&
         FUN_L00_002321c0_u(*(unsigned char *)(((char *)base->moby) + 0x53), buf) != 0) {
-        *(float *)(((char *)base->unk2278) + 0x58) = base->unkA90;
+        *(float *)(((char *)base->unk2278) + 0x58) = base->anim_speed;
     }
 }
 #define NOT_SDA
@@ -394,7 +394,8 @@ extern void FUN_L00_00251ce8(void *, int);
 extern void FlushCache(s32);
 void update_moby_animation_state(struct Moby *m) __asm__("FUN_0020c880");
 
-void FUN_L00_002323b8(int a0, int a1, float t) {
+void set_hero_animation(int a0, int a1, float t) __asm__("FUN_L00_002323b8");
+void set_hero_animation(int a0, int a1, float t) {
     struct Hero *g2;
     struct Hero *g3;
     struct Hero *g1 = &hero;
@@ -430,7 +431,7 @@ void FUN_L00_002323b8(int a0, int a1, float t) {
     *(unsigned char *)(obj + 0x53) = a0;
     update_moby_animation_state(obj);
     g2 = &hero;
-    g2->unkA90 = 1.0f;
+    g2->anim_speed = 1.0f;
     if (t > 0.0f) {
         g2->unkA94 = 1.0f / t;
         *(float *)(obj + 0x54) = 0.0f;
@@ -450,7 +451,7 @@ void FUN_L00_002323b8(int a0, int a1, float t) {
     if (t < 0.0f) {
         t = *(int *)((char *)&D_L00_0015F6E0 + g3->unkAA0 * 4);
     }
-    if (g3->unk20A4 == 0) {
+    if (g3->vehicle_mode == 0) {
         FUN_L00_00231e78_c(a0, a1, t);
     }
     FUN_L00_002321a8();
@@ -652,7 +653,7 @@ void FUN_L00_00232fe8(void) {
     if (obj != 0) {
         *(unsigned short *)(obj + 0x34) |= 1;
     }
-    if (tail->unk20A4 == 1) {
+    if (tail->vehicle_mode == 1) {
         obj = ((char *)tail->unk1624);
         if (obj != 0) {
             *(unsigned short *)(obj + 0x34) |= 1;
@@ -697,7 +698,7 @@ void FUN_L00_002330d0(void) {
     if (obj != 0) {
         *(unsigned short *)(obj + 0x34) &= ~1;
     }
-    if (blk2->unk20A4 == 1) {
+    if (blk2->vehicle_mode == 1) {
         obj = *(char * *)&blk2->unk1624;
         if (obj != 0) {
             *(unsigned short *)(obj + 0x34) &= ~1;
@@ -1182,7 +1183,8 @@ extern s32 D_00140408[];
 extern s32 D_0013D428[];
 extern s32 D_0013DEA0[];
 /* Moves amount from D_0013D428[idx] to D_0013DEA0[idx]; 0 if too little, else 1. */
-s32 FUN_L00_00233db8(s32 idx, s32 amount) {
+s32 use_ammo(s32 idx, s32 amount) __asm__("FUN_L00_00233db8");
+s32 use_ammo(s32 idx, s32 amount) {
     s32 n;
     s32 v;
     VendorItemInfo *e;
@@ -1204,7 +1206,8 @@ s32 FUN_L00_00233db8(s32 idx, s32 amount) {
 }
 extern int weapon_ammo_counts[] __asm__("D_0013D428");
 /* Adds b to counter a, capping it at the entry's limit; returns the overflow or 0. */
-int FUN_L00_00233e40(int a, int b) {
+int add_ammo(int a, int b) __asm__("FUN_L00_00233e40");
+int add_ammo(int a, int b) {
     int *p = &weapon_ammo_counts[a];
     unsigned short *q = (unsigned short *)(((char *)D_L00_001C40B0) + a * 0x18);
     int v = *p + b;
@@ -1223,7 +1226,8 @@ int FUN_L00_00233e40(int a, int b) {
 extern s32 D_00140408_c __asm__("D_00140408") __attribute__((section(".data")));
 
 /* 1 if entry idx of D_L00_001C40B0 has no limit at 0xE, else D_0013D428[idx]; -1: D_00140408. */
-s32 FUN_L00_00233e98(s32 idx) {
+s32 get_ammo(s32 idx) __asm__("FUN_L00_00233e98");
+s32 get_ammo(s32 idx) {
     u8 *p;
     if (idx == -1)
         idx = D_00140408_c;
@@ -1687,7 +1691,8 @@ void FUN_L00_00239810();
 extern u8 D_001415F8[];
 void queue_animation_update() __asm__("FUN_001ff308");
 /* Queues animation update 0x7535 with three FUN_L00_ callbacks and D_001415F8. */
-void FUN_L00_00234e00(void) {
+void show_health_hud(void) __asm__("FUN_L00_00234e00");
+void show_health_hud(void) {
     queue_animation_update(1, 0x7535, FUN_L00_002395b0, FUN_L00_00239630, FUN_L00_00239810,
                            &hero.health, 8);
 }
