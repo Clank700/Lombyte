@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3690,
+  "matching_c": 3722,
   "intentional_asm": 318,
-  "pending_c": 543,
+  "pending_c": 511,
   "bytes_total": 3669004,
-  "bytes_matching_c": 2641656,
+  "bytes_matching_c": 2691968,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 904612,
-  "c_exact_percent_of_recoverable": 74.4912,
-  "c_fuzzy_percent_of_recoverable": 75.9001,
+  "bytes_pending_c": 854300,
+  "c_exact_percent_of_recoverable": 75.9099,
+  "c_fuzzy_percent_of_recoverable": 77.3188,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2534,
-    "pending_c": 480,
+    "matching_c": 2566,
+    "pending_c": 448,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2345724,
-    "bytes_pending_c": 847704,
-    "c_exact_percent_of_recoverable": 73.4547,
+    "bytes_matching_c": 2396036,
+    "bytes_pending_c": 797392,
+    "c_exact_percent_of_recoverable": 75.0302,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -4597,12 +4597,12 @@
         "planet": "Oltanis",
         "description": "Gorda City Ruins: a bombed city in a storm",
         "functions": 130,
-        "matching_c": 101,
-        "pending_c": 29,
+        "matching_c": 127,
+        "pending_c": 3,
         "bytes_total": 151084,
-        "bytes_matching_c": 109376,
-        "bytes_pending_c": 41708,
-        "c_exact_percent_of_recoverable": 72.3942,
+        "bytes_matching_c": 148508,
+        "bytes_pending_c": 2576,
+        "c_exact_percent_of_recoverable": 98.295,
         "files": [
           {
             "file": "src/overlays/l14/gameplay/hero/0021dd30.c",
@@ -4635,9 +4635,9 @@
           {
             "file": "src/overlays/l14/gameplay/entities/002460f8.c",
             "functions": 41,
-            "matching_c": 37,
+            "matching_c": 41,
             "bytes_total": 25820,
-            "bytes_matching_c": 17688
+            "bytes_matching_c": 25820
           },
           {
             "file": "src/overlays/l14/rendering/view/00268038.c",
@@ -4649,16 +4649,16 @@
           {
             "file": "src/overlays/l14/gameplay/entities/002d6358.c",
             "functions": 10,
-            "matching_c": 8,
+            "matching_c": 10,
             "bytes_total": 6792,
-            "bytes_matching_c": 3648
+            "bytes_matching_c": 6792
           },
           {
             "file": "src/overlays/l14/gameplay/entities/002df080.c",
             "functions": 39,
-            "matching_c": 23,
+            "matching_c": 38,
             "bytes_total": 32136,
-            "bytes_matching_c": 12088
+            "bytes_matching_c": 31340
           },
           {
             "file": "src/overlays/l14/gameplay/entities/002fded0.c",
@@ -4670,9 +4670,9 @@
           {
             "file": "src/overlays/l14/gameplay/vendor/00300e00.c",
             "functions": 24,
-            "matching_c": 17,
+            "matching_c": 22,
             "bytes_total": 15916,
-            "bytes_matching_c": 5532
+            "bytes_matching_c": 14136
           },
           {
             "file": "src/overlays/l14/gameplay/vendor/00303370.c",
@@ -4930,12 +4930,12 @@
         "planet": "Veldin",
         "description": "Kyzil Plateau again: the Deplanetizer and Drek",
         "functions": 121,
-        "matching_c": 106,
-        "pending_c": 15,
+        "matching_c": 112,
+        "pending_c": 9,
         "bytes_total": 159560,
-        "bytes_matching_c": 136072,
-        "bytes_pending_c": 23488,
-        "c_exact_percent_of_recoverable": 85.2795,
+        "bytes_matching_c": 147252,
+        "bytes_pending_c": 12308,
+        "c_exact_percent_of_recoverable": 92.2863,
         "files": [
           {
             "file": "src/overlays/l18/gameplay/hero/00213b40.c",
@@ -4975,9 +4975,9 @@
           {
             "file": "src/overlays/l18/world/loaders/002463f8.c",
             "functions": 3,
-            "matching_c": 2,
+            "matching_c": 3,
             "bytes_total": 4840,
-            "bytes_matching_c": 580
+            "bytes_matching_c": 4840
           },
           {
             "file": "src/overlays/l18/gameplay/entities/00265ff8.c",
@@ -4996,16 +4996,16 @@
           {
             "file": "src/overlays/l18/gameplay/entities/002a7220.c",
             "functions": 52,
-            "matching_c": 45,
+            "matching_c": 48,
             "bytes_total": 28616,
-            "bytes_matching_c": 20264
+            "bytes_matching_c": 23588
           },
           {
             "file": "src/overlays/l18/gameplay/vendor/002efb88.c",
             "functions": 38,
-            "matching_c": 34,
+            "matching_c": 36,
             "bytes_total": 32576,
-            "bytes_matching_c": 27340
+            "bytes_matching_c": 30936
           },
           {
             "file": "src/overlays/l18/gameplay/vendor/002f88e8.c",
@@ -5027,14 +5027,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3690,
+    "matching_c": 3722,
     "intentional_asm": 318,
-    "pending_c": 543,
+    "pending_c": 511,
     "bytes_total": 3669004,
-    "bytes_matching_c": 2641656,
+    "bytes_matching_c": 2691968,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 904612,
-    "c_exact_percent_of_recoverable": 74.4912,
-    "c_fuzzy_percent_of_recoverable": 75.9001
+    "bytes_pending_c": 854300,
+    "c_exact_percent_of_recoverable": 75.9099,
+    "c_fuzzy_percent_of_recoverable": 77.3188
   }
 }
