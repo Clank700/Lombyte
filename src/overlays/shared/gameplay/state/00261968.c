@@ -40,20 +40,20 @@ s32 FUN_L00_00261968(s32 path_index, OvlVec4 *start, OvlVec4 *end) {
     axis.f[0] = direction.f[1];
     axis.f[1] = -direction.f[0];
     FUN_001ff260_261968(&origin);
-    origin.f[2] = 1.0f;
     entry = &D_L00_001B04B0_261968[path_index];
     FUN_001ff2a8_261968(&first, &(*entry)->points[0], start);
+    origin.f[2] = 1.0f;
+    current = &next;
     FUN_001ff6d0_261968(&first, &first, &direction);
     previous = &first;
-    current = &next;
     i = 1;
     if (i < (*entry)->count) {
     offset = 0x20;
     for (; i < (*entry)->count; i++, offset += 0x10) {
         FUN_001ff2a8_261968(current, (OvlVec4 *)((u8 *)*entry + offset), start);
         FUN_001ff6d0_261968(current, current, &direction);
-        if ((previous->f[3] != 0.0f || current->f[3] != 0.0f) && current->f[1] * previous->f[1] < 0.0f) {
-            crossing = (previous->f[0] - current->f[0]) / (previous->f[1] - current->f[1]) * -current->f[1] + current->f[0];
+        if ((first.f[3] != 0.0f || current->f[3] != 0.0f) && next.f[1] * first.f[1] < 0.0f) {
+            crossing = (previous->f[0] - current->f[0]) / (first.f[1] - next.f[1]) * -next.f[1] + current->f[0];
             if (crossing > 0.0f && crossing < 1.0f)
                 return 1;
         }
@@ -104,11 +104,11 @@ s32 FUN_L00_00261b48(s32 path_index, OvlVec4 *start, OvlVec4 *end, OvlVec4 *out)
     axis.f[0] = direction.f[1];
     axis.f[1] = -direction.f[0];
     FUN_001ff260_261b48(&origin);
-    origin.f[2] = 1.0f;
     entry = &D_L00_001B04B0_261b48[path_index];
     found = 0;
     i = 1;
     FUN_001ff2a8_261b48(&first, &(*entry)->points[0], start);
+    origin.f[2] = 1.0f;
     FUN_001ff6d0_261b48(&first, &first, &direction);
     current = &next;
     if (i < (*entry)->count) {
@@ -117,7 +117,7 @@ s32 FUN_L00_00261b48(s32 path_index, OvlVec4 *start, OvlVec4 *end, OvlVec4 *out)
             FUN_001ff2a8_261b48(current, (OvlVec4 *)((u8 *)*entry + offset), start);
             FUN_001ff6d0_261b48(current, &next, &direction);
             if (first.f[3] != 0.0f || current->f[3] != 0.0f) {
-                if (current->f[1] * first.f[1] < 0.0f) {
+                if (first.f[1] * current->f[1] < 0.0f) {
                     crossing = (first.f[0] - current->f[0]) / (first.f[1] - current->f[1]) * -current->f[1] + current->f[0];
                     if (crossing > 0.0f && crossing < nearest) {
                         nearest = crossing;
@@ -227,6 +227,7 @@ typedef struct {
 } SegmentPath_262030;
 
 extern SegmentPath_262030 *D_L00_001B04B0_262030[] __asm__("D_L00_001B04B0");
+extern OvlVec4 D_0013F5E0_262030 __asm__("D_0013F5E0");
 extern f32 FUN_001ff218_262030(f32) __asm__("FUN_001f99c0");
 extern void FUN_001ff278_262030(OvlVec4 *, OvlVec4 *, OvlVec4 *) __asm__("FUN_001f9a10");
 extern void FUN_001ff2a8_262030(OvlVec4 *, OvlVec4 *, OvlVec4 *) __asm__("FUN_001f9a28");
@@ -244,10 +245,11 @@ s32 FUN_L00_00262030(f32 distance, s32 path_index, OvlVec4 *point, OvlVec4 *out)
     OvlVec4 cross;
     OvlVec4 scaled_cross;
     SegmentPath_262030 *entry;
-    OvlVec4 *height_axis = (OvlVec4 *)0x13f5e0;
+    OvlVec4 *height_axis = &D_0013F5E0_262030;
     OvlVec4 *current;
     OvlVec4 *next;
     s32 i;
+    s32 offset;
     volatile s32 found;
     f32 original_height;
     f32 segment_length;
@@ -258,10 +260,11 @@ s32 FUN_L00_00262030(f32 distance, s32 path_index, OvlVec4 *point, OvlVec4 *out)
     entry = D_L00_001B04B0_262030[path_index];
     original_height = FUN_001ff398_262030(&working, height_axis);
     i = 0;
-    current = &entry->points[0];
+    offset = 0;
     if (i < entry->count - 1) {
         do {
-            next = current + 1;
+            current = (OvlVec4 *)((u8 *)entry + offset + 0x10);
+            next = (OvlVec4 *)((u8 *)entry + offset + 0x20);
             if (current->f[3] != 0.0f || next->f[3] != 0.0f) {
                 FUN_001ff2a8_262030(&difference, &working, current);
                 FUN_001ff2a8_262030(&segment, next, current);
@@ -294,7 +297,7 @@ s32 FUN_L00_00262030(f32 distance, s32 path_index, OvlVec4 *point, OvlVec4 *out)
             }
 next_segment_262030:
             i++;
-            current++;
+            offset = i << 4;
         } while (i < entry->count - 1);
     }
     if (found) {

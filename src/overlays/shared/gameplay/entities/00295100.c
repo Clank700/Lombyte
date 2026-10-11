@@ -926,12 +926,10 @@ void FUN_L00_002997c8(void) {
     second_count = 17;
     count = 13;
     pal = D_0015ED80;
-    destination = D_L00_00161058;
-    source = depth_buffer_address;
-    if (pal != 0) {
-        count = 14;
-        second_count = 14;
-    }
+    destination = *(s32 *)0x00161058; /* D_L00_00161058 */
+    source = *(s32 *)0x0015EE88;      /* depth_buffer_address */
+    count = pal ? 14 : count;
+    second_count = pal ? 14 : second_count;
     for (; count != 0;) {
         count--;
         FUN_00122518(buffer, (source << 8) >> 16, 2, 1, 0, 0, 0x80, 0x80);
@@ -962,8 +960,8 @@ void FUN_L00_002997c8(void) {
     callback = (s32)active_scene_trigger.moby;
     if (callback != 0) {
         callback_arg = (s32)active_scene_trigger.trigger;
-        active_scene_trigger.trigger = 0;
         active_scene_trigger.moby = 0;
+        active_scene_trigger.trigger = 0;
         FUN_00266970(callback, callback_arg, 1);
     }
     voice_pool.header[0x6B] |= 0x10;
@@ -1026,12 +1024,11 @@ void FUN_L00_00299a68(void) {
     D_L00_0015F62C = second_destination;
     D_L00_001611CC = offset;
     D_L00_0015F628 = first_destination;
+    index = (s16)D_L00_0015F622;
     if (pal_mode != 0) {
-        index = (s16)D_L00_0015F622;
         FUN_L00_00265fa0(D_L00_0015F628, disc_table.music_60000[index + 38].sector,
                            disc_table.music_60000[index + 38].size);
     } else {
-        index = (s16)D_L00_0015F622;
         FUN_L00_00265fa0(D_L00_0015F628, disc_table.music_60000[index + 18].sector,
                            disc_table.music_60000[index + 18].size);
     }
@@ -1109,8 +1106,10 @@ void FUN_L00_00299c48(void) {
     } else if (stage == active) {
         FUN_L00_002a09d8(1);
         if (D_L00_0015F624 < 0x20) {
-            source = (s32 *)(D_L00_0015F62C + D_L00_0015F624 * 4);
-            destination = (s32 *)(D_L00_0015F628 + D_L00_0015F624 * 4);
+            source = (s32 *)D_L00_0015F62C;
+            destination = (s32 *)D_L00_0015F628;
+            source += D_L00_0015F624;
+            destination += D_L00_0015F624;
             for (offset = 0; offset < 0x38000; offset += 0x20) {
                 *destination = *source;
                 source += 0x20;

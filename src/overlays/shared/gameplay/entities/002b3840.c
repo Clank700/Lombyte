@@ -287,7 +287,21 @@ void FUN_L05_002f87a8(char *moby) {
     float angle, distance_scale, delta_length;
     int state = (u8)moby[0x20];
 
-    if (state == 1) {
+    if (state != 1) {
+        if (state < 2 && state == 0) {
+        if (distance_xyz_87a8((void *)0x13f3d0, moby + 0x10) < 5.5f &&
+            D_0014F5CC_87a8 > 3 && *(int *)0x1413dc != 0x15 &&
+            *(int *)0x1413dc != 0x16) {
+            *(char **)0x13fbbc = moby;
+            FUN_L05_0024cee8_87a8(0x6b, 1);
+            if (*(int *)(data + 0x50) == 0) {
+                qcopy(data + 0x10, moby + 0x10);
+            }
+            moby[0x20] = 1;
+            *(unsigned char *)(moby + 0x30) = 0xff;
+        }
+        }
+    } else {
         if (*(int *)(data + 0x50) == 0 && *(unsigned char *)0x13d388 != 0 &&
             *(unsigned short *)0x141938 == 0 && *(int *)0x15f6a8 != 0 &&
             scale_game_frames_87a8(0x4b0) < *(int *)0x13f4ec &&
@@ -300,18 +314,6 @@ void FUN_L05_002f87a8(char *moby) {
                 qcopy(moby + 0x10, data + 0x10);
             }
             moby[0x20] = 0;
-        }
-    } else if (state < 2 && state == 0) {
-        if (distance_xyz_87a8((void *)0x13f3d0, moby + 0x10) < 5.5f &&
-            D_0014F5CC_87a8 > 3 && *(int *)0x1413dc != 0x15 &&
-            *(int *)0x1413dc != 0x16) {
-            *(char **)0x13fbbc = moby;
-            FUN_L05_0024cee8_87a8(0x6b, 1);
-            if (*(int *)(data + 0x50) == 0) {
-                qcopy(data + 0x10, moby + 0x10);
-            }
-            moby[0x20] = 1;
-            moby[0x30] = -1;
         }
     }
     subtract_vector_xyz_87a8(delta, moby + 0x10, data);
@@ -510,8 +512,8 @@ void FUN_L05_0030c220(struct Moby *m) {
     Quad_30c220 a, b;
     float rotation[4];
     float position[4];
-    float direction[4];
     float side[4];
+    float direction[4];
     float up[4];
     float matrix[4];
     u64 texture;
@@ -545,9 +547,11 @@ void FUN_L05_0030c220(struct Moby *m) {
     a.control[3] = b.control[3] = flags;
     j = 0;
     do {
-        a.texcoord[j] = D_L05_001D67B0[j];
-        b.texcoord[j] = D_L05_001D67B0[j];
-    } while (++j < 8);
+        float u = D_L05_001D67B0[j * 2];
+        float v = D_L05_001D67B0[j * 2 + 1];
+        a.texcoord[j * 2] = b.texcoord[j * 2] = u;
+        a.texcoord[j * 2 + 1] = b.texcoord[j * 2 + 1] = v;
+    } while (++j < 4);
     i = 0;
     do {
         pass = (float)i;
@@ -555,7 +559,7 @@ void FUN_L05_0030c220(struct Moby *m) {
         do {
             qcopy(a.vertex[j], D_L05_001D67D0[j]);
             qcopy(b.vertex[j], D_L05_001D6810[j]);
-            phase = (float)(i + (j & 1)) * 0.1f;
+            phase = ((float)i + (float)(j & 1)) * 0.1f;
             sign = j < 2 ? 1.0f : -1.0f;
             color = fast_tween_color(D_L05_00161D04, D_L05_00161D08, phase);
             a.color[j] = b.color[j] = color;
@@ -600,7 +604,6 @@ extern KillFlags_30c5b0 D_L05_001BAA50;
 void FUN_L05_0030c5b0(struct Moby *m) {
     KeyVars_30c5b0 *v = (KeyVars_30c5b0 *)m->pvars;
     KeyRow_30c5b0 *row;
-    int i;
     int intensity;
 
     switch (m->state) {
@@ -621,7 +624,7 @@ void FUN_L05_0030c5b0(struct Moby *m) {
             m->state = 2;
             m->unk90 = 0x80208020;
             if (v->table != -1) {
-                i = 0;
+                int i = 0;
                 while (i < *(int *)D_L05_001B0930[v->table]) {
                     row = (KeyRow_30c5b0 *)(D_L05_001B0930[v->table] + i * 16);
                     if (row[1].key == v->key) {
@@ -647,12 +650,12 @@ void FUN_L05_0030c5b0(struct Moby *m) {
                 (D_L05_0015FC88[m->unkB0] != 0xFF && D_0014C050[current_level_index][m->unkB0] == 0xFF)) {
                 D_L05_001BB6B0.killed[(short)m->save_id] = m->unkB0 + 2;
             }
-            m->unkBC = 1;
             m->state = 2;
+            m->unkBC = 1;
             m->unk90 = 0x80208020;
             allocate_voice_for_target_entry(0, 0, m);
             if (v->table != -1) {
-                i = 0;
+                int i = 0;
                 while (i < *(int *)D_L05_001B0930[v->table]) {
                     row = (KeyRow_30c5b0 *)(D_L05_001B0930[v->table] + i * 16);
                     if (row[1].key == v->key) {

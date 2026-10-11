@@ -36,6 +36,7 @@ void FUN_L01_0030b618(u8 *m) {
     f32 elapsed;
     f32 active;
     f32 phase;
+    f32 sine;
     f32 cutoff;
     OvlQuad first;
     OvlQuad second;
@@ -71,7 +72,7 @@ void FUN_L01_0030b618(u8 *m) {
             active = 0.0f;
     }
     i = *(s32 *)(e + 0x84);
-    if (i != -1 && *(s8 *)(D_L01_0015FFD8_b618 + (i << 8) + 0x20) < 0) {
+    if (i != -1 && *(s8 *)((D_L01_0015FFD8_b618 + 0x20) + i * 0x100) < 0) {
         slot = *(s32 *)(e + 0x68);
         if (slot != -1)
             FUN_L00_0023e838(slot);
@@ -83,34 +84,34 @@ void FUN_L01_0030b618(u8 *m) {
         if (is_timer_active_b618(e + 0x6c)) {
             current = random_integer_between_b618(*(s32 *)(e + 0x50), *(s32 *)(e + 0x54));
             *(s32 *)(e + 0x74) = *(s32 *)(e + 0x78);
-            *(s32 *)(e + 0x6c) = current;
             *(s32 *)(e + 0x70) = current;
-            count = *(s32 *)(e + 0x58);
-            next = random_integer_between_b618(1, count - 1);
-            i = (*(s32 *)(e + 0x78) + next) % count;
+            *(s32 *)(e + 0x6c) = current;
+            next = random_integer_between_b618(1, *(s32 *)(e + 0x58) - 1);
+            i = (*(s32 *)(e + 0x78) + next) % *(s32 *)(e + 0x58);
             *(s32 *)(e + 0x7c) = *(s32 *)(e + 0x7c) == 0;
             *(s32 *)(e + 0x78) = i;
         }
         phase = itof_s_b618(*(s32 *)(e + 0x70) - *(s32 *)(e + 0x6c));
         phase = phase / itof_s_b618(*(s32 *)(e + 0x70));
-        phase = phase * 3.1415927f * 0.5f;
+        phase *= 3.1415927f;
+        phase *= 0.5f;
         if (*(s32 *)(e + 0x7c) != 0)
             phase += 1.5707964f;
-        phase = fast_sin_b618(phase);
+        sine = fast_sin_b618(phase);
 
-        if (*(s32 *)(e + 0x7c) == 0) {
-            first = ((OvlQuad *)e)[*(s32 *)(e + 0x74)];
-            next = *(s32 *)(e + 0x78);
-        } else {
+        if (*(s32 *)(e + 0x7c) != 0) {
             first = ((OvlQuad *)e)[*(s32 *)(e + 0x78)];
-            next = *(s32 *)(e + 0x74);
+            second = ((OvlQuad *)e)[*(s32 *)(e + 0x74)];
+            interpolate_vector_b618(e + 0x40, &first, &second, sine);
+        } else {
+            first = ((OvlQuad *)e)[*(s32 *)(e + 0x74)];
+            second = ((OvlQuad *)e)[*(s32 *)(e + 0x78)];
+            interpolate_vector_b618(e + 0x40, &first, &second, phase);
         }
-        second = ((OvlQuad *)e)[next];
-        interpolate_vector_b618(e + 0x40, &first, &second, phase);
         cutoff = *(f32 *)(e + 0x5c) * 0.75f;
         if (cutoff < elapsed) {
-            second = *(OvlQuad *)(e + 0x40);
             first = 0;
+            second = *(OvlQuad *)(e + 0x40);
             interpolate_vector_b618(e + 0x40, &second, &first,
                                     (elapsed - cutoff) / (*(f32 *)(e + 0x5c) - cutoff));
         }
@@ -137,7 +138,96 @@ void FUN_L01_0030b618(u8 *m) {
     }
 }
 #endif
+#ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L01_0030bfa8.s", FUN_L01_0030bfa8);
+#else
+#include "rnc/overlay/quad.h"
+typedef union {
+    OvlQuad q;
+    f32 f[4];
+} GlowVec_bfa8;
+typedef struct { GlowVec_bfa8 v[4]; } GlowCorners_bfa8;
+
+typedef struct {
+    GlowVec_bfa8 corner[4];
+    u32 color[4];
+    s32 unk50, unk54, unk58;
+    f32 unk5C, unk60;
+    s32 unk64;
+    f32 unk68, unk6C;
+    s64 unk70, tex, unk80, unk88;
+} GlowQuad_bfa8;
+
+extern GlowVec_bfa8 D_L01_0020B9D0[4];
+extern char D_L01_00167240[];
+extern GlowVec_bfa8 D_0013F5E0[];
+extern f32 D_L01_00162064 __attribute__((sda));
+extern f32 D_L01_0016206C __attribute__((sda));
+extern s64 get_effect_texture_bfa8(s32) __asm__("FUN_001f44b8");
+extern void add_vector_xyz_bfa8(void *, void *, void *) __asm__("FUN_001f9a10");
+extern void subtract_vector_xyz_bfa8(void *, void *, void *) __asm__("FUN_001f9a28");
+extern void scale_vector_xyz_bfa8(void *, void *, f32) __asm__("FUN_001f9a68");
+extern void cross_vectors_xyz_bfa8(void *, void *, void *) __asm__("FUN_001f9ad8");
+extern void normalize_vector_xyz_bfa8(void *, void *, f32) __asm__("FUN_001f9bf8");
+extern void transform_vector_bfa8(void *, void *, void *) __asm__("FUN_001f9d20");
+extern void draw_geometry_quad_bfa8(void *, void *, s32) __asm__("FUN_001f7d30");
+
+void FUN_L01_0030bfa8(char *m) {
+    struct {
+        GlowQuad_bfa8 quad;
+        GlowVec_bfa8 src_corner[4];
+        struct { GlowVec_bfa8 mat0, mat1, mat2, point, partial, offset; } basis;
+    } local;
+    GlowVec_bfa8 *dst;
+    s32 i;
+    f32 one;
+    OvlQuad q0, q1, q2, q3;
+
+    i = 3;
+    one = 1.0f;
+    q0 = D_L01_0020B9D0[0].q;
+    q1 = D_L01_0020B9D0[1].q;
+    q2 = D_L01_0020B9D0[2].q;
+    q3 = D_L01_0020B9D0[3].q;
+    local.src_corner[0].q = q0;
+    local.src_corner[1].q = q1;
+    local.src_corner[2].q = q2;
+    local.src_corner[3].q = q3;
+    local.quad.tex = get_effect_texture_bfa8(0xB);
+    local.quad.unk88 = 0x8000000048L;
+    local.quad.unk80 = 0xFF9000000260L;
+    local.quad.unk70 = 5;
+    local.quad.unk50 = 0;
+    local.quad.unk54 = 0;
+    local.quad.unk58 = 0;
+    local.quad.unk5C = one;
+    local.quad.unk60 = one;
+    local.quad.unk64 = 0;
+    local.quad.unk68 = one;
+    local.quad.unk6C = one;
+
+    scale_vector_xyz_bfa8(&local.basis.offset, m + 0xc0, D_L01_00162064);
+    scale_vector_xyz_bfa8(&local.basis.partial, m + 0xe0, D_L01_0016206C);
+    add_vector_xyz_bfa8(&local.basis.offset, &local.basis.offset, &local.basis.partial);
+    add_vector_xyz_bfa8(&local.basis.point, &local.basis.offset, m + 0x10);
+    subtract_vector_xyz_bfa8(&local.basis.mat0, D_L01_00167240, &local.basis.point);
+    normalize_vector_xyz_bfa8(&local.basis.mat0, &local.basis.mat0, one);
+    cross_vectors_xyz_bfa8(&local.basis.mat1, &local.basis.mat0, D_0013F5E0);
+    normalize_vector_xyz_bfa8(&local.basis.mat1, &local.basis.mat1, -1.0f);
+    cross_vectors_xyz_bfa8(&local.basis.mat2, &local.basis.mat1, &local.basis.mat0);
+
+    local.quad.color[0] = local.quad.color[3] =
+        local.quad.color[2] = local.quad.color[1] = 0x202020FF;
+    dst = local.quad.corner;
+    do {
+        scale_vector_xyz_bfa8(dst, &local.src_corner[3 - i], 0.4f);
+        transform_vector_bfa8(dst, dst, &local.basis.mat0);
+        dst++;
+        i--;
+    } while (i >= 0);
+    draw_geometry_quad_bfa8(&local.quad, &local.basis.mat0, 0);
+}
+#endif
 #define NOT_SDA
 
 #define MACRO_ADDR
@@ -971,9 +1061,6 @@ void FUN_L01_00316e88(float a, float b) {
     *(float *)(d + 0x44) = a;
     *(float *)(d + 0x48) = b;
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L01_00319928.s", FUN_L01_00319928);
-#else
 extern char *D_L00_0015F5F4;
 extern char D_0013E550[];
 extern char D_0013E5E0[];
@@ -997,7 +1084,6 @@ void FUN_L01_00319928(char *moby) {
     int volume;
     int flags;
     float box_length, listener_length;
-    char *slot;
 
     radius.f[2] = radius.f[1] = radius.f[0] = *(float *)(moby + 0xc);
     subtract_vector_xyz(&delta, D_L01_00167240, moby + 0x40);
@@ -1023,16 +1109,18 @@ void FUN_L01_00319928(char *moby) {
                                                      listener_length, D_L00_0015F5F4 + sound_data[0] * 0x20);
         }
         if (*(u8 *)(D_L00_0015F5F4 + sound_data[0] * 0x20 + 0x18)) flags = 0x14;
-        slot = D_0013E550 + sound_data[4] * 0x70;
-        if (*(char **)(slot + 0x8c) != moby || *(u8 *)(slot + 0x74) == 0) {
-            if (is_timer_active_319928(&sound_data[3])) {
-                sound_data[4] = play_voice_319928(sound_data[0], flags, moby, volume);
-                if (sound_data[2] > 0) {
-                    sound_data[3] = (int)((float)scale_game_frames(sound_data[1] +
-                        random_integer_below_319928(sound_data[2] - sound_data[1])) * 60.0f);
+        {
+            char *slot = D_0013E550 + sound_data[4] * 0x70;
+            if (*(char **)(slot + 0x8c) != moby || *(u8 *)(slot + 0x74) == 0) {
+                if (is_timer_active_319928(&sound_data[3])) {
+                    sound_data[4] = play_voice_319928(sound_data[0], flags, moby, volume);
+                    if (sound_data[2] > 0) {
+                        sound_data[3] = (int)((float)scale_game_frames(sound_data[1] +
+                            random_integer_below_319928(sound_data[2] - sound_data[1])) * 60.0f);
+                    }
+                } else {
+                    sound_data[4] = -1;
                 }
-            } else {
-                sound_data[4] = -1;
             }
         }
         if (sound_data[4] != -1) {
@@ -1043,14 +1131,13 @@ void FUN_L01_00319928(char *moby) {
         }
     } else {
         if (sound_data[4] != -1) {
-            slot = D_0013E550 + sound_data[4] * 0x70;
+            char *slot = D_0013E550 + sound_data[4] * 0x70;
             if (*(char **)(slot + 0x8c) == moby && *(u8 *)(slot + 0x74) != 0)
                 release_voice_slot(sound_data[4]);
         }
         sound_data[4] = -1;
     }
 }
-#endif
 /* reverb box sound update: starts or stops the sound as the listener enters or leaves the box */
 /* Ported from rac1-decomp (src/overlays/shared/vendor_0031AD00.c: func_L01_0031B2F0), where it is exact; names translated to the US level program. */
 
