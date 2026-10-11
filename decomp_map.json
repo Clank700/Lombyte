@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3684,
+  "matching_c": 3685,
   "intentional_asm": 318,
-  "pending_c": 549,
+  "pending_c": 548,
   "bytes_total": 3669004,
-  "bytes_matching_c": 2628856,
+  "bytes_matching_c": 2631396,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 917412,
-  "c_exact_percent_of_recoverable": 74.1302,
-  "c_fuzzy_percent_of_recoverable": 75.5391,
+  "bytes_pending_c": 914872,
+  "c_exact_percent_of_recoverable": 74.2018,
+  "c_fuzzy_percent_of_recoverable": 75.6108,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2528,
-    "pending_c": 486,
+    "matching_c": 2529,
+    "pending_c": 485,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2332924,
-    "bytes_pending_c": 860504,
-    "c_exact_percent_of_recoverable": 73.0539,
+    "bytes_matching_c": 2335464,
+    "bytes_pending_c": 857964,
+    "c_exact_percent_of_recoverable": 73.1334,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -1977,12 +1977,12 @@
       "planet": "Shared code",
       "description": "functions present in two or more levels",
       "functions": 1583,
-      "matching_c": 1326,
-      "pending_c": 257,
+      "matching_c": 1327,
+      "pending_c": 256,
       "bytes_total": 1130492,
-      "bytes_matching_c": 709156,
-      "bytes_pending_c": 421336,
-      "c_exact_percent_of_recoverable": 62.7299,
+      "bytes_matching_c": 711696,
+      "bytes_pending_c": 418796,
+      "c_exact_percent_of_recoverable": 62.9545,
       "files": [
         {
           "file": "src/overlays/shared/sdk/debug/001eb0b0.c",
@@ -2021,17 +2021,10 @@
         },
         {
           "file": "src/overlays/shared/rendering/debug/001f36f8.c",
-          "functions": 5,
-          "matching_c": 2,
-          "bytes_total": 10816,
-          "bytes_matching_c": 376
-        },
-        {
-          "file": "shared",
-          "functions": 1,
-          "matching_c": 0,
-          "bytes_total": 2540,
-          "bytes_matching_c": 0
+          "functions": 6,
+          "matching_c": 3,
+          "bytes_total": 13356,
+          "bytes_matching_c": 2916
         },
         {
           "file": "src/overlays/shared/rendering/view/001f6d70.c",
@@ -5034,14 +5027,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3684,
+    "matching_c": 3685,
     "intentional_asm": 318,
-    "pending_c": 549,
+    "pending_c": 548,
     "bytes_total": 3669004,
-    "bytes_matching_c": 2628856,
+    "bytes_matching_c": 2631396,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 917412,
-    "c_exact_percent_of_recoverable": 74.1302,
-    "c_fuzzy_percent_of_recoverable": 75.5391
+    "bytes_pending_c": 914872,
+    "c_exact_percent_of_recoverable": 74.2018,
+    "c_fuzzy_percent_of_recoverable": 75.6108
   }
 }
