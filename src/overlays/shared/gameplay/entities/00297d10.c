@@ -406,8 +406,8 @@ void FUN_L06_002e9b60(float scale, float threshold, char *moby, float *out, int 
     }
     for (i = 0; i < 6; i++) {
         if (coll_sphere(end, threshold, 4, moby) != 0) {
-        qcopy(end, &D_L06_001745F0);
-        FUN_001f9a28(moby + 0x10, end, forward);
+            qcopy(end, &D_L06_001745F0);
+            FUN_001f9a28(moby + 0x10, end, forward);
         } else {
             break;
         }

@@ -1319,22 +1319,17 @@ void FUN_L00_00207430(char *o) {
         *(float *)(t + 0x28) = x;
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002076a8.s", FUN_L00_002076a8);
-#else
 extern void glow_n(void *, int, int, int) __asm__("FUN_L00_002502f0");
 extern void get_moby_color(void *, int *, int *, int *) __asm__("FUN_L00_00250320");
-extern int current_level_index_2076a8 __asm__("D_0015ED84") __attribute__((sda));
-extern int current_level_index_abs_2076a8 __asm__("D_0015ED84") __attribute__((section(".data")));
 extern u8 item_text_variant[] __asm__("D_0013E520");
+extern int current_level_index __asm__("D_0015ED84");
 
 void FUN_L00_002076a8(void) {
-    struct Hero *g = &hero;
+    struct Hero *player = &hero;
     int blink;
-    int level;
 
-    if (g->unk22F4 != 0) {
-        int color = g->unk22F8;
+    if (player->unk22F4 != 0) {
+        int color = player->unk22F8;
         int red = color & 0xff;
         int blue = (color >> 16) & 0xff;
         int green = (color >> 8) & 0xff;
@@ -1345,28 +1340,18 @@ void FUN_L00_002076a8(void) {
         if (green < 0) green = 0;
         if (blue < 0) blue = 0;
         {
-            int packed = (unsigned int)color >> 24;
-            glow_n(((void *)g->moby), red, green, blue);
-            packed <<= 24;
-            packed |= blue << 16;
-            packed |= green << 8;
-            packed |= red;
-            g->unk22F8 = packed;
+            int alpha = (unsigned int)color >> 24;
+            glow_n(((void *)player->moby), red, green, blue);
+            player->unk22F8 = alpha << 24 | blue << 16 | green << 8 | red;
         }
     }
 
     blink = 0;
     if (hero.state.current == 0x80 || hero.state.current == 0x82) {
         blink = hero.state_timer < FUN_001f96f8(0x1e);
-        if (blink)
-            level = current_level_index_abs_2076a8;
-        else
-            level = current_level_index_abs_2076a8;
-    } else {
-        level = current_level_index_2076a8;
     }
-    if ((level == 0xf || level == 0x11) && hero.state.current == 0x76 &&
-        hero.state_timer < FUN_001f96f8(0x14)) {
+    if ((current_level_index == 0xf || current_level_index == 0x11) &&
+        hero.state.current == 0x76 && hero.state_timer < FUN_001f96f8(0x14)) {
         blink = 1;
     }
     if (blink) {
@@ -1390,7 +1375,6 @@ void FUN_L00_002076a8(void) {
         FUN_L00_00207330(((void *)hero.items[0].moby), ((char *)hero.moby));
     }
 }
-#endif
 typedef unsigned int u128_2078a8 __attribute__((mode(TI), aligned(16)));
 typedef union {
     u128_2078a8 q;
