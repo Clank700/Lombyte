@@ -220,6 +220,7 @@ OVERLAY_SN_UNITS = {
     "l04/gameplay/entities/0024c4f0.c",
     "l04/gameplay/entities/0029eb20.c",
     "l04/gameplay/entities/002ca420.c",
+    "l04/gameplay/vendor/002e3078.c",
     "l04/runtime/dma/002922d0.c",
     "l05/gameplay/entities/002d1688.c",
     "l05/gameplay/entities/0030d6a0.c",
@@ -317,6 +318,7 @@ OVERLAY_SN_UNITS = {
     "shared/gameplay/entities/002b8c08.c",
     "shared/gameplay/entities/002b94d0.c",
     "shared/gameplay/entities/002bffa8.c",
+    "shared/gameplay/entities/002c5990.c",
     "shared/gameplay/entities/002c8440.c",
     "shared/gameplay/entities/002c8830.c",
     "shared/gameplay/entities/002cfcb8.c",
@@ -336,6 +338,7 @@ OVERLAY_SN_UNITS = {
     "shared/gameplay/vendor/0030b618.c",
     "shared/gameplay/vendor/0030e690.c",
     "shared/gameplay/vendor/00316f48.c",
+    "shared/gameplay/vendor/0031abe0.c",
     "shared/math/interpolation/00257ef0.c",
     "shared/math/interpolation/00258830.c",
     "shared/math/interpolation/0026d930.c",
@@ -348,6 +351,7 @@ OVERLAY_SN_UNITS = {
     "shared/rendering/sky/00288ec0.c",
     "shared/runtime/dma/002b7a48.c",
     "shared/ui/help/001fe778.c",
+    "shared/ui/help/00203b18.c",
     "shared/ui/help/00204c60.c",
     "shared/ui/help/0020c758.c",
     "shared/ui/help/00215340.c",
@@ -921,7 +925,11 @@ def hoist_sda_externs(assembly, source):
     known.  The source says which globals retail reads through $gp: those
     declared `__attribute__((sda))` (the game compiler's spelling, ignored by
     SN cc1); their directives go first, the others stay where cc1 put them.
+    A NON_MATCHING `#else` draft is not compiled, so its declarations do not
+    count.
     """
+    source = re.sub(r"^(#ifndef NON_MATCHING\n(?:INCLUDE_ASM[^\n]*\n)*)#else\n.*?^#endif",
+                    r"\1#endif", source, flags=re.M | re.S)
     sda = set()
     for decl in re.findall(r"^extern[^;]*__attribute__\(\(sda\)\)[^;]*;", source, re.M):
         label = re.search(r'__asm__\s*\(\s*"([\w.$]+)"', decl)

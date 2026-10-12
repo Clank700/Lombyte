@@ -612,142 +612,177 @@ void FUN_L00_00238b80(Obj *o) {
         D_L00_0015FA94 = D_L00_0015F3F8;
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00238f88.s", FUN_L00_00238f88);
-#else
-extern s32 D_L00_0015F5CC;
-extern s32 D_L00_0015F718 __attribute__((sda));
-extern s32 D_L00_0015F71C __attribute__((sda));
-extern s32 D_L00_0015F720 __attribute__((sda));
-extern s32 D_L00_0015F724 __attribute__((sda));
-extern s32 D_L00_0015F72C __attribute__((sda));
-extern s32 D_L00_0015F780 __attribute__((sda));
-extern s32 D_L00_0015F7B0 __attribute__((sda));
-extern f32 D_L00_0015F78C __attribute__((sda));
-extern f32 D_L00_0015F7C0 __attribute__((sda));
-extern f32 D_L00_0015F7C4 __attribute__((sda));
-extern s32 D_L00_0015F7D4 __attribute__((sda));
-extern s32 D_L00_0015F7D8 __attribute__((sda));
-extern s32 D_L00_0015F7DC __attribute__((sda));
-typedef struct { s32 ids[4]; } TextIds238f88;
-extern TextIds238f88 D_L00_0015F7E0 __attribute__((sda));
-extern s32 D_L00_0015FA90;
-extern Ent **D_L00_0015FAC0_c __asm__("D_L00_0015FAC0");
-extern s32 D_L00_0017E504;
-extern f32 convert_integer_to_float(s32) __asm__("FUN_001fa6c0");
-extern s32 truncate_float_to_s32(f32) __asm__("FUN_001fa6d0");
-extern f32 fast_sin(f32) __asm__("FUN_001f9de0");
-extern f32 fast_cos(f32) __asm__("FUN_001f9dc8");
-extern f32 fast_add_rotations(f32, f32) __asm__("FUN_001fa580");
-extern s32 fast_tween_color_alpha_first(f32, s32, s32) __asm__("FUN_001fa6e0");
-extern s32 get_icon_frame(s32, s32) __asm__("FUN_001ff960");
-extern void draw_hud_sprite(s32, s32, s32, s32, s32, s32) __asm__("FUN_001ffc30");
-extern void draw_hud_icon(void *, s32, s32, s32, s32, s32) __asm__("FUN_L00_0023b120");
-extern void font_print_right_238f88(s32, s32, s32, const char *, s32) __asm__("FUN_001f6af0");
-extern const char *get_text(s32) __asm__("FUN_001fdd10");
-extern s32 strlen_alt(const char *) __asm__("FUN_001166cc");
-extern s32 FUN_L00_00235a70(char *, s32 *, s32 *);
+/* Ported from rac1-decomp (src/overlays/shared/hud_00235960.c: func_L00_00239918), where it is exact; names translated to the US level program. */
 
-s32 FUN_L00_00238f88(char *rec) {
-    s32 x, y, half_w, half_h, alpha;
-    s32 marker_alpha;
-    s32 i, icon_x, icon_y, selected, entry_offset, marker_offset, normal_offset, count, extra_offset;
-    s32 color, shadow, text_y;
-    f32 open, fade, phase, angle, radius;
-    const char *text;
-    Ent *entry;
-    TextIds238f88 text_ids;
-    u8 *q = (u8 *)rec + 0x70;
+typedef struct {
+    char pad0[0x8];
+    int unk08;
+    int *unk0C;
+    char pad10[0x38];
+    short unk48;
+    short unk4A;
+    char pad4C[0x4];
+    int unk50;
+    int unk54;
+    int w;
+    int h;
+    int flags;
+    char pad64[0x8];
+    int unk6C;
+    unsigned char cnt[4];
+    int unk74;
+    int unk78;
+    int unk7C;
+    void *unk80;
+} HudElem_238f88;
 
-    open = convert_integer_to_float(q[0]) / convert_integer_to_float(D_L00_0015F780);
-    if (1.0f < open) open = 1.0f;
-    else if (open < 0.0f) open = 0.0f;
-    fade = convert_integer_to_float(q[1]) / convert_integer_to_float(D_L00_0015F780);
-    if (1.0f < fade) fade = 1.0f;
-    else if (fade < 0.0f) fade = 0.0f;
+typedef struct { int f0, f4, f8, fC, f10, f14, f18; } Ent_239918;
 
-    i = 0;
-    phase = convert_integer_to_float(D_L00_0015F5CC % D_L00_0015F7B0) /
-            convert_integer_to_float(D_L00_0015F7B0);
-    angle = fast_sin(phase * 6.28318f - 3.14159f);
-    alpha = truncate_float_to_s32(open * 128.0f);
-    marker_alpha = truncate_float_to_s32((open * 128.0f) * (angle * 0.125f + 0.875f));
+typedef struct { int v[4]; } Ids_239918;
 
-    x = *(s32 *)(rec + 0x50);
-    y = *(s32 *)(rec + 0x54);
-    FUN_L00_00235a70(rec, &x, &y);
-    half_w = D_L00_0015F718 / 2;
-    half_h = D_L00_0015F71C / 2;
-    draw_hud_sprite(get_icon_frame(0xe934, 1), x, y, half_w, half_h, alpha);
-    draw_hud_sprite(get_icon_frame(0xe934, 1), x + D_L00_0015F718,
-                    y + D_L00_0015F71C, -half_w, -half_h, alpha);
-    draw_hud_sprite(get_icon_frame(0xe934, 1), x + D_L00_0015F718,
-                    y, -half_w, half_h, alpha);
-    draw_hud_sprite(get_icon_frame(0xe934, 1), x,
-                    y + D_L00_0015F71C, half_w, -half_h, alpha);
+typedef struct { char pad0[0x2C]; int f2C; } Arena_239918;
 
-    count = D_L00_0015FA90;
-    if (count > 0) {
-        extra_offset = 0;
-        normal_offset = 0;
-        marker_offset = 0;
-        entry_offset = 0;
-        do {
-            angle = fast_add_rotations(((f32)i + (f32)i) * 3.1415927f /
-                                       (f32)count - 3.1415927f, 1.5707964f);
-            icon_x = x + D_L00_0015F720 +
-                     (s32)(D_L00_0015F78C * fast_cos(angle) * D_L00_0015F7C4);
-            icon_y = y + D_L00_0015F724 +
-                     (s32)(D_L00_0015F78C * fast_sin(angle));
-            if (*(s32 *)(rec + 0x74) == i) {
-                entry = D_L00_0015FAC0_c[D_L00_0015F72C];
-                if (*(s32 *)((char *)entry + marker_offset) != 0)
-                    draw_hud_sprite(get_icon_frame(0xe99c, 0), icon_x - 0x13,
-                                    icon_y - 0x13, 0x26, 0x26, marker_alpha);
-            }
-            entry = D_L00_0015FAC0_c[D_L00_0015F72C];
-            if (*(s32 *)((char *)entry + entry_offset) != 0) {
-                s32 icon_alpha;
-                if (i != *(s32 *)(rec + 0x74))
-                    icon_alpha = truncate_float_to_s32((f32)alpha * D_L00_0015F7C0);
-                else
-                    icon_alpha = alpha;
-                if (D_L00_0017E504 == 0) {
-                    entry = D_L00_0015FAC0_c[D_L00_0015F72C];
-                    draw_hud_icon(rec, get_icon_frame(*(s32 *)((char *)entry + entry_offset), *(s32 *)((char *)entry + entry_offset + 4) + 4),
-                                  icon_x, icon_y, 1, alpha);
-                } else {
-                    entry = D_L00_0015FAC0_c[D_L00_0015F72C];
-                    draw_hud_icon(rec, get_icon_frame(*(s32 *)((char *)entry + extra_offset), *(s32 *)((char *)entry + normal_offset + 4)),
-                                  icon_x, icon_y, 1, icon_alpha);
-                }
-            }
-            extra_offset += 0x1c;
-            normal_offset += 0x1c;
-            marker_offset += 0x1c;
-            entry_offset += 0x1c;
-            i++;
-            count = D_L00_0015FA90;
-        } while (i < count);
+typedef struct {
+    char pad0[0x50];
+    int x;
+    int y;
+    int ret;
+    char pad5C[0x14];
+    unsigned char cnt[4];
+    int sel;
+} Elem_239918;
+
+extern char *get_help_message_text(s32) __asm__("func_001FDD10");
+extern char D_L00_0017E4D8[];
+extern f32 convert_integer_to_float_c(s32) __asm__("func_001FA6C0");
+extern f32 fast_add_rotations(f32, f32) __asm__("func_001FA580");
+extern f32 fast_cos(f32) __asm__("func_001F9DC8");
+extern f32 fast_sin(f32) __asm__("func_001F9DE0");
+extern int D_L00_0015F5CC;
+extern int D_L00_0015F718_c __asm__("D_L00_0015F718") __attribute__((sda));
+extern int D_L00_0015F71C_c __asm__("D_L00_0015F71C") __attribute__((sda));
+extern int D_L00_0015F720 __attribute__((sda)); /* no foreign declaration */
+extern int D_L00_0015F724 __attribute__((sda)); /* no foreign declaration */
+extern int D_L00_0015F780_c __asm__("D_L00_0015F780") __attribute__((sda));
+extern float D_L00_0015F78C __attribute__((sda));
+extern int D_L00_0015F7B0 __attribute__((sda)); /* no foreign declaration */
+extern float D_L00_0015F7C0 __attribute__((sda));
+extern float D_L00_0015F7C4 __attribute__((sda));
+extern int D_L00_0015F7D4 __attribute__((sda)); /* no foreign declaration */
+extern int D_L00_0015F7D8 __attribute__((sda)); /* no foreign declaration */
+extern int D_L00_0015F7DC __attribute__((sda)); /* no foreign declaration */
+extern int D_L00_0015F7E0;
+extern Ent_239918 **D_L00_0015FAC0_c2 __asm__("D_L00_0015FAC0");
+extern int FUN_001fa6e0(int, int, f32);
+extern s32 find_valid_animation_frame_index_alt(s32, s32) __asm__("func_001FF960");
+extern s32 font_print_center(s32, s32, s64, char *, s32) __asm__("func_001F6AF0");
+extern s32 truncate_float_to_s32_c(f32) __asm__("func_001FA6D0");
+extern u32 strlen(const char *);
+extern void FUN_L00_0023b120(char *, int, int, int, int, int);
+extern void draw_hud_sprite_c(s32, s32, s32, s32, s32, s32) __asm__("func_001FFC30");
+int FUN_L00_00235a70_c(HudElem_238f88 *rec, int *x, int *y) __asm__("FUN_L00_00235a70");
+extern Ids_239918 D_L00_0015F8C0_239918 __asm__("D_L00_0015F7E0");
+extern char D_L00_0017E5D8_239918[] __asm__("D_L00_0017E4D8");
+extern float func_001FA888_239918(int) __asm__("FUN_001fa6c0");
+extern float func_001F9FA8_239918(float) __asm__("FUN_001f9de0");
+extern int func_001FA898_239918(float) __asm__("FUN_001fa6d0");
+extern float func_001F9F90_239918(float) __asm__("FUN_001f9dc8");
+extern float func_001FA748_239918(float, float) __asm__("FUN_001fa580");
+extern int func_00200198_239918(int, int) __asm__("FUN_001ff960");
+extern void func_00200468_239918(int, int, int, int, int, int) __asm__("FUN_001ffc30");
+extern void func_L00_0023BAB8_239918(void *, int, int, int, int, int) __asm__("FUN_L00_0023b120");
+extern int func_001FE540_239918(int) __asm__("FUN_001fdd10");
+extern int func_00116810_239918(int) __asm__("FUN_001166cc");
+extern int func_001FA8A8_239918(int, int, float) __asm__("FUN_001fa6e0");
+extern int func_001F6EA8_239918(int, int, int, int, int) __asm__("FUN_001f6af0");
+extern int func_L00_00236400_239918(void *, int *, int *) __asm__("FUN_L00_00235a70");
+
+int FUN_L00_00238f88(Elem_239918 *element) {
+    Ids_239918 text_ids;
+    int x, y;
+    int frame_alpha, pulse_alpha, half_width, half_height, i, alpha, selected, text_y, color, shadow, text;
+    float open_fade, text_fade;
+    unsigned char *counters;
+
+    counters = element->cnt;
+    {
+        float frames = func_001FA888_239918(element->cnt[0]);
+        open_fade = frames / func_001FA888_239918(D_L00_0015F780_c);
     }
-    selected = *(s32 *)(rec + 0x74);
-    if (selected >= 0 && D_L00_0015FAC0_c[D_L00_0015F72C][selected].f0 != 0) {
-        text_ids = D_L00_0015F7E0;
-        if (D_L00_0015FAC0_c[D_L00_0015F72C][selected].f0 != 0) {
-            text = get_text(text_ids.ids[selected]);
-            if (text == 0) return *(s32 *)(rec + 0x58);
-            if (strlen_alt(text) != 0) {
-                color = fast_tween_color_alpha_first(open * fade, D_L00_0015F7D4, D_L00_0015F7D8);
-                shadow = fast_tween_color_alpha_first(open * fade, 0, 0x80000000);
-                text_y = y + D_L00_0015F7DC + D_L00_0015F724;
-                font_print_right_238f88(x + D_L00_0015F720 - 1, text_y - 1, shadow, text, -1);
-                font_print_right_238f88(x + D_L00_0015F720, text_y, color, text, -1);
+    if (1.0f < open_fade) {
+        open_fade = 1.0f;
+    } else if (open_fade < 0.0f) {
+        open_fade = 0.0f;
+    }
+    {
+        float frames = func_001FA888_239918(counters[1]);
+        text_fade = frames / func_001FA888_239918(D_L00_0015F780_c);
+    }
+    if (1.0f < text_fade) {
+        text_fade = 1.0f;
+    } else if (text_fade < 0.0f) {
+        text_fade = 0.0f;
+    }
+    {
+        float phase = func_001FA888_239918(D_L00_0015F5CC % D_L00_0015F7B0);
+        float wave;
+        float max_alpha;
+        phase = phase / func_001FA888_239918(D_L00_0015F7B0);
+        phase = phase * 6.2831802f;
+        wave = func_001F9FA8_239918(phase - 3.1415901f);
+        max_alpha = open_fade * 128.0f;
+        frame_alpha = func_001FA898_239918(max_alpha);
+        wave = wave * 0.125f;
+        wave = wave + 0.875f;
+        pulse_alpha = func_001FA898_239918(max_alpha * wave);
+    }
+    x = element->x;
+    y = element->y;
+    func_L00_00236400_239918(element, &x, &y);
+    half_width = D_L00_0015F718_c / 2;
+    half_height = D_L00_0015F71C_c / 2;
+    func_00200468_239918(func_00200198_239918(0xE934, 1), x, y, half_width, half_height, frame_alpha);
+    func_00200468_239918(func_00200198_239918(0xE934, 1), x + D_L00_0015F718_c, y + D_L00_0015F71C_c, -half_width, -half_height, frame_alpha);
+    func_00200468_239918(func_00200198_239918(0xE934, 1), x + D_L00_0015F718_c, y, -half_width, half_height, frame_alpha);
+    func_00200468_239918(func_00200198_239918(0xE934, 1), x, y + D_L00_0015F71C_c, half_width, -half_height, frame_alpha);
+    for (i = 0; i < D_L00_0015FA90; i++) {
+        int icon_x, icon_y;
+        float angle = func_001FA748_239918((float)i * 2.0f * 3.1415927f / (float)D_L00_0015FA90 - 3.1415927f, 1.5707964f);
+        icon_x = x + D_L00_0015F720 + (int)(D_L00_0015F78C * func_001F9F90_239918(angle) * D_L00_0015F7C4);
+        icon_y = y + D_L00_0015F724 + (int)(D_L00_0015F78C * func_001F9FA8_239918(angle));
+        if (element->sel == i && D_L00_0015FAC0_c2[D_L00_0015F72C][i].f0 != 0) {
+            func_00200468_239918(func_00200198_239918(0xE99C, 0), icon_x - 0x13, icon_y - 0x13, 0x26, 0x26, pulse_alpha);
+        }
+        if (D_L00_0015FAC0_c2[D_L00_0015F72C][i].f0 != 0) {
+            if (i != element->sel) {
+                alpha = func_001FA898_239918((float)frame_alpha * D_L00_0015F7C0);
+            } else {
+                alpha = frame_alpha;
+            }
+            if (((Arena_239918 *)D_L00_0017E5D8_239918)->f2C != 0) {
+                func_L00_0023BAB8_239918(element, func_00200198_239918(D_L00_0015FAC0_c2[D_L00_0015F72C][i].f0, D_L00_0015FAC0_c2[D_L00_0015F72C][i].f4), icon_x, icon_y, 1, alpha);
+            } else {
+                func_L00_0023BAB8_239918(element, func_00200198_239918(D_L00_0015FAC0_c2[D_L00_0015F72C][i].f0, D_L00_0015FAC0_c2[D_L00_0015F72C][i].f4 + 4), icon_x, icon_y, 1, frame_alpha);
             }
         }
     }
-    return *(s32 *)(rec + 0x58);
+    selected = element->sel;
+    if (selected >= 0 && D_L00_0015FAC0_c2[D_L00_0015F72C][selected].f0 != 0) {
+        text_ids = D_L00_0015F8C0_239918;
+        if (D_L00_0015FAC0_c2[D_L00_0015F72C][selected].f0 != 0) {
+            text = func_001FE540_239918(text_ids.v[selected]);
+            if (text != 0 && func_00116810_239918(text) != 0) {
+                float fade = text_fade * open_fade;
+                color = func_001FA8A8_239918(D_L00_0015F7D4, D_L00_0015F7D8, fade);
+                shadow = func_001FA8A8_239918(0, 0x80000000, fade);
+                text_y = y + D_L00_0015F7DC + D_L00_0015F724;
+                func_001F6EA8_239918(x + D_L00_0015F720 - 1, text_y - 1, shadow, text, -1);
+                func_001F6EA8_239918(x + D_L00_0015F720, text_y, color, text, -1);
+            }
+        }
+    }
+    return element->ret;
 }
-#endif
 typedef struct {
     short a, b, c, d;
 } Q2395b0;

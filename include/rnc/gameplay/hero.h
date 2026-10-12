@@ -415,7 +415,8 @@ struct Hero {
     f32 unk610;                    /* 0x610 */
     f32 unk614;                    /* 0x614 */
     union { f32 f; s32 i; } unk618; /* 0x618: float distance clamp, zeroed as an int */
-    u8 pad_61C[0x54];
+    u8 pad_61C[0x24];
+    Vec4 basis[3];                 /* 0x640: rotation rows (transform_vector_by_basis) */
     f32 unk670;                    /* 0x670 */
     f32 unk674;                    /* 0x674 */
     u8 pad_678[0xC];
@@ -448,7 +449,9 @@ struct Hero {
     Vec4 unk770;                   /* 0x770 */
     Vec4 unk780;                   /* 0x780 */
     Vec4 unk790;                   /* 0x790 */
-    u8 pad_7A0[0x30];
+    s16 unk7A0[8];                 /* 0x7A0 */
+    s16 unk7B0[8];                 /* 0x7B0 */
+    s16 unk7C0[8];                 /* 0x7C0 */
     f32 unk7D0[0x20];              /* 0x7D0 */
     u8 pad_850[0x4];
     f32 unk854;                    /* 0x854 */
@@ -491,10 +494,11 @@ struct Hero {
     s16 unk8BE;                    /* 0x8BE */
     s32 unk8C0;                    /* 0x8C0: 1..3 picks the HUD rank string (FUN_L05_00266320) */
     s32 unk8C4;                    /* 0x8C4 */
-    u8 pad_8C8[0x4];
+    u8 pad_8C8[0x2];
+    s16 unk8CA;                    /* 0x8CA */
     s16 unk8CC;                    /* 0x8CC */
     u8 unk8CE;                     /* 0x8CE */
-    u8 pad_8CF[0x1];
+    u8 unk8CF;                     /* 0x8CF */
     Vec4 unk8D0;                   /* 0x8D0 */
     s32 unk8E0;                    /* 0x8E0 */
     f32 unk8E4;                    /* 0x8E4 */
@@ -712,7 +716,10 @@ struct Hero {
     struct Moby *unk2040;          /* 0x2040: nearest oclass 0x25D moby (FUN_L00_002d2ee8) */
     f32 unk2044;                   /* 0x2044: distance to unk2040; 100000 when none */
     s32 unk2048;                   /* 0x2048 */
-    u8 pad_204C[0x34];
+    u8 pad_204C[0x4];
+    struct Moby *unk2050[10];      /* 0x2050 */
+    s32 unk2078;                   /* 0x2078 */
+    s32 unk207C;                   /* 0x207C */
     struct Moby *moby;             /* 0x2080: the hero's moby */
     struct HeroState state;        /* 0x2084 */
     u8 vehicle_mode;                    /* 0x20A4 */
@@ -727,7 +734,7 @@ struct Hero {
     u8 unk20AD;                    /* 0x20AD */
     u8 unk20AE;                    /* 0x20AE */
     u8 unk20AF;                    /* 0x20AF */
-    s8 unk20B0;                    /* 0x20B0 */
+    u8 unk20B0;                    /* 0x20B0 */
     u8 unk20B1;                    /* 0x20B1 */
     u8 unk20B2;                    /* 0x20B2 */
     u8 unk20B3;                    /* 0x20B3 */
