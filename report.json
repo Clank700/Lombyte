@@ -1,16 +1,16 @@
 {
   "measures": {
-    "fuzzy_match_percent": 78.766091,
+    "fuzzy_match_percent": 78.847754,
     "total_code": "3546268",
-    "matched_code": "2743292",
-    "matched_code_percent": 77.357154,
+    "matched_code": "2746188",
+    "matched_code_percent": 77.438817,
     "total_functions": 4233,
-    "matched_functions": 3752,
-    "matched_functions_percent": 88.636901,
-    "complete_code": "2743292",
-    "complete_code_percent": 77.357154,
+    "matched_functions": 3753,
+    "matched_functions_percent": 88.660524,
+    "complete_code": "2746188",
+    "complete_code_percent": 77.438817,
     "total_units": 511,
-    "complete_units": 366
+    "complete_units": 365
   },
   "units": [
     {
@@ -4181,15 +4181,15 @@
     {
       "name": "game/unclassified",
       "measures": {
-        "fuzzy_match_percent": 91.822352,
-        "total_code": "33572",
+        "fuzzy_match_percent": 91.821446,
+        "total_code": "33424",
         "matched_code": "13252",
-        "matched_code_percent": 39.473371,
-        "total_functions": 42,
+        "matched_code_percent": 39.648157,
+        "total_functions": 41,
         "matched_functions": 19,
-        "matched_functions_percent": 45.238095,
+        "matched_functions_percent": 46.341463,
         "complete_code": "13252",
-        "complete_code_percent": 39.473371,
+        "complete_code_percent": 39.648157,
         "total_units": 1,
         "complete_units": 0
       },
@@ -4345,15 +4345,6 @@
           "address": "947064",
           "metadata": {
             "virtual_address": "1086600"
-          }
-        },
-        {
-          "name": "update_visible_resident_objects",
-          "size": "148",
-          "fuzzy_match_percent": 92.027,
-          "address": "990360",
-          "metadata": {
-            "virtual_address": "1129896"
           }
         },
         {
@@ -11444,17 +11435,17 @@
     {
       "name": "game/gameplay/entities",
       "measures": {
-        "fuzzy_match_percent": 100.0,
-        "total_code": "5372",
+        "fuzzy_match_percent": 99.786231,
+        "total_code": "5520",
         "matched_code": "5372",
-        "matched_code_percent": 100.0,
-        "total_functions": 29,
+        "matched_code_percent": 97.318841,
+        "total_functions": 30,
         "matched_functions": 29,
-        "matched_functions_percent": 100.0,
+        "matched_functions_percent": 96.666667,
         "complete_code": "5372",
-        "complete_code_percent": 100.0,
+        "complete_code_percent": 97.318841,
         "total_units": 1,
-        "complete_units": 1
+        "complete_units": 0
       },
       "functions": [
         {
@@ -11647,6 +11638,15 @@
           }
         },
         {
+          "name": "update_visible_resident_objects",
+          "size": "148",
+          "fuzzy_match_percent": 92.027,
+          "address": "26928",
+          "metadata": {
+            "virtual_address": "1129896"
+          }
+        },
+        {
           "name": "random_spherical_offset",
           "size": "120",
           "fuzzy_match_percent": 100.0,
@@ -11720,7 +11720,7 @@
         }
       ],
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot",
           "game"
@@ -39035,15 +39035,15 @@
     {
       "name": "shared/gameplay/entities/002cfcb8",
       "measures": {
-        "fuzzy_match_percent": 35.819612,
+        "fuzzy_match_percent": 44.716146,
         "total_code": "32552",
-        "matched_code": "11660",
-        "matched_code_percent": 35.819612,
+        "matched_code": "14556",
+        "matched_code_percent": 44.716146,
         "total_functions": 29,
-        "matched_functions": 19,
-        "matched_functions_percent": 65.517241,
-        "complete_code": "11660",
-        "complete_code_percent": 35.819612,
+        "matched_functions": 20,
+        "matched_functions_percent": 68.965517,
+        "complete_code": "14556",
+        "complete_code_percent": 44.716146,
         "total_units": 1,
         "complete_units": 0
       },
@@ -39177,7 +39177,7 @@
         {
           "name": "FUN_L00_002d4610",
           "size": "2896",
-          "fuzzy_match_percent": 0.0,
+          "fuzzy_match_percent": 100.0,
           "address": "18776",
           "metadata": {
             "virtual_address": "2967056"
@@ -51088,7 +51088,7 @@
         "complete_code": "295932",
         "complete_code_percent": 83.871443,
         "total_units": 118,
-        "complete_units": 98
+        "complete_units": 97
       }
     },
     {
@@ -51105,7 +51105,7 @@
         "complete_code": "229156",
         "complete_code_percent": 83.833063,
         "total_units": 106,
-        "complete_units": 91
+        "complete_units": 90
       }
     },
     {
@@ -51129,15 +51129,15 @@
       "id": "overlays",
       "name": "Level overlays",
       "measures": {
-        "fuzzy_match_percent": 76.637394,
+        "fuzzy_match_percent": 76.72808,
         "total_code": "3193428",
-        "matched_code": "2447360",
-        "matched_code_percent": 76.637394,
+        "matched_code": "2450256",
+        "matched_code_percent": 76.72808,
         "total_functions": 3014,
-        "matched_functions": 2596,
-        "matched_functions_percent": 86.131387,
-        "complete_code": "2447360",
-        "complete_code_percent": 76.637394,
+        "matched_functions": 2597,
+        "matched_functions_percent": 86.164565,
+        "complete_code": "2450256",
+        "complete_code_percent": 76.72808,
         "total_units": 393,
         "complete_units": 268
       }
@@ -51146,15 +51146,15 @@
       "id": "shared",
       "name": "Shared level code",
       "measures": {
-        "fuzzy_match_percent": 63.908104,
+        "fuzzy_match_percent": 64.164275,
         "total_code": "1130492",
-        "matched_code": "722476",
-        "matched_code_percent": 63.908104,
+        "matched_code": "725372",
+        "matched_code_percent": 64.164275,
         "total_functions": 1583,
-        "matched_functions": 1335,
-        "matched_functions_percent": 84.333544,
-        "complete_code": "722476",
-        "complete_code_percent": 63.908104,
+        "matched_functions": 1336,
+        "matched_functions_percent": 84.396715,
+        "complete_code": "725372",
+        "complete_code_percent": 64.164275,
         "total_units": 207,
         "complete_units": 122
       }

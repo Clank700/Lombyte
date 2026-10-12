@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3752,
+  "matching_c": 3753,
   "intentional_asm": 318,
-  "pending_c": 481,
+  "pending_c": 480,
   "bytes_total": 3669004,
-  "bytes_matching_c": 2743292,
+  "bytes_matching_c": 2746188,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 802976,
-  "c_exact_percent_of_recoverable": 77.3572,
-  "c_fuzzy_percent_of_recoverable": 78.7661,
+  "bytes_pending_c": 800080,
+  "c_exact_percent_of_recoverable": 77.4388,
+  "c_fuzzy_percent_of_recoverable": 78.8478,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -28,16 +28,16 @@
         "name": "game/unclassified",
         "logical_group": "unclassified",
         "category": "game",
-        "functions": 143,
+        "functions": 142,
         "matching_c": 19,
-        "pending_c": 23,
+        "pending_c": 22,
         "intentional_asm": 101,
-        "bytes_total": 99756,
+        "bytes_total": 99608,
         "bytes_matching_c": 13252,
-        "bytes_pending_c": 20320,
+        "bytes_pending_c": 20172,
         "bytes_intentional_asm": 66184,
-        "c_exact_percent_of_recoverable": 39.4734,
-        "c_fuzzy_percent_of_recoverable": 91.8224
+        "c_exact_percent_of_recoverable": 39.6482,
+        "c_fuzzy_percent_of_recoverable": 91.8214
       },
       {
         "name": "sdk/library",
@@ -148,16 +148,16 @@
         "name": "game/gameplay/entities",
         "logical_group": "gameplay/entities",
         "category": "game",
-        "functions": 30,
+        "functions": 31,
         "matching_c": 29,
-        "pending_c": 0,
+        "pending_c": 1,
         "intentional_asm": 1,
-        "bytes_total": 8432,
+        "bytes_total": 8580,
         "bytes_matching_c": 5372,
-        "bytes_pending_c": 0,
+        "bytes_pending_c": 148,
         "bytes_intentional_asm": 3060,
-        "c_exact_percent_of_recoverable": 100.0,
-        "c_fuzzy_percent_of_recoverable": 100.0
+        "c_exact_percent_of_recoverable": 97.3188,
+        "c_fuzzy_percent_of_recoverable": 99.7862
       },
       {
         "name": "game/storage/memory_card",
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2596,
-    "pending_c": 418,
+    "matching_c": 2597,
+    "pending_c": 417,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2447360,
-    "bytes_pending_c": 746068,
-    "c_exact_percent_of_recoverable": 76.6374,
+    "bytes_matching_c": 2450256,
+    "bytes_pending_c": 743172,
+    "c_exact_percent_of_recoverable": 76.7281,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -1977,12 +1977,12 @@
       "planet": "Shared code",
       "description": "functions present in two or more levels",
       "functions": 1583,
-      "matching_c": 1335,
-      "pending_c": 248,
+      "matching_c": 1336,
+      "pending_c": 247,
       "bytes_total": 1130492,
-      "bytes_matching_c": 722476,
-      "bytes_pending_c": 408016,
-      "c_exact_percent_of_recoverable": 63.9081,
+      "bytes_matching_c": 725372,
+      "bytes_pending_c": 405120,
+      "c_exact_percent_of_recoverable": 64.1643,
       "files": [
         {
           "file": "src/overlays/shared/sdk/debug/001eb0b0.c",
@@ -3205,9 +3205,9 @@
         {
           "file": "src/overlays/shared/gameplay/entities/002cfcb8.c",
           "functions": 29,
-          "matching_c": 19,
+          "matching_c": 20,
           "bytes_total": 32552,
-          "bytes_matching_c": 11660
+          "bytes_matching_c": 14556
         },
         {
           "file": "src/overlays/shared/gameplay/entities/002937a0.c",
@@ -5027,14 +5027,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3752,
+    "matching_c": 3753,
     "intentional_asm": 318,
-    "pending_c": 481,
+    "pending_c": 480,
     "bytes_total": 3669004,
-    "bytes_matching_c": 2743292,
+    "bytes_matching_c": 2746188,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 802976,
-    "c_exact_percent_of_recoverable": 77.3572,
-    "c_fuzzy_percent_of_recoverable": 78.7661
+    "bytes_pending_c": 800080,
+    "c_exact_percent_of_recoverable": 77.4388,
+    "c_fuzzy_percent_of_recoverable": 78.8478
   }
 }
