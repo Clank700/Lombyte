@@ -1873,7 +1873,7 @@ typedef struct {
     u32 flags;
 } Ring;
 
-extern s32 FUN_L00_0028d8c0(Moby *, s32);
+extern s32 FUN_L00_0028d8c0_u(Moby *, s32) __asm__("FUN_L00_0028d8c0");
 extern s32 FUN_L00_00257b90_c(s32, s32) __asm__("FUN_L00_00257b90");
 extern s32 FUN_001f96f8_c(s32) __asm__("FUN_001f96f8");
 extern void blend_moby_animation(Moby *, s32, s32, s32) __asm__("FUN_00212f90");
@@ -2038,7 +2038,7 @@ void FUN_L00_002b6f10(Moby *m) {
     } else {
         o->cnt18 = 0;
     }
-    if (FUN_L00_0028d8c0(m, o->anim) == 0) {
+    if (FUN_L00_0028d8c0_u(m, o->anim) == 0) {
         b = D_0013C940[0x1A4 / 4] & hero.items[0].button_mask;
         if ((b != 0 || ((D_0013C940[0x1A0 / 4] & hero.items[0].button_mask) != 0 && o->retry >= 0x11)) &&
             hero.unk20AC == 0) {
@@ -2731,7 +2731,372 @@ void FUN_L00_002b8798(ListSlots8 *list, s32 val) {
         i++;
     }
 }
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002b87e0.s", FUN_L00_002b87e0);
+#include "rnc/input/pad_state.h"
+
+
+
+#include "qcopy.h"
+
+#include "qzero.h"
+
+/* Tesla claw (class 177) update: tracks up to two targets while fire is held, extends the claw tip, runs its
+   firing states and statistics, and moves its light. */
+/* Ported from rac1-decomp (src/overlays/shared/vendor_002B33E8.c: func_L00_002B9AD8), where it is exact; names translated to the US level program. */
+
+
+
+
+typedef struct { u8 p0[0x2084]; s32 i2084; } G_B4F40;
+
+typedef unsigned int Q_2B9AD8 __attribute__((mode(TI)));
+
+typedef union { struct { float x, y, z, w; } f; Q_2B9AD8 q; } V_2B9AD8 __attribute__((aligned(16)));
+
+typedef struct Data_2B9AD8 {
+    V_2B9AD8 pos;
+    V_2B9AD8 tip;
+    struct Moby *target;
+    float reach;
+    short hold;
+    short hold2;
+    int timer;
+    int light;
+    int glow;
+    struct Moby *target2;
+    short tick;
+    short f3E;
+    short lock;
+    short lock2;
+    short f44;
+    short f46;
+    int sound;
+} Data_2B9AD8;
+
+typedef struct Stats_2B9AD8 { char pad0[0x98]; unsigned short uses; unsigned short longest; int levels; } Stats_2B9AD8;
+
+typedef struct Stats2_2B9AD8 { char pad0[0xD0]; unsigned short uses; unsigned short longest; int levels; } Stats2_2B9AD8;
+
+typedef struct Voice_2B9AD8 { char pad0[4]; unsigned char active; char pad5[0x13]; struct Moby *owner; char pad1C[0x54]; } Voice_2B9AD8;
+
+typedef struct Aim_2B9AD8 { char pad0[4]; short kind; } Aim_2B9AD8;
+
+typedef struct Light_2B9AD8 { float x, y, z, b; V_2B9AD8 pos; } Light_2B9AD8;
+
+extern G_B4F40 D_0013F350;
+extern char D_0013E533[];
+extern f32 convert_integer_to_float(s32) __asm__("func_001FA6C0");
+extern f32 distance_xyz(void *, void *) __asm__("func_001F9B48");
+extern float D_0015ED60;
+extern float FUN_001f9e90(float, float);
+extern float fast_difference_between_rotations(float, float) __asm__("func_001FA688");
+extern int D_00141918; /* no foreign declaration */
+extern int D_00141D70; /* no foreign declaration */
+extern int D_0015ED84;
+extern int D_0015EEA4;
+extern int FUN_001f9770(void *);
+extern int FUN_L00_00233db8(int, int);
+extern int FUN_L00_00233e98();
+extern int FUN_L00_002b94d0();
+extern int allocate_voice_for_target_entry_alt(int, int, int) __asm__("FUN_0022da68");
+extern void FUN_L00_002ba970(char *);
+extern int scale_game_frames_alt(int) __asm__("FUN_001f96f8");
+extern int tick_countdown_32_alt(int *arg0) __asm__("FUN_001f9740");
+extern s32 FUN_L00_0028d8c0(struct Moby *, s32);
+extern short D_L00_00161590;
+extern u32 D_0013C940[];
+extern u8 D_0013E550[];
+extern unsigned char *FUN_002141f8(void *);
+extern void FUN_L00_0024f7c8(void *, int, void *);
+extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
+extern void enqueue_callback_list_1_alt(void (*)(void), void *) __asm__("FUN_001f4600");
+extern void normalize_vector_xyz(void *, void *, f32) __asm__("FUN_001f9bf8");
+extern void release_voice_slot(s32) __asm__("FUN_0022d798");
+extern void transform_vector_by_basis(void *, void *, void *) __asm__("func_001F9CF8");
+int FUN_L00_0023e5e0(u128 *v, float a, float b, int col);
+void FUN_L00_00203908(int, int);
+void FUN_L00_0020e4c8(void);
+void FUN_L00_0020e698(void);
+void FUN_L00_0023e838(int);
+void FUN_L00_002b9310(char *moby);
+extern unsigned char D_0014161B_2b2100[] __asm__("D_0014161B");
+extern int D_0015EEA4_2b2100a __asm__("D_0015EEA4");
+extern int D_0015ED84_2b2100 __asm__("D_0015ED84");
+extern char D_0013C940_2b2100[] __asm__("D_0013C940");
+extern char D_0013F350_2b2100[] __asm__("D_0013F350");
+extern float D_0015ED60_2b2100 __asm__("D_0015ED60");
+extern Voice_2B9AD8 D_0013E550_2b2100[] __asm__("D_0013E550");
+extern unsigned char D_0013E533_2b2100[] __asm__("D_0013E533");
+extern unsigned short D_00141D70_2b2100[] __asm__("D_00141D70");
+extern unsigned short D_00141918_2b2100[] __asm__("D_00141918");
+extern float D_L00_0017AEBC __attribute__((section(".data")));
+extern int D_L00_00161590_2b2100 __asm__("D_L00_00161590");
+extern char D_L00_00166FD0_2b2100[] __asm__("D_L00_00166FD0");
+extern Light_2B9AD8 D_L00_001802C0_2b2100[] __asm__("D_L00_001802C0");
+extern int FUN_L00_00233e98_2b2100a(int) __asm__("FUN_L00_00233e98");
+extern void FUN_L00_00203908_2b2100(int, int) __asm__("FUN_L00_00203908");
+extern int FUN_001f9770_2b2100a(short *) __asm__("FUN_001f9770");
+extern int FUN_001f9740_2b2100(int *) __asm__("FUN_001f9740");
+extern int FUN_L00_00233db8_2b2100a(int, int) __asm__("FUN_L00_00233db8");
+extern int FUN_001f96f8_2b2100(int) __asm__("FUN_001f96f8");
+extern int FUN_L00_0023e5e0_2b2100(void *, float, float, int) __asm__("FUN_L00_0023e5e0");
+extern float FUN_001f9e90_2b2100(float, float) __asm__("FUN_001f9e90");
+extern float FUN_001fa688_2b2100(float, float) __asm__("FUN_001fa688");
+extern float FUN_001f9b48_2b2100(void *, void *) __asm__("FUN_001f9b48");
+extern Aim_2B9AD8 *FUN_002141f8_2b2100(void *) __asm__("FUN_002141f8");
+extern float FUN_001fa6c0_2b2100(int) __asm__("FUN_001fa6c0");
+extern void FUN_001f9cf8_2b2100(void *, void *, void *) __asm__("FUN_001f9cf8");
+extern void FUN_001f9a10_2b2100(void *, void *, void *) __asm__("FUN_001f9a10");
+extern void FUN_L00_0024f7c8_2b2100a(void *, int, void *) __asm__("FUN_L00_0024f7c8");
+extern void FUN_001f9bf8_2b2100(void *, void *, float) __asm__("FUN_001f9bf8");
+extern void FUN_L00_002b9310_2b2100(void *) __asm__("FUN_L00_002b9310");
+extern void FUN_L00_002b94d0_2b2100(void *) __asm__("FUN_L00_002b94d0");
+extern void FUN_001f4600_2b2100(void (*)(void), void *) __asm__("FUN_001f4600");
+extern void FUN_0022d798_2b2100(int) __asm__("FUN_0022d798");
+extern int FUN_L00_0028d8c0_2b2100(void *, int) __asm__("FUN_L00_0028d8c0");
+extern int FUN_0022da68_2b2100(int, int, void *) __asm__("FUN_0022da68");
+extern void FUN_L00_0020e4c8_2b2100a(void) __asm__("FUN_L00_0020e4c8");
+extern void FUN_L00_0020e698_2b2100(void) __asm__("FUN_L00_0020e698");
+extern void FUN_L00_0023e838_2b2100a(int) __asm__("FUN_L00_0023e838");
+
+void FUN_L00_002b87e0(struct Moby *m) {
+    V_2B9AD8 t;
+    Data_2B9AD8 *s = (Data_2B9AD8 *)m->pvars;
+    int active;
+    int done = ((struct Hero *)D_0013F350_2b2100)->items[0].state == 3;
+    int ready;
+    struct Hero *h;
+
+    if ((controller_state.pressed & ((struct Hero *)D_0013F350_2b2100)->items[0].button_mask) &&
+        !((struct Hero *)D_0013F350_2b2100)->unk20AC) {
+        s->reach = 0.8f;
+    }
+    D_L00_0017AEBC = 0.9f;
+    active = 0;
+    ready = FUN_L00_00233e98_2b2100a(-1);
+    if (D_00141D70_2b2100[0] == 0 && D_00141918_2b2100[0] == 0 &&
+        ((struct Hero *)D_0013F350_2b2100)->unk20B5 >= 3) {
+        if ((unsigned int)((struct Hero *)D_0013F350_2b2100)->state.control_mode < 2 || ((struct Hero *)D_0013F350_2b2100)->state.control_mode == 9)
+            FUN_L00_00203908_2b2100(0x4E30, 0x81);
+    }
+    if ((controller_state.held & ((struct Hero *)D_0013F350_2b2100)->items[0].button_mask) && m->state != 4 &&
+        m->state != 0 && !((struct Hero *)D_0013F350_2b2100)->unk20AC && ((struct Hero *)D_0013F350_2b2100)->state.current != 0x72) {
+        if (s->timer == 0) {
+            if (ready > 0) {
+                if (FUN_001f9770_2b2100a(&s->tick)) {
+                    FUN_001f9770_2b2100a(&s->f44);
+                    FUN_001f9770_2b2100a(&s->f46);
+                    FUN_L00_00233db8_2b2100a(-1, 1);
+                    s->tick = FUN_001f96f8_2b2100(10);
+                }
+                if (s->light == -1) {
+                    s->light = FUN_L00_0023e5e0_2b2100(&m->pos, 7.5f, 0.0f, 0);
+                } else if (s->glow < FUN_001f96f8_2b2100(10)) {
+                    s->glow++;
+                }
+                active = 1;
+                if (s->target) {
+                    if (2.0943f < FUN_001fa688_2b2100(((struct Hero *)D_0013F350_2b2100)->motion.rot.f[2],
+                            FUN_001f9e90_2b2100(s->target->pos.x - ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[0],
+                                                     s->target->pos.y - ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[1])) ||
+                        !s->target->visible ||
+                        20.0f < FUN_001f9b48_2b2100(&s->target->pos, &((struct Hero *)D_0013F350_2b2100)->motion.pos)) {
+                        s->target = 0;
+                        s->lock = 0;
+                    }
+                }
+                if (s->target2) {
+                    if (2.0943f < FUN_001fa688_2b2100(((struct Hero *)D_0013F350_2b2100)->motion.rot.f[2],
+                            FUN_001f9e90_2b2100(s->target2->pos.x - ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[0],
+                                                     s->target2->pos.y - ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[1])) ||
+                        !s->target2->visible ||
+                        20.0f < FUN_001f9b48_2b2100(&s->target2->pos, &((struct Hero *)D_0013F350_2b2100)->motion.pos)) {
+                        s->target2 = 0;
+                        s->lock2 = 0;
+                    }
+                }
+                qcopy(&s->pos, &m->pos);
+                s->pos.f.z += 0.7f;
+                qcopy(&s->tip, &s->pos);
+                if (s->target && s->lock) {
+                    int lim = 50;
+                    Aim_2B9AD8 *a;
+                    short n;
+                    s->hold++;
+                    a = FUN_002141f8_2b2100(s->target);
+                    if (a && a->kind == 1) lim = 5;
+                    n = s->hold;
+                    if (!(n < FUN_001f96f8_2b2100(lim))) {
+                        s->target = 0;
+                        s->lock = 0;
+                    }
+                } else {
+                    s->hold = 0;
+                }
+                if (s->target2 && s->lock2) {
+                    int lim = 50;
+                    Aim_2B9AD8 *a;
+                    short n;
+                    s->hold2++;
+                    a = FUN_002141f8_2b2100(s->target2);
+                    if (a && a->kind == 1) lim = 5;
+                    n = s->hold2;
+                    if (!(n < FUN_001f96f8_2b2100(lim))) {
+                        s->target2 = 0;
+                        s->lock2 = 0;
+                    }
+                } else {
+                    s->hold2 = 0;
+                }
+                s->reach += (FUN_001fa6c0_2b2100(D_0013E533_2b2100[0]) * 6.0f + 12.0f - s->reach) * (D_0015ED60_2b2100 * 0.07f);
+                if (((struct Hero *)D_0013F350_2b2100)->state.current == 1) {
+                    t.f.x = 1.2f;
+                    t.f.y = 0.0f;
+                    t.f.z = 0.0f;
+                    FUN_001f9cf8_2b2100(&t, &t, D_L00_00166FD0_2b2100);
+                    s->pos.f.z = t.f.z + m->pos.z;
+                    s->pos.f.x = t.f.x + ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[0];
+                    s->pos.f.y = t.f.y + ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[1];
+                    t.f.x = s->reach;
+                    t.f.y = 0.0f;
+                    t.f.z = 0.0f;
+                    FUN_001f9cf8_2b2100(&t, &t, D_L00_00166FD0_2b2100);
+                    FUN_001f9a10_2b2100(&s->tip, &s->pos, &t);
+                } else if (((struct Hero *)D_0013F350_2b2100)->unk22C8 == 1) {
+                    FUN_L00_0024f7c8_2b2100a(m, 0, &s->pos);
+                    t.f.x = 0.0f;
+                    t.f.y = -s->reach;
+                    t.f.z = 0.0f;
+                    FUN_001f9cf8_2b2100(&t, &t, &m->rot_row0);
+                    FUN_001f9a10_2b2100(&s->tip, &s->pos, &t);
+                } else {
+                    FUN_L00_0024f7c8_2b2100a(m, 0, &s->pos);
+                    FUN_001f9bf8_2b2100(&s->tip, D_0013F350_2b2100 + 0x640, s->reach);
+                    FUN_001f9a10_2b2100(&s->tip, &s->pos, &s->tip);
+                }
+                FUN_L00_002b9310_2b2100(m);
+                FUN_L00_002b94d0_2b2100(m);
+                FUN_001f4600_2b2100(FUN_L00_002ba970, m);
+            } else {
+                s->target = 0;
+                s->target2 = 0;
+                s->lock = 0;
+                s->lock2 = 0;
+                s->f44 = 0;
+                s->f46 = 0;
+            }
+        }
+    } else {
+        s->target = 0;
+        s->target2 = 0;
+        s->lock = 0;
+        s->lock2 = 0;
+    }
+    if (!active) {
+        D_L00_00161590_2b2100 = 1;
+        if (s->glow > 0) s->glow--;
+        if (s->sound != -1) {
+            Voice_2B9AD8 *v = &D_0013E550_2b2100[s->sound];
+            if (v[1].owner == m && v[1].active) FUN_0022d798_2b2100(s->sound);
+        }
+        s->sound = -1;
+    } else if (!FUN_L00_0028d8c0_2b2100(m, s->sound)) {
+        s->sound = FUN_0022da68_2b2100(4, 4, m);
+    }
+    if (!s->target || s->target->state == 0xFE || s->target->state == 0xFD || !(s->target->flags & 0x1000)) s->lock = 1;
+    if (!s->target2 || s->target2->state == 0xFE || s->target2->state == 0xFD || !(s->target2->flags & 0x1000)) s->lock2 = 1;
+    switch (m->state) {
+    case 0:
+        s->timer = FUN_001f96f8_2b2100(16);
+        s->light = FUN_L00_0023e5e0_2b2100(&s->pos, 0.0f, 0.0f, 0);
+        D_L00_00161590_2b2100 = 1;
+        m->state = 1;
+        s->f3E = 20;
+        s->sound = -1;
+        s->target2 = 0;
+        s->target = 0;
+        s->lock = 0;
+        s->lock2 = 0;
+        s->f46 = 0;
+        s->f44 = 0;
+        break;
+    case 1:
+        FUN_001f9740_2b2100(&s->timer);
+        if (active) {
+            FUN_L00_0020e4c8_2b2100a();
+            m->state = 3;
+        }
+        if ((controller_state.pressed & (h = (struct Hero *)D_0013F350_2b2100)->items[0].button_mask) && !h->unk20AC) {
+            if (active) {
+                Stats_2B9AD8 *st = (Stats_2B9AD8 *)(D_0014161B_2b2100 + 0x65);
+                if (st->uses < 65535) st->uses++;
+                if (FUN_001f96f8_2b2100(D_0015EEA4_2b2100a) / 600 > st->longest)
+                    st->longest = FUN_001f96f8_2b2100(D_0015EEA4_2b2100a) / 600;
+                st->levels = (st->levels | (1 << D_0015ED84_2b2100)) | 0x80000000;
+                FUN_L00_0020e4c8_2b2100a();
+                m->state = 3;
+            } else {
+                s->target = 0;
+                s->target2 = 0;
+                s->lock = 0;
+                s->lock2 = 0;
+                m->state = 1;
+                FUN_0022da68_2b2100(0, 0, m);
+                FUN_L00_0020e698_2b2100();
+            }
+        }
+        break;
+    case 2:
+        break;
+    case 3:
+        if ((controller_state.released & ((struct Hero *)D_0013F350_2b2100)->items[0].button_mask) || !active ||
+            ((struct Hero *)D_0013F350_2b2100)->unk20AC) {
+            h = (struct Hero *)D_0013F350_2b2100;
+            if (FUN_001f96f8_2b2100(70) < h->unk1BC) {
+                if (((Stats2_2B9AD8 *)(D_0014161B_2b2100 + 0x22D))->uses < 65535) ((Stats2_2B9AD8 *)(D_0014161B_2b2100 + 0x22D))->uses++;
+            }
+            if (FUN_001f96f8_2b2100(D_0015EEA4_2b2100a) / 600 > ((Stats2_2B9AD8 *)(D_0014161B_2b2100 + 0x22D))->longest)
+                ((Stats2_2B9AD8 *)(D_0014161B_2b2100 + 0x22D))->longest = FUN_001f96f8_2b2100(D_0015EEA4_2b2100a) / 600;
+            ((Stats2_2B9AD8 *)(D_0014161B_2b2100 + 0x22D))->levels = (((Stats2_2B9AD8 *)(D_0014161B_2b2100 + 0x22D))->levels | (1 << D_0015ED84_2b2100)) | 0x80000000;
+            if (((struct Hero *)D_0013F350_2b2100)->unk1BC < FUN_001f96f8_2b2100(30))
+                ((struct Hero *)D_0013F350_2b2100)->unk20B5++;
+            else
+                ((struct Hero *)D_0013F350_2b2100)->unk20B5 = 0;
+            s->target = 0;
+            s->target2 = 0;
+            s->lock = 0;
+            s->lock2 = 0;
+            s->reach = 0.0f;
+            FUN_L00_0020e698_2b2100();
+            m->state = 1;
+        }
+        break;
+    case 4:
+        break;
+    case 5:
+        break;
+    }
+    if (s->light != -1) {
+        float k;
+        qzero(&t);
+        t.f.x = 2.0f;
+        t.f.z = 2.0f;
+        FUN_001f9cf8_2b2100(&t, &t, D_0013F350_2b2100 + 0x640);
+        D_L00_001802C0_2b2100[s->light].pos.f.x = ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[0] + t.f.x;
+        D_L00_001802C0_2b2100[s->light].pos.f.y = ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[1] + t.f.y;
+        D_L00_001802C0_2b2100[s->light].pos.f.z = ((struct Hero *)D_0013F350_2b2100)->motion.pos.f[2] + t.f.z;
+        D_L00_001802C0_2b2100[s->light].pos.f.w = 7.5f;
+        k = FUN_001fa6c0_2b2100(s->glow) / (float)FUN_001f96f8_2b2100(10);
+        D_L00_001802C0_2b2100[s->light].z = k;
+        k = k * 0.7f;
+        D_L00_001802C0_2b2100[s->light].y = k;
+        D_L00_001802C0_2b2100[s->light].x = D_L00_001802C0_2b2100[s->light].y;
+        if (done && s->light != -1) {
+            FUN_L00_0023e838_2b2100a(s->light);
+            s->light = -1;
+        }
+    }
+    if (done && s->light == -1) m->state = 4;
+}
 
 typedef struct {
     float f[4];
