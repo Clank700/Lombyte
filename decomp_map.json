@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3936,
+  "matching_c": 3937,
   "intentional_asm": 318,
-  "pending_c": 297,
+  "pending_c": 296,
   "bytes_total": 3669004,
-  "bytes_matching_c": 3072156,
+  "bytes_matching_c": 3075648,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 474112,
-  "c_exact_percent_of_recoverable": 86.6307,
-  "c_fuzzy_percent_of_recoverable": 87.962,
+  "bytes_pending_c": 470620,
+  "c_exact_percent_of_recoverable": 86.7291,
+  "c_fuzzy_percent_of_recoverable": 88.0604,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2777,
-    "pending_c": 237,
+    "matching_c": 2778,
+    "pending_c": 236,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2773188,
-    "bytes_pending_c": 420240,
-    "c_exact_percent_of_recoverable": 86.8405,
+    "bytes_matching_c": 2776680,
+    "bytes_pending_c": 416748,
+    "c_exact_percent_of_recoverable": 86.9498,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -4242,12 +4242,12 @@
         "planet": "Gaspar",
         "description": "Blarg Depot: lava fields and the Pilot's Helmet",
         "functions": 41,
-        "matching_c": 40,
-        "pending_c": 1,
+        "matching_c": 41,
+        "pending_c": 0,
         "bytes_total": 35716,
-        "bytes_matching_c": 32224,
-        "bytes_pending_c": 3492,
-        "c_exact_percent_of_recoverable": 90.2229,
+        "bytes_matching_c": 35716,
+        "bytes_pending_c": 0,
+        "c_exact_percent_of_recoverable": 100.0,
         "files": [
           {
             "file": "src/overlays/l09/gameplay/entities/0021e538.c",
@@ -4273,9 +4273,9 @@
           {
             "file": "src/overlays/l09/gameplay/vendor/003033a0.c",
             "functions": 14,
-            "matching_c": 13,
+            "matching_c": 14,
             "bytes_total": 15768,
-            "bytes_matching_c": 12276
+            "bytes_matching_c": 15768
           },
           {
             "file": "src/overlays/l09/gameplay/vendor/0030a678.c",
@@ -5041,14 +5041,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3936,
+    "matching_c": 3937,
     "intentional_asm": 318,
-    "pending_c": 297,
+    "pending_c": 296,
     "bytes_total": 3669004,
-    "bytes_matching_c": 3072156,
+    "bytes_matching_c": 3075648,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 474112,
-    "c_exact_percent_of_recoverable": 86.6307,
-    "c_fuzzy_percent_of_recoverable": 87.962
+    "bytes_pending_c": 470620,
+    "c_exact_percent_of_recoverable": 86.7291,
+    "c_fuzzy_percent_of_recoverable": 88.0604
   }
 }
