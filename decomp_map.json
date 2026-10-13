@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3933,
+  "matching_c": 3936,
   "intentional_asm": 318,
-  "pending_c": 300,
+  "pending_c": 297,
   "bytes_total": 3669004,
-  "bytes_matching_c": 3069248,
+  "bytes_matching_c": 3072156,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 477020,
-  "c_exact_percent_of_recoverable": 86.5487,
-  "c_fuzzy_percent_of_recoverable": 87.88,
+  "bytes_pending_c": 474112,
+  "c_exact_percent_of_recoverable": 86.6307,
+  "c_fuzzy_percent_of_recoverable": 87.962,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2774,
-    "pending_c": 240,
+    "matching_c": 2777,
+    "pending_c": 237,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2770280,
-    "bytes_pending_c": 423148,
-    "c_exact_percent_of_recoverable": 86.7494,
+    "bytes_matching_c": 2773188,
+    "bytes_pending_c": 420240,
+    "c_exact_percent_of_recoverable": 86.8405,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -4944,12 +4944,12 @@
         "planet": "Veldin",
         "description": "Kyzil Plateau again: the Deplanetizer and Drek",
         "functions": 121,
-        "matching_c": 114,
-        "pending_c": 7,
+        "matching_c": 117,
+        "pending_c": 4,
         "bytes_total": 159560,
-        "bytes_matching_c": 151808,
-        "bytes_pending_c": 7752,
-        "c_exact_percent_of_recoverable": 95.1416,
+        "bytes_matching_c": 154716,
+        "bytes_pending_c": 4844,
+        "c_exact_percent_of_recoverable": 96.9642,
         "files": [
           {
             "file": "src/overlays/l18/gameplay/hero/00213b40.c",
@@ -5010,23 +5010,23 @@
           {
             "file": "src/overlays/l18/gameplay/entities/002a7220.c",
             "functions": 52,
-            "matching_c": 48,
+            "matching_c": 49,
             "bytes_total": 28616,
-            "bytes_matching_c": 23588
+            "bytes_matching_c": 24692
           },
           {
             "file": "src/overlays/l18/gameplay/vendor/002efb88.c",
             "functions": 38,
-            "matching_c": 37,
+            "matching_c": 38,
             "bytes_total": 32576,
-            "bytes_matching_c": 31760
+            "bytes_matching_c": 32576
           },
           {
             "file": "src/overlays/l18/gameplay/vendor/002f88e8.c",
             "functions": 18,
-            "matching_c": 16,
+            "matching_c": 17,
             "bytes_total": 12096,
-            "bytes_matching_c": 10188
+            "bytes_matching_c": 11176
           },
           {
             "file": "src/overlays/l18/gameplay/vendor/002fcbb0.c",
@@ -5041,14 +5041,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3933,
+    "matching_c": 3936,
     "intentional_asm": 318,
-    "pending_c": 300,
+    "pending_c": 297,
     "bytes_total": 3669004,
-    "bytes_matching_c": 3069248,
+    "bytes_matching_c": 3072156,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 477020,
-    "c_exact_percent_of_recoverable": 86.5487,
-    "c_fuzzy_percent_of_recoverable": 87.88
+    "bytes_pending_c": 474112,
+    "c_exact_percent_of_recoverable": 86.6307,
+    "c_fuzzy_percent_of_recoverable": 87.962
   }
 }
