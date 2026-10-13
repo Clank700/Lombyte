@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4551,
-  "matching_c": 3903,
+  "matching_c": 3906,
   "intentional_asm": 318,
-  "pending_c": 330,
+  "pending_c": 327,
   "bytes_total": 3669004,
-  "bytes_matching_c": 3014596,
+  "bytes_matching_c": 3017872,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 531672,
-  "c_exact_percent_of_recoverable": 85.0076,
-  "c_fuzzy_percent_of_recoverable": 86.3869,
+  "bytes_pending_c": 528396,
+  "c_exact_percent_of_recoverable": 85.0999,
+  "c_fuzzy_percent_of_recoverable": 86.4792,
   "boot": {
     "units_total": 1476,
     "groups_total": 129,
@@ -1963,12 +1963,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2745,
-    "pending_c": 269,
+    "matching_c": 2748,
+    "pending_c": 266,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2717424,
-    "bytes_pending_c": 476004,
-    "c_exact_percent_of_recoverable": 85.0943,
+    "bytes_matching_c": 2720700,
+    "bytes_pending_c": 472728,
+    "c_exact_percent_of_recoverable": 85.1968,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -3839,12 +3839,12 @@
         "planet": "Rilgar",
         "description": "Blackwater City: canals and the hoverboard race",
         "functions": 78,
-        "matching_c": 70,
-        "pending_c": 8,
+        "matching_c": 71,
+        "pending_c": 7,
         "bytes_total": 135164,
-        "bytes_matching_c": 117520,
-        "bytes_pending_c": 17644,
-        "c_exact_percent_of_recoverable": 86.9462,
+        "bytes_matching_c": 119344,
+        "bytes_pending_c": 15820,
+        "c_exact_percent_of_recoverable": 88.2957,
         "files": [
           {
             "file": "src/overlays/l05/gameplay/hero/00239fc0.c",
@@ -3891,9 +3891,9 @@
           {
             "file": "src/overlays/l05/gameplay/entities/002d1688.c",
             "functions": 33,
-            "matching_c": 27,
+            "matching_c": 28,
             "bytes_total": 32276,
-            "bytes_matching_c": 17960
+            "bytes_matching_c": 19784
           },
           {
             "file": "src/overlays/shared/gameplay/entities/002b3840.c",
@@ -4242,12 +4242,12 @@
         "planet": "Gaspar",
         "description": "Blarg Depot: lava fields and the Pilot's Helmet",
         "functions": 41,
-        "matching_c": 37,
-        "pending_c": 4,
+        "matching_c": 38,
+        "pending_c": 3,
         "bytes_total": 35716,
-        "bytes_matching_c": 28932,
-        "bytes_pending_c": 6784,
-        "c_exact_percent_of_recoverable": 81.0057,
+        "bytes_matching_c": 29420,
+        "bytes_pending_c": 6296,
+        "c_exact_percent_of_recoverable": 82.372,
         "files": [
           {
             "file": "src/overlays/l09/gameplay/entities/0021e538.c",
@@ -4273,9 +4273,9 @@
           {
             "file": "src/overlays/l09/gameplay/vendor/003033a0.c",
             "functions": 14,
-            "matching_c": 11,
+            "matching_c": 12,
             "bytes_total": 15768,
-            "bytes_matching_c": 10208
+            "bytes_matching_c": 10696
           },
           {
             "file": "src/overlays/l09/gameplay/vendor/0030a678.c",
@@ -4292,12 +4292,12 @@
         "planet": "Orxon",
         "description": "the toxic Blarg homeworld, first with Clank",
         "functions": 54,
-        "matching_c": 44,
-        "pending_c": 10,
+        "matching_c": 45,
+        "pending_c": 9,
         "bytes_total": 56384,
-        "bytes_matching_c": 38116,
-        "bytes_pending_c": 18268,
-        "c_exact_percent_of_recoverable": 67.6007,
+        "bytes_matching_c": 39080,
+        "bytes_pending_c": 17304,
+        "c_exact_percent_of_recoverable": 69.3104,
         "files": [
           {
             "file": "src/overlays/l10/runtime/startup/00230fd0.c",
@@ -4309,9 +4309,9 @@
           {
             "file": "src/overlays/l10/gameplay/entities/00295a38.c",
             "functions": 27,
-            "matching_c": 23,
+            "matching_c": 24,
             "bytes_total": 20084,
-            "bytes_matching_c": 14868
+            "bytes_matching_c": 15832
           },
           {
             "file": "src/overlays/l10/gameplay/vendor/002df270.c",
@@ -5041,14 +5041,14 @@
   },
   "total": {
     "units_total": 4551,
-    "matching_c": 3903,
+    "matching_c": 3906,
     "intentional_asm": 318,
-    "pending_c": 330,
+    "pending_c": 327,
     "bytes_total": 3669004,
-    "bytes_matching_c": 3014596,
+    "bytes_matching_c": 3017872,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 531672,
-    "c_exact_percent_of_recoverable": 85.0076,
-    "c_fuzzy_percent_of_recoverable": 86.3869
+    "bytes_pending_c": 528396,
+    "c_exact_percent_of_recoverable": 85.0999,
+    "c_fuzzy_percent_of_recoverable": 86.4792
   }
 }
