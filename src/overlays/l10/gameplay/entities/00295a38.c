@@ -292,7 +292,129 @@ void FUN_L10_00298668(struct Moby *m) {
         break;
     }
 }
-INCLUDE_ASM("config/us/overlays/asm/FUN_L10_00298b68.s", FUN_L10_00298b68);
+#include "rnc/gameplay/state/usage_stats.h"
+
+typedef struct {
+    int target;
+    int vehicle_spot;
+    int spot;
+    int pad0C[2];
+    int spot_alt;
+    int switch_a;
+    int switch_b;
+} PickupVars_98b68;
+
+typedef struct {
+    u8 pad[0x454];
+    u8 collected[1];
+} LevelState_98b68;
+
+extern int D_L10_00161388 __attribute__((sda));
+extern short D_00141948_98b68 __asm__("D_00141948") __attribute__((section(".data")));
+extern char *D_L10_0015FFD8_98b68 __asm__("D_L10_0015FFD8");
+extern u8 D_0014C050_98b68[] __asm__("D_0014C050");
+extern LevelState_98b68 D_L10_001BB6B0_98b68 __asm__("D_L10_001BB6B0");
+extern int D_0014C190_98b68[][64] __asm__("D_0014C190");
+extern int D_L10_001BA950_98b68[] __asm__("D_L10_001BA950");
+extern u8 D_0013D4C6_98b68[] __asm__("D_0013D4C6");
+extern int D_L10_0015F5C4_98b68 __asm__("D_L10_0015F5C4");
+extern struct UsageStats D_00141848;
+extern int D_0015EEA4;
+extern u8 D_001413F4_98b68[] __asm__("D_001413F4");
+extern char *D_L10_001600EC_98b68 __asm__("D_L10_001600EC");
+extern int scale_game_frames_98b68(int) __asm__("FUN_001f96f8");
+extern int try_set_help_message_98b68(int, int) __asm__("FUN_00215130");
+extern void FUN_L00_00216f90_98b68(void *, void *, int, int) __asm__("FUN_L00_00216f90");
+extern void FUN_L00_00210a08_98b68(int, int, struct Moby *) __asm__("FUN_L00_00210a08");
+extern void FUN_L01_0027a248_98b68(int, int) __asm__("FUN_L01_0027a248");
+extern void FUN_L00_00210b30(void);
+extern void mark_moby_for_removal_98b68(struct Moby *) __asm__("FUN_0020c828");
+
+/* Level 10 pickup: saves its collected bit, flips the linked switch pair and moves the hero to the spot for the current state. */
+void FUN_L10_00298b68(struct Moby *moby) {
+    PickupVars_98b68 *vars;
+    struct Moby *target;
+    moby->update_dist = 0xFF;
+    vars = (PickupVars_98b68 *)moby->pvars;
+    if (D_L10_00161388 == 1) {
+        D_L10_00161388 = 0;
+        D_00141948_98b68 = 0;
+    }
+    if (vars->switch_a != -1 && vars->switch_b != -1) {
+        struct Moby *a = (struct Moby *)((vars->switch_a << 8) + (int)D_L10_0015FFD8_98b68);
+        if (a->oclass == 0x325) {
+            struct Moby *b = (struct Moby *)((vars->switch_b << 8) + (int)D_L10_0015FFD8_98b68);
+            if (b->oclass == a->oclass) {
+                int *a_vars = (int *)a->pvars;
+                int *b_vars = (int *)b->pvars;
+                if (D_0014C050_98b68[moby->mission + current_level_index * 16] == 0xFF) {
+                    a_vars[2] |= 8;
+                    b_vars[2] &= ~8;
+                } else {
+                    a_vars[2] &= ~8;
+                    b_vars[2] |= 8;
+                }
+            }
+        }
+    }
+    if (D_L10_001BB6B0_98b68.collected[(short)moby->save_id] != 0 ||
+        ((D_0014C190_98b68[current_level_index][(short)moby->save_id >> 5] >> (moby->save_id & 31)) & 1) != 0) {
+        if (D_0013D4C6_98b68[0] != 0) {
+            ((struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68))->flags |= 1;
+            ((struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68))->flags |= 2;
+            ((struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68))->collision = 0;
+        } else {
+            if (D_L10_0015F5C4_98b68 == 0 && D_00141848.stat[32].count < scale_game_frames_98b68(300)) {
+                if (D_00141848.stat[32].count <= 0xFFFE) {
+                    D_00141848.stat[32].count++;
+                }
+                if (scale_game_frames_98b68(D_0015EEA4) / 600 > D_00141848.stat[32].unk2) {
+                    D_00141848.stat[32].unk2 = scale_game_frames_98b68(D_0015EEA4) / 600;
+                }
+                D_00141848.stat[32].level_mask = D_00141848.stat[32].level_mask | (1 << current_level_index) | 0x80000000;
+                try_set_help_message_98b68(1, 0x53F1);
+                if (D_001413F4_98b68[0] == 1) {
+                    return;
+                }
+            } else if (D_001413F4_98b68[0] == 1) {
+                return;
+            }
+        }
+    }
+    D_0014C190_98b68[current_level_index][(short)moby->save_id >> 5] |= 1 << (moby->save_id & 31);
+    D_L10_001BA950_98b68[(short)moby->save_id >> 5] |= 1 << (moby->save_id & 31);
+    if (vars->spot == -1 || vars->target == -1) {
+        return;
+    }
+    if (D_0013D4C6_98b68[0] == 0) {
+        target = (struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68);
+        target->collision = *(u32 *)((char *)target->pclass + 0x10);
+        if (D_0014C050_98b68[moby->mission + current_level_index * 16] == 0xFF || vars->spot_alt == -1) {
+            FUN_L00_00216f90_98b68(D_L10_001600EC_98b68 + vars->spot_alt * 128 + 0x30,
+                                   D_L10_001600EC_98b68 + vars->spot_alt * 128 + 0x70, 0, 1);
+        } else {
+            FUN_L00_00216f90_98b68(D_L10_001600EC_98b68 + vars->spot * 128 + 0x30,
+                                   D_L10_001600EC_98b68 + vars->spot * 128 + 0x70, 0, 1);
+        }
+        FUN_L00_00210a08_98b68(1, 0x43, (struct Moby *)(D_L10_0015FFD8_98b68 + (vars->target << 8)));
+        FUN_L01_0027a248_98b68(2, 4);
+        return;
+    }
+    if (hero.vehicle_mode == 1) {
+        FUN_L00_00210b30();
+        FUN_L00_00216f90_98b68(D_L10_001600EC_98b68 + vars->vehicle_spot * 128 + 0x30,
+                               D_L10_001600EC_98b68 + vars->vehicle_spot * 128 + 0x70, 0, 1);
+        FUN_L01_0027a248_98b68(0, 5);
+        ((struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68))->flags |= 1;
+        ((struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68))->flags |= 2;
+        ((struct Moby *)((vars->target << 8) + (int)D_L10_0015FFD8_98b68))->collision = 0;
+        hero.unk22CB = 1;
+        mark_moby_for_removal_98b68(moby);
+    } else {
+        hero.unk22CB = 1;
+        mark_moby_for_removal_98b68(moby);
+    }
+}
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L10_002be858.s", FUN_L10_002be858);
 #else
@@ -624,14 +746,11 @@ void FUN_L10_002c9958(struct Moby *moby, HitBox *box) {
         }
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L10_002c9c70.s", FUN_L10_002c9c70);
-#else
+#include "types.h"
 extern struct Moby *D_L10_0015FFD8;
 extern float FUN_001fa6c0_2c9c70(int) __asm__("FUN_001fa6c0");
 extern int FUN_001fa6d0_2c9c70(float) __asm__("FUN_001fa6d0");
 extern int FUN_001f9740_2c9c70(int *) __asm__("FUN_001f9740");
-extern int D_0015ED84_2c9c70 __asm__("D_0015ED84") __attribute__((section(".data")));
 extern int D_0015ED84;
 extern unsigned char D_0014C190_2c9c70[] __asm__("D_0014C190");
 extern unsigned char D_0014C050_2c9c70[] __asm__("D_0014C050");
@@ -642,39 +761,34 @@ extern char linked_moby_missing_message[] __asm__("D_L10_001DCE00");
 
 void FUN_L10_002c9c70(struct Moby *moby) {
     char *d = (char *)moby->pvars;
-    struct Moby *target = 0;
     int differences = 0;
+    struct Moby *target = 0;
     int *slot = (int *)(d + 0x18);
     unsigned char state;
 
     if (*(int *)(d + 0x10) != -1) {
         target = &D_L10_0015FFD8[*(int *)(d + 0x10)];
     }
-    {
-        unsigned char id = moby->mission;
-        if ((id == 0xff ||
-             D_0014C050_2c9c70[id + (D_0015ED84 << 4)] != 0xff) &&
-            moby->state != 0) {
-            int *entry = slot;
-            int i = 4;
-            do {
-                int index = *entry;
-                if (index != -1) {
-                    struct Moby *other = &D_L10_0015FFD8[index];
-                    if (other != 0 && other->oclass == *(short *)(entry + 1) &&
-                        other->state != 0xfe && other->state != 0xfd) {
-                        unsigned short id = other->save_id;
-                        if ((((*(int *)(D_0014C190_2c9c70 + (((short)id >> 5) * 4) +
-                                  (D_0015ED84_2c9c70 << 8)) >> (id & 31)) ^ 1) & 1) != 0) {
-                            if (*(signed char *)((char *)entry + 6) == -1 ||
-                                other->state != *(signed char *)((char *)entry + 6))
-                                differences++;
-                        }
+    if ((moby->mission == 0xff ||
+         D_0014C050_2c9c70[moby->mission + (D_0015ED84 << 4)] != 0xff) &&
+        moby->state != 0) {
+        int i;
+        for (i = 0; i < 5; i++) {
+            int *entry = slot + i * 2;
+            int index = *entry;
+            if (index != -1) {
+                struct Moby *other = &D_L10_0015FFD8[index];
+                if (other != 0 && other->oclass == *(short *)(entry + 1) &&
+                    other->state != 0xfe && other->state != 0xfd) {
+                    unsigned short id = other->save_id;
+                    if ((((*(int *)(D_0014C190_2c9c70 + (((short)id >> 5) * 4) +
+                              (D_0015ED84 << 8)) >> (id & 31)) ^ 1) & 1) != 0) {
+                        if (*(signed char *)((char *)entry + 6) == -1 ||
+                            other->state != *(signed char *)((char *)entry + 6))
+                            differences++;
                     }
                 }
-                i--;
-                entry += 2;
-            } while (i >= 0);
+            }
         }
     }
     switch (state = moby->state) {
@@ -717,9 +831,10 @@ void FUN_L10_002c9c70(struct Moby *moby) {
             float initial = *(float *)(d + 4);
             float now = *(float *)d;
             float scale = moby->pclass->scale;
-            moby->scale = (now < initial ? initial * scale : now * scale);
+            float size = (now < initial ? initial * scale : now * scale);
+            moby->state = 1;
+            moby->scale = size;
         }
-        moby->state = 1;
         break;
     case 1:
         if (differences == 0) {
@@ -753,7 +868,6 @@ void FUN_L10_002c9c70(struct Moby *moby) {
         break;
     }
 }
-#endif
 void FUN_L10_002d7b18(struct Moby *a, float t) {
     float c = a->pos.z;
     float d = t - c;
