@@ -391,6 +391,7 @@ RODATA_OVERLAYS = {
     # the same VMA/file offset for the relocations to resolve content-equal.
     "_getpic": (0x153AA0, 0x54A20),
     "sdk/debug/printfloat": (0x152798, 0x53718),  # its three f64 literals (0.1, 0.1, 1e6)
+    "sdk/debug/printf_impl": (0x1527B0, 0x53730),  # _printf's format switch table (jtbl_001527B0)
     "audio/rpc/snd_send_iop_command_and_wait": (0x153D20, 0x54CA0),  # its RPC-collision message
     "audio/banks/snd_bank_load_by_loc": (0x153DA8, 0x54D28),  # its two error messages
     "audio/rpc/snd_send_iop_command_no_wait": (0x154010, 0x54F90),  # its buffer-full message

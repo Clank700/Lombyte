@@ -1,15 +1,9 @@
 #include "rnc/gameplay/entities/moby_class_tables.h"
 #include "sda.h"
 #include "types.h"
-#include "asm.h"
 #include "rnc/rendering/material_templates.h"
 #include "rnc/rendering/resident_class.h"
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/expected/asm/assembly/textbin/world/data/"
-            "select_world_object_resource_tables/FUN_00204a40.s",
-            FUN_00204a40);
-#else
 #include "rnc/gameplay/entities/moby_class_tables.h"
 #include "types.h"
 /* Verified against the US retail body at 0x00204a40. */
@@ -57,6 +51,10 @@ typedef struct {
 extern LevelResourceBuffers level_resource_buffers __asm__("D_001940C0");
 /* Per-slot copy of the resource +0x2C word; its narrower meaning is unresolved. */
 extern s32 D_001B6180[];
+/* moby_class_resources under its plain symbol name: GCSE hashes the symbol
+   string, and the unprefixed name orders its %hi before the slot table's, which
+   gives retail's s0/s4 assignment for the two hoisted %hi registers. */
+extern void *D_001B3200[];
 extern GadgetRec vendor_item_definitions[] __asm__("D_001863D0");
 extern u8 gold_weapon_purchased[] __asm__("D_0013E520");
 #include "rnc/rendering/material_templates.h"
@@ -96,8 +94,8 @@ void select_world_object_resource_tables(s32 class_id, s32 buffer_index) {
     decompress_wad(compressed_class_resources[active_class_resource_index], resource_data);
     FlushCache(0);
     /* The byte-sized class slot selects both the published pointer and the saved +0x2C word. */
-    resource_table = moby_class_resources;
     class_slot = resident_class_slot_by_id[class_id];
+    resource_table = D_001B3200;
     resource_table[class_slot] = resource_data;
     D_001B6180[class_slot] = resource_data->original_field_2c;
     prepare_resident_class_render_data(resource_data, resident_indexed_textures,
@@ -123,7 +121,7 @@ void select_world_object_resource_tables(s32 class_id, s32 buffer_index) {
             if (gold_weapon_purchased[vendor_item_index] == 0) {
                 return;
             }
-            resource_header = (ClassResourceHeader *)moby_class_resources[class_slot];
+            resource_header = (ClassResourceHeader *)D_001B3200[class_slot];
             if (resource_header->third_render_group_count == 0) {
                 return;
             }
@@ -139,7 +137,6 @@ void select_world_object_resource_tables(s32 class_id, s32 buffer_index) {
 
 extern void func_00204A40(s32 class_id, s32 buffer_index) __attribute__((alias("FUN_00204a40")));
 
-#endif /* NON_MATCHING */
 
 char class_material_maps[24][16] = {0};
 
