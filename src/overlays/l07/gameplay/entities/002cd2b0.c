@@ -5,6 +5,8 @@
 #include "rnc/gameplay/entities/moby.h"
 #include "rnc/math_consts.h"
 #include "asm.h"
+#include "rnc/data_labels.h"
+#include "rnc/gameplay/state/game_globals.h"
 
 extern void add_draw_callback(void *, void *) __asm__("FUN_001f4600");
 
@@ -149,7 +151,6 @@ void FUN_L07_0030e0e0(char *a, char *b, char *c) {
 /* Ported from rac1-decomp (src/overlays/l07_umbris/vendor_002CE470.c: func_L07_0030F5D8), where it is exact; names translated to the US level program. */
 
 extern char *D_L07_0015FFE4;
-extern char D_0013E533[];
 extern int FUN_L07_0030e0e0_c() __asm__("FUN_L07_0030e0e0");
 extern s32 truncate_float_to_s32(f32) __asm__("FUN_001fa6d0");
 extern void FUN_L07_0030dcf0(unsigned char *);
@@ -1355,7 +1356,6 @@ extern Rec_30D8E8 *D_L07_001612D0;
 extern char D_0013D4EC[];
 extern float D_0015ED6C;
 extern char D_0013D4C0[];
-extern char D_L07_001DCE40_c[] __asm__("D_L07_001DCE40");
 extern f32 fast_cos(f32) __asm__("func_001F9DC8");
 extern f32 fast_sin(f32) __asm__("func_001F9DE0");
 extern float D_L07_0016120C;
@@ -1657,7 +1657,7 @@ typedef struct {
 } FUN_L07_0030cf90_Vars;
 
 void FUN_L07_0030cf90(struct Moby *moby) {
-    extern char *D_L07_0015FFD8 __attribute__((sda));
+    extern char *level_mobys_gp __asm__("D_L07_0015FFD8") __attribute__((sda));
     FUN_L07_0030cf90_Vars *vars = (FUN_L07_0030cf90_Vars *)moby->pvars;
     Vec4 origin;
     Vec4 rotated;
@@ -1690,7 +1690,7 @@ void FUN_L07_0030cf90(struct Moby *moby) {
     }
     case 1:
         if (vars->target_index != -1) {
-            target = (struct Moby *)(D_L07_0015FFD8 + vars->target_index * 0x100);
+            target = (struct Moby *)(level_mobys_gp + vars->target_index * 0x100);
             if (target != 0 && target->state != 0xfe && target->state != 0xfd &&
                 target->state != vars->target_state)
                 return;
@@ -1701,7 +1701,7 @@ void FUN_L07_0030cf90(struct Moby *moby) {
         break;
     case 2:
         if (vars->target_index != -1 &&
-            (target = (struct Moby *)(D_L07_0015FFD8 + vars->target_index * 0x100)) != 0 &&
+            (target = (struct Moby *)(level_mobys_gp + vars->target_index * 0x100)) != 0 &&
             target->state != 0xfe && target->state != 0xfd &&
             (position = &moby->pos, target->state == vars->target_state_word)) {
             play_moby_sound(vars->trigger_sound, 0, moby);
@@ -1729,7 +1729,7 @@ void FUN_L07_0030cf90(struct Moby *moby) {
         break;
     case 3:
         if (vars->target_index != -1) {
-            target = (struct Moby *)(D_L07_0015FFD8 + vars->target_index * 0x100);
+            target = (struct Moby *)(level_mobys_gp + vars->target_index * 0x100);
             if (target != 0 && target->state != 0xfe && target->state != 0xfd) {
                 if (target->state != vars->target_state_word)
                     return;
@@ -1740,7 +1740,7 @@ void FUN_L07_0030cf90(struct Moby *moby) {
         }
         break;
     case 4:
-        target = (struct Moby *)((u32)D_L07_0015FFD8 + (u32)vars->target_index * 0x100);
+        target = (struct Moby *)((u32)level_mobys_gp + (u32)vars->target_index * 0x100);
         if (vars->target_index == -1 || target == 0 ||
             (voice = target->state) == 0xfe || voice == 0xfd ||
             voice == vars->target_state) {
@@ -2070,12 +2070,12 @@ extern void FUN_L07_0029b8d8(char *, int, float, float);
 s32 allocate_voice_for_target_entry(s32 entry_index, s32 flags,
                                     void *target) __asm__("FUN_0022da68");
 void mark_moby_for_removal(void *obj) __asm__("FUN_0020c828");
-extern char *D_L07_ed0_e[] __asm__("D_L07_00173ED0");
 extern int func_L00_001F10E0_f(float, void *, int, int) __asm__("FUN_L00_001f0d60");
 extern void func_L00_0025F4A8_alt(void *, void *, void *, float, float, int, int, int, float, float,
                                   float, float, int, float, int, int, int,
                                   int) __asm__("FUN_L00_0025e450");
 
+extern char *D_L07_00173ED0[];
 void FUN_L07_0030e458(struct Moby *m) {
     char *d = (char *)m->pvars;
     float prev[4];
@@ -2095,7 +2095,7 @@ void FUN_L07_0030e458(struct Moby *m) {
     }
     if (FUN_001efa68(prev, &m->pos, 0, *(int *)(d + 0x10), 0) != 0 ||
         func_L00_001F10E0_f(0.1f, &m->pos, 0, *(int *)(d + 0x10)) != 0) {
-        char *o = D_L07_ed0_e[2];
+        char *o = D_L07_00173ED0[2];
         if (o == 0 || (*(short *)(o + 0xA6) != 0x415 && *(short *)(o + 0xA6) != 0x419 &&
                        *(short *)(o + 0xA6) != 0x452)) {
             if (m->visible != 0) {
@@ -2812,9 +2812,6 @@ extern void mark_moby_for_removal_c(void *) __asm__("FUN_0020c828");
 extern char *D_L07_0015FFD8_3112c8 __asm__("D_L07_0015FFD8");
 extern char D_0013F3D0[];
 extern char D_0013F440[];
-extern char *D_0013F64C;
-extern short D_0013F65E;
-extern int D_0015ED84;
 extern float D_0013F448;
 
 extern u8 D_0014C050[];
@@ -3184,9 +3181,7 @@ typedef struct Packet_313800 {
     long x138;
 } Packet_313800;
 
-extern Vec4_30CA88 D_L07_00173EE0_c __asm__("D_L07_00173EE0");
 extern int D_L07_0015F5CC_c __asm__("D_L07_0015F5CC");
-extern int D_L07_00167050; /* no foreign declaration */
 extern s64 get_effect_texture(s32) __asm__("func_001F44B8");
 extern void cross_vectors_xyz(void *, void *, void *) __asm__("func_001F9AD8");
 extern void draw_geometry_quad(void *, int, int) __asm__("func_001F7D30");

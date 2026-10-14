@@ -14,31 +14,31 @@ extern float FUN_001f9de0(float);
 extern float random_angle_radians(void) __asm__("FUN_00213308");
 extern float random_float_between_alt(float, float) __asm__("FUN_002132a8");
 extern int random_int_between(int, int) __asm__("FUN_L00_00257b90");
-extern short D_L10_00161E58_d __asm__("D_L10_00161E58") __attribute__((sda));
-extern short D_L10_00161E5C_d __asm__("D_L10_00161E5C") __attribute__((sda));
-extern short D_L10_00161E60_d __asm__("D_L10_00161E60") __attribute__((sda));
-extern short D_L10_00161E64_d __asm__("D_L10_00161E64") __attribute__((sda));
-extern short D_L10_00161E68_d __asm__("D_L10_00161E68") __attribute__((sda));
-extern short D_L10_00161E6C_d __asm__("D_L10_00161E6C") __attribute__((sda));
-extern short D_L10_00161E70_d __asm__("D_L10_00161E70") __attribute__((sda));
 extern void FUN_001f9a10(float *, float *, float *);
 extern void FUN_L01_00287158(float *, float, float, int, int, int);
 
+extern short D_L10_00161E58 __attribute__((sda));
+extern short D_L10_00161E5C __attribute__((sda));
+extern short D_L10_00161E60 __attribute__((sda));
+extern short D_L10_00161E64 __attribute__((sda));
+extern short D_L10_00161E68 __attribute__((sda));
+extern short D_L10_00161E6C __attribute__((sda));
+extern short D_L10_00161E70 __attribute__((sda));
 void FUN_L10_002e3de8(char *moby) {
     float v[3];
     int g, h;
     float a = random_angle_radians();
-    float b = random_float_between_alt(0.0f, *(float *)&D_L10_00161E70_d);
-    float c = random_float_between_alt(0.0f, *(float *)&D_L10_00161E60_d);
-    float d = random_float_between_alt(*(float *)&D_L10_00161E60_d, *(float *)&D_L10_00161E64_d);
-    int e = random_int_between(*(int *)&D_L10_00161E68_d, *(int *)&D_L10_00161E6C_d);
+    float b = random_float_between_alt(0.0f, *(float *)&D_L10_00161E70);
+    float c = random_float_between_alt(0.0f, *(float *)&D_L10_00161E60);
+    float d = random_float_between_alt(*(float *)&D_L10_00161E60, *(float *)&D_L10_00161E64);
+    int e = random_int_between(*(int *)&D_L10_00161E68, *(int *)&D_L10_00161E6C);
     v[0] = FUN_001f9dc8(a) * b;
     v[1] = FUN_001f9de0(a) * b;
     v[2] = 0.0f;
     FUN_001f9a10(v, v, (float *)(moby + 0x10));
     v[2] = v[2] + 0.025f;
-    g = *(int *)&D_L10_00161E58_d;
-    h = *(int *)&D_L10_00161E5C_d;
+    g = *(int *)&D_L10_00161E58;
+    h = *(int *)&D_L10_00161E5C;
     FUN_L01_00287158(v, c, d, g, h, e);
 }
 
@@ -254,7 +254,7 @@ void FUN_L10_002f5a50(int i) {
     q[0x38] = 1;
     q[0x39] = 0;
 }
-extern char *D_L10_0015EF50_5a78 __asm__("D_L10_0015EF50");
+extern char *D_L10_0015EF50;
 extern char *D_L10_001B0930_5a78[] __asm__("D_L10_001B0930");
 extern int FUN_00214720_5a78(void *, int) __asm__("FUN_00214720");
 extern int FUN_L00_0025fa38_5a78(void *, int) __asm__("FUN_L00_0025fa38");
@@ -263,7 +263,7 @@ extern int FUN_L00_00259740_5a78(float *, float *, int) __asm__("FUN_L00_0025974
 
 int FUN_L10_002f5a78(char *moby) {
     unsigned char *e =
-        *(unsigned char **)(D_L10_0015EF50_5a78 + *(short *)(moby + 0x84) * 32 + 0x1C);
+        *(unsigned char **)(D_L10_0015EF50 + *(short *)(moby + 0x84) * 32 + 0x1C);
 
     if (*(int *)(e + 0x0C) >= 0) {
         if (FUN_00214720_5a78(&hero.motion.pos, *(int *)(e + 0x0C)))
@@ -295,7 +295,6 @@ extern float FUN_001f9b48(void *, void *);
 extern void FUN_001f99f8(void *);
 extern float s32_to_float(int) __asm__("FUN_001fa6c0");
 extern int hero_set_state(int, int) __asm__("FUN_L00_002223f8");
-extern float D_L10_0016CF70;
 extern char D_L10_00167100[];
 
 extern char D_L10_0016CEC0[];
@@ -436,14 +435,13 @@ void FUN_L10_002f5b58(char *moby) {
 INCLUDE_ASM("config/us/overlays/asm/FUN_L10_002f5f18.s", FUN_L10_002f5f18);
 #else
 #include "qcopy.h"
-extern float D_L10_0015F3FC __attribute__((section(".data")));
-extern float D_L10_0015F3FC_sda __asm__("D_L10_0015F3FC") __attribute__((sda));
+extern float D_L10_0015F3FC_lui __asm__("D_L10_0015F3FC") __attribute__((section(".data")));
+extern float D_L10_0015F3FC_gp __asm__("D_L10_0015F3FC") __attribute__((sda));
 extern int D_L10_0015F404;
 extern float D_0015ED6C;
 extern char *D_L10_0015FFD8 __attribute__((sda));
 extern char *D_L10_0015FFD8_far __asm__("D_L10_0015FFD8") __attribute__((section(".data")));
 extern float D_L10_00167358;
-extern float D_L10_0016CF70;
 extern void subtract_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a28");
 extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void transform_vector_by_basis(void *, void *, void *) __asm__("FUN_001f9cf8");
@@ -488,12 +486,12 @@ void FUN_L10_002f5f18(char *moby) {
 
     if (*(short *)(acc + 0x14) == 0) {
         char *other;
-        D_L10_0015F3FC_sda = D_L10_0015F3FC + 0.05f;
-        if (!(1.0f <= D_L10_0015F3FC_sda)) return;
+        D_L10_0015F3FC_gp = D_L10_0015F3FC_lui + 0.05f;
+        if (!(1.0f <= D_L10_0015F3FC_gp)) return;
         path = D_L10_001B0930_5a78[*(int *)(data + 0x20)];
         other = D_L10_001B0930_5a78[*(int *)(data + 0x24)];
         scale = (float *)(moby + 0x30);
-        D_L10_0015F3FC = 1.0f;
+        D_L10_0015F3FC_lui = 1.0f;
         D_L10_0015F404 = 1;
         *(short *)(acc + 0x14) = 1;
         path += 0x10;
@@ -518,10 +516,10 @@ void FUN_L10_002f5f18(char *moby) {
         return;
     }
     if (*(short *)(acc + 0x14) == 2) {
-        D_L10_0015F3FC_sda = D_L10_0015F3FC + 0.05f;
-        if (D_L10_0015F3FC_sda >= 1.0f) {
+        D_L10_0015F3FC_gp = D_L10_0015F3FC_lui + 0.05f;
+        if (D_L10_0015F3FC_gp >= 1.0f) {
             *(short *)(acc + 0x14) = 3;
-            D_L10_0015F3FC = 1.0f;
+            D_L10_0015F3FC_lui = 1.0f;
             angle = *(float *)((char *)indices + 0x30) * 0.5f;
             distance = FUN_001f9de0(angle);
             fade = FUN_001f9dc8(angle);
@@ -536,8 +534,8 @@ void FUN_L10_002f5f18(char *moby) {
         if (*(int *)(data + 0x40) == 0) return;
     } else {
         if (*(short *)(acc + 0x14) == 3) return;
-        D_L10_0015F3FC_sda -= 0.05f;
-        if (D_L10_0015F3FC_sda < 0.0f) D_L10_0015F3FC = 0.0f;
+        D_L10_0015F3FC_gp -= 0.05f;
+        if (D_L10_0015F3FC_gp < 0.0f) D_L10_0015F3FC_lui = 0.0f;
     }
     path = D_L10_001B0930_5a78[*(int *)(data + 0x20)];
     scale = (float *)(moby + 0x30);
@@ -629,12 +627,11 @@ void FUN_L10_002f5f18(char *moby) {
 
 /* Ported from rac1-decomp (src/overlays/shared/vendor_00299AF0.c: func_L10_002F79B8), where it is exact; names translated to the US level program. */
 
-extern char *D_L10_0015F050 __asm__("D_L10_0015EF50");
-extern char D_0013E633[] __asm__("D_0013F3D0");
+extern char *D_L10_0015EF50;
 extern int FUN_L10_002f5a78_u(char *, char *) __asm__("FUN_L10_002f5a78");
 
 int FUN_L10_002f65f8(char *a, char *b) {
-    unsigned char *d = *(unsigned char **)(D_L10_0015F050 + *(short *)(a + 0x84) * 32 + 0x1C);
+    unsigned char *d = *(unsigned char **)(D_L10_0015EF50 + *(short *)(a + 0x84) * 32 + 0x1C);
     int x;
     int y;
     if (d[0x39] != 0) {

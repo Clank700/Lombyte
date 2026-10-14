@@ -9,12 +9,13 @@
 #define MACRO_ADDR
 
 #include "qcopy.h"
+#include "rnc/globals.h"
 
 /* Ported from rac1-decomp (src/overlays/l04_eudora/vuchain_00293490.c: func_L04_00293490), where it is exact; names translated to the US level program. */
 
-extern float D_L04_00173FE8_d __asm__("D_L04_00173FE8") __attribute__((section(".data")));
 extern int FUN_001efa68(void *, void *, int, int, int);
 
+extern float D_L04_00173FE8 __attribute__((section(".data")));
 float FUN_L04_002922d0(float *pos) {
     float a[4];
     float b[4];
@@ -25,7 +26,7 @@ float FUN_L04_002922d0(float *pos) {
     qcopy(b, pos);
     b[2] = b[2] + 0.75f;
     if (FUN_001efa68(b, a, 2, 0, 0) != 0)
-        return D_L04_00173FE8_d;
+        return D_L04_00173FE8;
     return 0.0f;
 }
 #define NOT_SDA
@@ -164,7 +165,6 @@ extern f32 fast_cos(f32) __asm__("func_001F9DC8");
 extern f32 fast_sin(f32) __asm__("func_001F9DE0");
 extern float FUN_001f9e90(float, float);
 extern float probe_ground_height(void *, int, float) __asm__("func_00213508");
-extern int D_L04_00173FC0; /* no foreign declaration */
 extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void clear_u64_value(void *) __asm__("func_001F99F8");
 extern void cross_vectors_xyz(void *, void *, void *) __asm__("func_001F9AD8");
@@ -287,7 +287,6 @@ extern float fast_subtract_rotations_2d48(float, float) __asm__("FUN_001fa5c8");
 extern float rig_turn_2d48(float, float, float *, float, float, float) __asm__("FUN_L00_00258110");
 extern void axis_rotation_2d48(float *, int, float) __asm__("FUN_L00_001fff28");
 extern void quat_multiply_2d48(float *, float *, float *) __asm__("FUN_001fa3c0");
-extern f32 frame_scale_2d48 __asm__("D_0015ED60");
 
 void FUN_L04_00292d48(struct Moby *moby, LegRig *rig, int flags) {
     float joint[16];
@@ -311,16 +310,16 @@ void FUN_L04_00292d48(struct Moby *moby, LegRig *rig, int flags) {
         base_yaw = fast_subtract_rotations_2d48(heading, twist);
         if (rig->unkB7 == 0 || (flags & mask) == 0) {
             leg->upper_turn = rig_turn_2d48(leg->upper_turn, 0.0f, &rig->legs[i].upper_turn_speed, 0.1f, 0.1f,
-                                           frame_scale_2d48 * 0.034906585f);
+                                           frame_scale * 0.034906585f);
             leg->lower_turn = rig_turn_2d48(leg->lower_turn, 0.0f, &rig->legs[i].lower_turn_speed, 0.1f, 0.1f,
-                                           frame_scale_2d48 * 0.034906585f);
+                                           frame_scale * 0.034906585f);
         } else {
             if (rig->unkB7 == 13)
                 leg->upper_turn = rig_turn_2d48(leg->upper_turn, 0.0f, &rig->legs[i].upper_turn_speed, 0.1f, 0.1f,
-                                               frame_scale_2d48 * 0.034906585f);
+                                               frame_scale * 0.034906585f);
             else
                 leg->upper_turn = rig_turn_2d48(leg->upper_turn, twist * 0.5f, &rig->legs[i].upper_turn_speed, 0.1f,
-                                               0.1f, frame_scale_2d48 * 0.034906585f);
+                                               0.1f, frame_scale * 0.034906585f);
             leg->lower_turn = fast_subtract_rotations_2d48(twist, leg->upper_turn);
             leg->lower_turn_speed = 0.0f;
         }
@@ -370,7 +369,6 @@ extern float rig_angle_difference(float, float) __asm__("FUN_001fa688");
 extern float FUN_001f99c0(float);
 extern float D_L04_0015ED60 __asm__("D_L04_0015ED60");
 extern float D_L04_0015ED68 __asm__("D_L04_0015ED68");
-extern float D_L04_0015ED6C __asm__("D_L04_0015ED6C");
 /* Retail -0x7e94($gp), with $gp = 0x166c00, addresses 0x0015ed6c. */
 extern float D_L04_0015816C __asm__("D_L04_0015ED6C") __attribute__((sda));
 extern float D_L04_00173FF8 __asm__("D_L04_00173FF8");
@@ -519,7 +517,21 @@ int FUN_L04_00295778(struct Moby *m, LegRig *rig, float amount, float target, fl
     return flags;
 }
 #endif
-extern u8 D_L04_001CA938[13][4];
+u8 D_L04_001CA938[13][4] = {
+    {1, 0, 0, 0},
+    {2, 0, 0, 0},
+    {3, 0, 0, 0},
+    {4, 0, 0, 0},
+    {7, 0, 0, 0},
+    {8, 0, 0, 0},
+    {9, 0, 0, 0},
+    {0xc, 0, 0, 0},
+    {0xd, 0, 0, 0},
+    {0xe, 0, 0, 0},
+    {0x13, 0, 0, 0},
+    {0xf, 0, 0, 0},
+    {0x14, 0, 0, 0},
+};
 extern void transform_scaled_vertex_batch(struct Moby *m, int count, int *joints, void *out) __asm__("FUN_0020cd48");
 extern void get_joint_matrix(struct Moby *m, int joint, float *mtx) __asm__("FUN_0020cca8");
 extern void attach_manipulator(struct Moby *m, int slot, LegRigManip *manip) __asm__("FUN_0020cb10");

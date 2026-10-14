@@ -111,9 +111,9 @@ void FUN_L18_002d7f68(struct Moby *arg, int value) {
 
 extern float FUN_001f9de0(float);
 extern float FUN_001fa580(float, float);
-extern short D_L18_00161A48_d __asm__("D_L18_00161A48") __attribute__((sda));
-extern short D_L18_00161A4C_d __asm__("D_L18_00161A4C") __attribute__((sda));
 
+extern short D_L18_00161A48 __attribute__((sda));
+extern short D_L18_00161A4C __attribute__((sda));
 void FUN_L18_002d8710(struct Moby *moby) {
     char *data = (char *)moby->pvars;
     float v = FUN_001fa580(moby->rot.y, *(float *)(data + 0x6C));
@@ -138,9 +138,9 @@ void FUN_L18_002d8710(struct Moby *moby) {
         }
     }
     *(float *)(data + 0x74) = FUN_001fa580(*(float *)(data + 0x74),
-                                           *(float *)&D_L18_00161A4C_d * DEG_TO_RAD * frame_time);
+                                           *(float *)&D_L18_00161A4C * DEG_TO_RAD * frame_time);
     moby->pos.z = *(float *)(data + 0x64) +
-                              *(float *)&D_L18_00161A48_d * FUN_001f9de0(*(float *)(data + 0x74));
+                              *(float *)&D_L18_00161A48 * FUN_001f9de0(*(float *)(data + 0x74));
 }
 #define NOT_SDA
 
@@ -167,9 +167,8 @@ int FUN_L18_002d8858(Level18State *obj) {
 
 extern char D_0013E533[];
 extern float FUN_001f9b80(void *, void *);
-extern int D_L18_0015F5CC;
+extern int game_frame __asm__("D_L18_0015F5CC");
 extern int FUN_001f9740(int *);
-extern short D_L18_00161CA0_d __asm__("D_L18_00161CA0") __attribute__((sda));
 extern void FUN_001f9a28(void *, void *, void *);
 extern void FUN_001f9bf8(void *, void *, float);
 extern void make_hit_descriptor(char *arg, int a, int b, void *src, float scale) __asm__("FUN_L00_00259888");
@@ -179,6 +178,7 @@ extern void FUN_L18_002dc4b8();
 extern void enqueue_callback_list_1(void (*)(void), void *) __asm__("FUN_001f4600");
 void mark_moby_for_removal(struct Obj *obj) __asm__("FUN_0020c828");
 
+extern short D_L18_00161CA0 __attribute__((sda));
 void FUN_L18_002dc260(struct Moby *moby) {
     char buf[0x30];
     float v[4];
@@ -201,8 +201,8 @@ void FUN_L18_002dc260(struct Moby *moby) {
         make_hit_descriptor(buf, (int)moby, 0x10001, v, 1.0f);
         FUN_L00_00259a88(*(int *)(tgt + 0x2000), buf);
     }
-    flag = D_L18_0015F5CC & 4;
-    d[1] = d[1] + *(float *)&D_L18_00161CA0_d * frame_time;
+    flag = game_frame & 4;
+    d[1] = d[1] + *(float *)&D_L18_00161CA0 * frame_time;
     if (flag == 0) {
         FUN_L00_002598b0(*(int *)(d + 3), d[0], pos, 0x10000, 1.0f, 1.0f, 0, 1, 0);
     }
@@ -452,7 +452,6 @@ typedef struct {
 } L18D;
 
 extern char *D_L18_00174858;
-extern char D_001413D4[];
 extern f32 convert_integer_to_float(s32) __asm__("FUN_001fa6c0");
 extern float FUN_001f96b0(float);
 extern int D_L18_0015F5C4;
@@ -641,40 +640,45 @@ typedef struct {
     float uv[4][2];
     unsigned long long a, b, c, d;
 } Pk_d5768;
-extern int D_L18_00161970_d5 __asm__("D_L18_00161970") __attribute__((sda));
-extern int D_L18_00161974_d5 __asm__("D_L18_00161974") __attribute__((sda));
-extern int D_L18_00161978_d5 __asm__("D_L18_00161978") __attribute__((sda));
-extern int D_L18_0016197C_d5 __asm__("D_L18_0016197C") __attribute__((sda));
-extern int D_L18_00161980_d5 __asm__("D_L18_00161980") __attribute__((sda));
-extern int D_L18_00161984_d5 __asm__("D_L18_00161984") __attribute__((sda));
-extern float D_L18_001D3630_d5[4][4] __asm__("D_L18_001D3630");
-extern float D_L18_001D3670_d5[8] __asm__("D_L18_001D3670");
+float sparkle_quad_corners[4][4] __asm__("D_L18_001D3630") = {
+    {1.0f, 1.0f, 0.1f, 0.0f},
+    {1.0f, -1.0f, 0.1f, 0.0f},
+    {-1.0f, 1.0f, 0.1f, 0.0f},
+    {-1.0f, -1.0f, 0.1f, 0.0f},
+};
+float sparkle_quad_uvs[8] __asm__("D_L18_001D3670") = {1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 extern float fast_normalize_angle(float) __asm__("FUN_001fa610");
 extern float fast_sin(float) __asm__("FUN_001f9de0");
 extern unsigned int fast_tween_color(float, int, int) __asm__("FUN_001fa6e0");
 extern unsigned long long get_effect_texture(int) __asm__("FUN_001f44b8");
 extern void draw_geometry_quad(void *, int, int) __asm__("FUN_001f7d30");
 
+extern int D_L18_00161970 __attribute__((sda));
+extern int D_L18_00161974 __attribute__((sda));
+extern int D_L18_00161978 __attribute__((sda));
+extern int D_L18_0016197C __attribute__((sda));
+extern int D_L18_00161980 __attribute__((sda));
+extern int D_L18_00161984 __attribute__((sda));
 void FUN_L18_002d5768(struct Moby *m) {
     Pk_d5768 pk;
     char *d = (char *)m->pvars;
     unsigned int col;
     int i;
     col = fast_tween_color((fast_sin(fast_normalize_angle((*(int *)(d + 0x2C) & 0xF) * 0.0625f * 6.28318f)) + 1.0f) * 0.5f,
-                          D_L18_00161980_d5, D_L18_00161984_d5);
+                          D_L18_00161980, D_L18_00161984);
     pk.b = get_effect_texture(0xD);
-    pk.d = (unsigned long long)D_L18_00161970_d5 | ((unsigned long long)D_L18_00161974_d5 << 2) |
-           ((unsigned long long)D_L18_00161978_d5 << 4) | ((unsigned long long)D_L18_0016197C_d5 << 6) |
+    pk.d = (unsigned long long)D_L18_00161970 | ((unsigned long long)D_L18_00161974 << 2) |
+           ((unsigned long long)D_L18_00161978 << 4) | ((unsigned long long)D_L18_0016197C << 6) |
            0x8000000000ULL;
     pk.c = 0x0000FF9000000260ULL;
     pk.a = 0;
     for (i = 0; i < 4; i++) {
         float *p = pk.m[i];
-        add_vector_xyz(p, D_L18_001D3630_d5[i], d + 0x10);
+        add_vector_xyz(p, sparkle_quad_corners[i], d + 0x10);
         p[3] = 1.0f;
         pk.col[i] = col;
-        pk.uv[i][0] = D_L18_001D3670_d5[i * 2];
-        pk.uv[i][1] = D_L18_001D3670_d5[i * 2 + 1];
+        pk.uv[i][0] = sparkle_quad_uvs[i * 2];
+        pk.uv[i][1] = sparkle_quad_uvs[i * 2 + 1];
     }
     draw_geometry_quad(&pk, 0, 0);
 }
@@ -820,7 +824,7 @@ extern float FUN_L00_0025abf0_q(float *a, float *b, float *out, float speed,
                                 float g) __asm__("FUN_L00_0025abf0");
 extern int *D_L18_001AC240_q[] __asm__("D_L18_001AC240") __attribute__((section(".data")));
 extern int D_L18_0015FFD8_m __asm__("D_L18_0015FFD8");
-extern short D_L18_00161994_q __asm__("D_L18_00161994") __attribute__((sda));
+extern f32 D_L18_00161994_q __asm__("D_L18_00161994") __attribute__((sda));
 extern void trooper_scale(void *, void *, float) __asm__("FUN_001f9c48");
 void blend_moby_animation_q(MobyAnim_q *arg0, int arg1, int arg2, int arg3) __asm__("FUN_00212f90");
 
@@ -1110,18 +1114,18 @@ extern float D_0015ED70_d __asm__("D_0015ED70");
 extern float FUN_001fa580_q(float, float) __asm__("FUN_001fa580");
 extern float advance_accelerated_scalar(float *, float *, float, float, float, float) __asm__("FUN_00213f38");
 extern int D_L18_0015F5C4_d __asm__("D_L18_0015F5C4");
-extern int D_L18_0016D290_q __asm__("D_L18_0016D290") __attribute__((section(".data")));
-extern short D_L18_00161998_d __asm__("D_L18_00161998") __attribute__((sda));
-extern short D_L18_0016199C_d __asm__("D_L18_0016199C") __attribute__((sda));
-extern short D_L18_001619A0_d __asm__("D_L18_001619A0") __attribute__((sda));
+extern int D_L18_0016D290_lui __asm__("D_L18_0016D290") __attribute__((section(".data")));
 extern void FUN_001f9bf8_q(void *, void *, float) __asm__("FUN_001f9bf8");
 extern void upd_a(void *) __asm__("FUN_L00_00250df8");
 f32 probe_ground_height(void *arg0, s32 arg1, f32 arg2) __asm__("FUN_00213508");
 void mmr_q(void *obj) __asm__("FUN_0020c828");
 
+extern short D_L18_00161998 __attribute__((sda));
+extern short D_L18_0016199C __attribute__((sda));
+extern short D_L18_001619A0 __attribute__((sda));
 void FUN_L18_002d6600(char *moby) {
     L18E_q *d = *(L18E_q **)(moby + 0x78);
-    *(float *)(moby + 0x2C) = (*(L18Cls_q **)(moby + 0x24))->f24 * *(float *)&D_L18_00161998_d;
+    *(float *)(moby + 0x2C) = (*(L18Cls_q **)(moby + 0x24))->f24 * *(float *)&D_L18_00161998;
     switch (((unsigned char *)moby)[0x20]) {
     case 0: {
         *(float *)(moby + 0x18) = *(float *)(moby + 0x18) + 1.0f;
@@ -1137,7 +1141,7 @@ void FUN_L18_002d6600(char *moby) {
             *(short *)(a + 0x32) = 0x56;
             a[0x31] = 1;
             *(short *)(a + 0x32) = 0x56;
-            *(float *)(a + 0x2C) = (*(L18Cls_q **)(a + 0x24))->f24 * *(float *)&D_L18_00161998_d;
+            *(float *)(a + 0x2C) = (*(L18Cls_q **)(a + 0x24))->f24 * *(float *)&D_L18_00161998;
             qcopy(a + 0x10, d);
             qcopy(a + 0x40, moby + 0x40);
             upd_a(a);
@@ -1148,7 +1152,7 @@ void FUN_L18_002d6600(char *moby) {
         *(short *)(d->p14 + 0x32) = 0x56;
         d->p14[0x31] = 1;
         *(float *)(d->p14 + 0x2C) =
-            (*(L18Cls_q **)(d->p14 + 0x24))->f24 * *(float *)&D_L18_00161998_d;
+            (*(L18Cls_q **)(d->p14 + 0x24))->f24 * *(float *)&D_L18_00161998;
         {
             char *q = d->p14;
             qcopy(q + 0x40, moby + 0x40);
@@ -1159,7 +1163,7 @@ void FUN_L18_002d6600(char *moby) {
         *(short *)(d->p18 + 0x32) = 0x40;
         d->p18[0x31] = 1;
         *(float *)(d->p18 + 0x2C) =
-            (*(L18Cls_q **)(d->p18 + 0x24))->f24 * *(float *)&D_L18_00161998_d;
+            (*(L18Cls_q **)(d->p18 + 0x24))->f24 * *(float *)&D_L18_00161998;
         {
             char *q = d->p18;
             qcopy(q + 0x40, moby + 0x40);
@@ -1169,7 +1173,7 @@ void FUN_L18_002d6600(char *moby) {
         ((unsigned char *)moby)[0x20] = 1;
         {
             float t = *(float *)(moby + 0x18);
-            float u = *(float *)&D_L18_001619A0_d;
+            float u = *(float *)&D_L18_001619A0;
             d->f10 = t;
             d->f34 = u;
         }
@@ -1180,7 +1184,7 @@ void FUN_L18_002d6600(char *moby) {
         float v[4];
         if (D_L18_0015F5C4_d == 2) {
             if (d->i38 != 0) {
-                if (D_L18_0016D290_q == 3) {
+                if (D_L18_0016D290_lui == 3) {
                     if (d->p14 != 0)
                         mmr_q(d->p14);
                     if (d->p18 != 0)
@@ -1193,7 +1197,7 @@ void FUN_L18_002d6600(char *moby) {
         }
         if (d->f24 != 0.0f) {
             if ((d->i30 == 0 && fast_dec_timer((int *)&d->f2C) == 2) ||
-                (D_L18_0015F5C4_d == 2 && D_L18_0016D290_q >= 4)) {
+                (D_L18_0015F5C4_d == 2 && D_L18_0016D290_lui >= 4)) {
                 allocate_voice_for_target_entry(0, 0, (int)moby);
                 d->f24 = 0;
             }
@@ -1211,12 +1215,12 @@ void FUN_L18_002d6600(char *moby) {
                                D_0015ED6C_q * 4.0f);
             } else {
                 float k = D_0015ED70_d;
-                advance_accelerated_scalar(&d->f34, &d->f28, *(float *)&D_L18_0016199C_d, k * 16.0f, k * 4.0f,
+                advance_accelerated_scalar(&d->f34, &d->f28, *(float *)&D_L18_0016199C, k * 16.0f, k * 4.0f,
                                D_0015ED6C_q * 8.0f);
             }
-        } else if (d->f34 != *(float *)&D_L18_001619A0_d) {
+        } else if (d->f34 != *(float *)&D_L18_001619A0) {
             float k = D_0015ED70_d;
-            advance_accelerated_scalar(&d->f34, &d->f28, *(float *)&D_L18_001619A0_d, k * 16.0f, k * 4.0f,
+            advance_accelerated_scalar(&d->f34, &d->f28, *(float *)&D_L18_001619A0, k * 16.0f, k * 4.0f,
                            D_0015ED6C_q * 8.0f);
         } else {
             advance_accelerated_scalar(&d->f20, &d->f28, d->f24, D_0015ED70_d * 4.0f, D_0015ED70_d * 4.0f,
@@ -1803,9 +1807,9 @@ void FUN_L18_002db460(struct Moby *moby) {
 /* Allocate an object, init its fields and child record. */
 /* Ported from rac1-decomp (src/overlays/l18_veldin2/vendor_002A8400.c: func_L18_002DCD28), where it is exact; names translated to the US level program. */
 
-extern short D_L18_00161BF8_d __asm__("D_L18_00161BF8") __attribute__((sda));
 extern short D_L18_00161BFC_d __asm__("D_L18_00161BFC") __attribute__((sda));
 
+extern short D_L18_00161BF8 __attribute__((sda));
 void FUN_L18_002db938(char *pos, float *vec, int arg, float fa, float fb) {
     Obj *o = (Obj *)func_0020D348_m(0x270);
     if (o != 0) {
@@ -1815,7 +1819,7 @@ void FUN_L18_002db938(char *pos, float *vec, int arg, float fa, float fb) {
         o->b31 = 1;
         o->b20 = 0;
         g = *(int *)&D_L18_00161BFC_d;
-        o->f2C = o->f2C * *(float *)&D_L18_00161BF8_d;
+        o->f2C = o->f2C * *(float *)&D_L18_00161BF8;
         o->s32 = 0xFF;
         o->h34 |= 0x10;
         o->f90 = g;
@@ -1862,21 +1866,21 @@ extern void euler_basis_dba20(void *, void *) __asm__("FUN_001fa030");
 extern void draw_quad_dba20(void *, void *, int) __asm__("FUN_001f7d30");
 extern void matrix_mul_dba20(void *, void *, void *) __asm__("FUN_001fa328");
 
-extern int D_L18_00161C48_v __asm__("D_L18_00161C48") __attribute__((sda));
-extern int D_L18_00161C4C_v __asm__("D_L18_00161C4C") __attribute__((sda));
-extern int D_L18_00161C50_v __asm__("D_L18_00161C50") __attribute__((sda));
-extern int D_L18_00161C54_v __asm__("D_L18_00161C54") __attribute__((sda));
-extern int D_L18_00161C5C_v __asm__("D_L18_00161C5C") __attribute__((sda));
-extern int D_L18_00161C60_v __asm__("D_L18_00161C60") __attribute__((sda));
-extern float D_L18_00161C64_v __asm__("D_L18_00161C64") __attribute__((sda));
-extern float D_L18_00161C68_v __asm__("D_L18_00161C68") __attribute__((sda));
-extern float D_L18_00161C6C_v __asm__("D_L18_00161C6C") __attribute__((sda));
-extern float D_L18_00161C70_v __asm__("D_L18_00161C70") __attribute__((sda));
-extern float D_L18_00161C74_v __asm__("D_L18_00161C74") __attribute__((sda));
-extern float D_L18_00161C78_v __asm__("D_L18_00161C78") __attribute__((sda));
-extern float D_L18_00161C7C_v __asm__("D_L18_00161C7C") __attribute__((sda));
 extern float D_L18_001D4310[];
 
+extern int D_L18_00161C48 __attribute__((sda));
+extern int D_L18_00161C4C __attribute__((sda));
+extern int D_L18_00161C50 __attribute__((sda));
+extern int D_L18_00161C54 __attribute__((sda));
+extern int D_L18_00161C5C __attribute__((sda));
+extern int D_L18_00161C60 __attribute__((sda));
+extern float D_L18_00161C64 __attribute__((sda));
+extern float D_L18_00161C68 __attribute__((sda));
+extern float D_L18_00161C6C __attribute__((sda));
+extern float D_L18_00161C70 __attribute__((sda));
+extern float D_L18_00161C74 __attribute__((sda));
+extern float D_L18_00161C78 __attribute__((sda));
+extern float D_L18_00161C7C __attribute__((sda));
 void FUN_L18_002dba20(M_dba20 *moby) {
     Q_dba20 q[4];
     V_dba20 m[4];
@@ -1888,7 +1892,7 @@ void FUN_L18_002dba20(M_dba20 *moby) {
 
     unit_matrix_dba20(m);
     qcopy(&m[3], &moby->pos);
-    m[3].f[2] += D_L18_00161C68_v;
+    m[3].f[2] += D_L18_00161C68;
     m[3].f[3] = 1.0f;
     for (j = 0; j < 4; j++) {
         float fj;
@@ -1896,15 +1900,15 @@ void FUN_L18_002dba20(M_dba20 *moby) {
         q[j].tex = get_effect_texture_dba20(0xE);
         q[j].unk70 = 0;
         q[j].unk80 = 0xFF9000000260L;
-        q[j].unk88 = (long)D_L18_00161C48_v | ((long)D_L18_00161C4C_v << 2) | ((long)D_L18_00161C50_v << 4) | ((long)D_L18_00161C54_v << 6) | 0x8000000000L;
-        t = d->f24 * D_L18_00161C74_v + (float)j * 0.25f;
-        rad = d->f24 + D_L18_00161C70_v * (float)j;
+        q[j].unk88 = (long)D_L18_00161C48 | ((long)D_L18_00161C4C << 2) | ((long)D_L18_00161C50 << 4) | ((long)D_L18_00161C54 << 6) | 0x8000000000L;
+        t = d->f24 * D_L18_00161C74 + (float)j * 0.25f;
+        rad = d->f24 + D_L18_00161C70 * (float)j;
         t = t - (float)truncate_dba20(t);
-        col = tween_color_dba20(D_L18_00161C5C_v, D_L18_00161C60_v, t);
-        ang = t * D_L18_00161C78_v;
+        col = tween_color_dba20(D_L18_00161C5C, D_L18_00161C60, t);
+        ang = t * D_L18_00161C78;
         if (ang > 1.0f) ang = 1.0f;
         col = tween_color_dba20(col & 0xFFFFFF, col, ang);
-        ang = (d->f28 - d->f24) / (d->f20 * scale_time_dba20(D_L18_00161C7C_v));
+        ang = (d->f28 - d->f24) / (d->f20 * scale_time_dba20(D_L18_00161C7C));
         if (ang > 1.0f) {
             ang = 1.0f;
         } else if (ang < 0.0f) {
@@ -1917,12 +1921,12 @@ void FUN_L18_002dba20(M_dba20 *moby) {
             q[j].uv[k].u = D_L18_001D4310[2 * k];
             q[j].uv[k].v = D_L18_001D4310[2 * k + 1];
             if (k & 1) {
-                q[j].corner[k].f[2] = t * D_L18_00161C6C_v;
+                q[j].corner[k].f[2] = t * D_L18_00161C6C;
             } else {
-                q[j].corner[k].f[2] = -t * D_L18_00161C6C_v;
+                q[j].corner[k].f[2] = -t * D_L18_00161C6C;
             }
-            a = add_rotations_dba20((float)(k >> 1) * (D_L18_00161C64_v * 0.017453292f) - 3.14159f,
-                              D_L18_00161C64_v * 0.25f * fj * 0.017453292f);
+            a = add_rotations_dba20((float)(k >> 1) * (D_L18_00161C64 * 0.017453292f) - 3.14159f,
+                              D_L18_00161C64 * 0.25f * fj * 0.017453292f);
             q[j].corner[k].f[0] = cos_dba20(a) * rad;
             q[j].corner[k].f[1] = sin_dba20(a) * rad;
             q[j].corner[k].f[3] = 1.0f;
@@ -1930,9 +1934,9 @@ void FUN_L18_002dba20(M_dba20 *moby) {
         }
     }
     clear_vector_dba20(&rv);
-    rv.f[2] = D_L18_00161C64_v * 0.017453292f;
+    rv.f[2] = D_L18_00161C64 * 0.017453292f;
     euler_basis_dba20(rot, &rv);
-    for (n = 0; (float)n < 360.0f / D_L18_00161C64_v; n++) {
+    for (n = 0; (float)n < 360.0f / D_L18_00161C64; n++) {
         draw_quad_dba20(&q[0], m, 0);
         draw_quad_dba20(&q[1], m, 0);
         draw_quad_dba20(&q[2], m, 0);
@@ -1987,15 +1991,15 @@ extern float FUN_001f9b48(void *, void *);
 extern int FUN_001fa6e0(int, int, float);
 extern int FUN_001fa728(char *, float);
 extern s32 random_integer_below(s32) __asm__("FUN_00213260");
-extern short D_L18_00161BF4_d __asm__("D_L18_00161BF4") __attribute__((sda));
-extern short D_L18_00161C80_d __asm__("D_L18_00161C80") __attribute__((sda));
-extern short D_L18_00161C84_d __asm__("D_L18_00161C84") __attribute__((sda));
-extern short D_L18_00161C88_d __asm__("D_L18_00161C88") __attribute__((sda));
-extern short D_L18_00161C8C_d __asm__("D_L18_00161C8C") __attribute__((sda));
-extern short D_L18_00161C90_d __asm__("D_L18_00161C90") __attribute__((sda));
-extern short D_L18_00161C98_d __asm__("D_L18_00161C98") __attribute__((sda));
 extern void FUN_L00_002730e0(void *, void *, int, int, int, int, float);
 
+extern short D_L18_00161BF4 __attribute__((sda));
+extern short D_L18_00161C80 __attribute__((sda));
+extern short D_L18_00161C84 __attribute__((sda));
+extern short D_L18_00161C88 __attribute__((sda));
+extern short D_L18_00161C8C __attribute__((sda));
+extern short D_L18_00161C90 __attribute__((sda));
+extern short D_L18_00161C98 __attribute__((sda));
 void FUN_L18_002dc0c8(struct Moby *moby, void *a1, void *a2) {
     float buf[4];
     float v[4];
@@ -2005,25 +2009,25 @@ void FUN_L18_002dc0c8(struct Moby *moby, void *a1, void *a2) {
 
     FUN_001f9a40(buf, a1, a2, 0.5f);
     buf[3] = FUN_001f9b48(a1, a2) * 0.5f;
-    if (FUN_001fa728((char *)buf, *(float *)&D_L18_00161BF4_d) == -1) {
+    if (FUN_001fa728((char *)buf, *(float *)&D_L18_00161BF4) == -1) {
         return;
     }
-    if (random_float_between(0.0f, 1.0f) < *(float *)&D_L18_00161C98_d) {
+    if (random_float_between(0.0f, 1.0f) < *(float *)&D_L18_00161C98) {
         FUN_001f9a40(v, a1, a2, random_float_between(0.0f, 1.0f));
         FUN_001f9a28(w, v, &moby->pos);
         FUN_001f9bf8(w, w, *(float *)(d + 0x20));
-        col = FUN_001fa6e0(*(int *)&D_L18_00161C80_d, *(int *)&D_L18_00161C84_d,
+        col = FUN_001fa6e0(*(int *)&D_L18_00161C80, *(int *)&D_L18_00161C84,
                            random_float_between(0.0f, 1.0f));
-        FUN_L00_002730e0(v, w, col, FUN_001f96f8(*(int *)&D_L18_00161C8C_d) & 0xFF,
-                         random_integer_below(0xFF) & 0xFF, 0, *(float *)&D_L18_00161C88_d);
+        FUN_L00_002730e0(v, w, col, FUN_001f96f8(*(int *)&D_L18_00161C8C) & 0xFF,
+                         random_integer_below(0xFF) & 0xFF, 0, *(float *)&D_L18_00161C88);
         w[2] = 0.0f;
-        FUN_L00_002730e0(v, w, col, FUN_001f96f8(*(int *)&D_L18_00161C90_d) & 0xFF,
-                         random_integer_below(0xFF) & 0xFF, 0, *(float *)&D_L18_00161C88_d);
+        FUN_L00_002730e0(v, w, col, FUN_001f96f8(*(int *)&D_L18_00161C90) & 0xFF,
+                         random_integer_below(0xFF) & 0xFF, 0, *(float *)&D_L18_00161C88);
     }
 }
 /* Ported from rac1-decomp (src/overlays/l18_veldin2/vendor_002A8400.c: func_L18_002DD848), where it is exact; names translated to the US level program. */
 
-extern short D_L18_00161C9C_d __asm__("D_L18_00161C9C") __attribute__((sda));
+extern s32 D_L18_00161C9C_d __asm__("D_L18_00161C9C") __attribute__((sda));
 
 void FUN_L18_002dc458(struct Moby *moby, void *pos, float f) {
     int *d = (int *)moby->pvars;
@@ -2060,18 +2064,18 @@ extern void clear_vector_dc4b8(void *) __asm__("FUN_001f99f8");
 extern void euler_basis_dc4b8(void *, void *) __asm__("FUN_001fa030");
 extern float D_L18_001D4330[];
 extern int D_L18_00161C9C_v __asm__("D_L18_00161C9C") __attribute__((sda));
-extern int D_L18_00161CA4_v __asm__("D_L18_00161CA4") __attribute__((sda));
-extern int D_L18_00161CA8_v __asm__("D_L18_00161CA8") __attribute__((sda));
-extern int D_L18_00161CAC_v __asm__("D_L18_00161CAC") __attribute__((sda));
-extern int D_L18_00161CB0_v __asm__("D_L18_00161CB0") __attribute__((sda));
-extern int D_L18_00161CB8_v __asm__("D_L18_00161CB8") __attribute__((sda));
-extern int D_L18_00161CBC_v __asm__("D_L18_00161CBC") __attribute__((sda));
-extern float D_L18_00161CC0_v __asm__("D_L18_00161CC0") __attribute__((sda));
-extern float D_L18_00161CC4_v __asm__("D_L18_00161CC4") __attribute__((sda));
-extern float D_L18_00161CC8_v __asm__("D_L18_00161CC8") __attribute__((sda));
-extern float D_L18_00161CCC_v __asm__("D_L18_00161CCC") __attribute__((sda));
-extern float D_L18_00161CD4_v __asm__("D_L18_00161CD4") __attribute__((sda));
 
+extern int D_L18_00161CA4 __attribute__((sda));
+extern int D_L18_00161CA8 __attribute__((sda));
+extern int D_L18_00161CAC __attribute__((sda));
+extern int D_L18_00161CB0 __attribute__((sda));
+extern int D_L18_00161CB8 __attribute__((sda));
+extern int D_L18_00161CBC __attribute__((sda));
+extern float D_L18_00161CC0 __attribute__((sda));
+extern float D_L18_00161CC4 __attribute__((sda));
+extern float D_L18_00161CC8 __attribute__((sda));
+extern float D_L18_00161CCC __attribute__((sda));
+extern float D_L18_00161CD4 __attribute__((sda));
 void FUN_L18_002dc4b8(char *moby) {
     Q_dc4b8 quad[4];
     V_dc4b8 mat[4];
@@ -2085,20 +2089,20 @@ void FUN_L18_002dc4b8(char *moby) {
     p = *(float **)(moby + 0x78);
     unit_matrix_dc4b8(mat);
     qcopy(&mat[3], moby + 0x10);
-    mat[3].f[2] = mat[3].f[2] + D_L18_00161CC4_v;
+    mat[3].f[2] = mat[3].f[2] + D_L18_00161CC4;
     mat[3].f[3] = 1.0f;
     for (i = 0; i < 4; i++) {
         quad[i].tex = get_effect_texture_dc4b8(14);
-        gi = D_L18_00161CCC_v * (float)i;
+        gi = D_L18_00161CCC * (float)i;
         quad[i].unk70 = 0;
         quad[i].unk80 = 0xFF9000000260L;
-        quad[i].unk88 = (long)D_L18_00161CA4_v | ((long)D_L18_00161CA8_v << 2) |
-                        ((long)D_L18_00161CAC_v << 4) | ((long)D_L18_00161CB0_v << 6) | 0x8000000000L;
+        quad[i].unk88 = (long)D_L18_00161CA4 | ((long)D_L18_00161CA8 << 2) |
+                        ((long)D_L18_00161CAC << 4) | ((long)D_L18_00161CB0 << 6) | 0x8000000000L;
         t = p[1] + (float)i * 0.25f;
         r = p[0] + gi;
         t = t - (float)truncate_dc4b8(t);
-        c = tween_color_dc4b8(D_L18_00161CB8_v, D_L18_00161CBC_v, t);
-        s = t * D_L18_00161CD4_v;
+        c = tween_color_dc4b8(D_L18_00161CB8, D_L18_00161CBC, t);
+        s = t * D_L18_00161CD4;
         if (s > 1.0f) s = 1.0f;
         c = tween_color_dc4b8(c & 0xFFFFFF, c, s);
         d = itof_dc4b8(((int *)p)[2]);
@@ -2113,9 +2117,9 @@ void FUN_L18_002dc4b8(char *moby) {
             float a;
             quad[i].uv[j].u = D_L18_001D4330[j * 2];
             quad[i].uv[j].v = D_L18_001D4330[j * 2 + 1];
-            quad[i].corner[j].f[2] = (j & 1) ? t * D_L18_00161CC8_v : -t * D_L18_00161CC8_v;
-            a = add_rotations_dc4b8((float)(j >> 1) * (D_L18_00161CC0_v * 0.017453292f) - 3.14159f,
-                              D_L18_00161CC0_v * 0.25f * (float)i * 0.017453292f);
+            quad[i].corner[j].f[2] = (j & 1) ? t * D_L18_00161CC8 : -t * D_L18_00161CC8;
+            a = add_rotations_dc4b8((float)(j >> 1) * (D_L18_00161CC0 * 0.017453292f) - 3.14159f,
+                              D_L18_00161CC0 * 0.25f * (float)i * 0.017453292f);
             quad[i].corner[j].f[0] = cos_dc4b8(a) * r;
             quad[i].corner[j].f[1] = sin_dc4b8(a) * r;
             quad[i].corner[j].f[3] = 1.0f;
@@ -2123,9 +2127,9 @@ void FUN_L18_002dc4b8(char *moby) {
         }
     }
     clear_vector_dc4b8(&ang);
-    ang.f[2] = D_L18_00161CC0_v * 0.017453292f;
+    ang.f[2] = D_L18_00161CC0 * 0.017453292f;
     euler_basis_dc4b8(&rot[0], &ang);
-    for (k = 0; (float)k < 360.0f / D_L18_00161CC0_v; k++) {
+    for (k = 0; (float)k < 360.0f / D_L18_00161CC0; k++) {
         draw_quad_dc4b8(&quad[0], mat, 0);
         draw_quad_dc4b8(&quad[1], mat, 0);
         draw_quad_dc4b8(&quad[2], mat, 0);
@@ -2140,9 +2144,6 @@ extern char D_001413D4_q[] __asm__("D_001413D4") __attribute__((section(".data")
 extern float D_0015ED6C_d __asm__("D_0015ED6C");
 extern float D_L18_0015F3FC_d __asm__("D_L18_0015F3FC");
 extern float fast_subtract_rotations(float, float) __asm__("FUN_001fa5c8");
-extern int D_L18_0015F404_d __asm__("D_L18_0015F404");
-extern int D_L18_00179E10_q[] __asm__("D_L18_00179E10") __attribute__((section(".data")));
-extern int D_L18_0017EF08_q __asm__("D_L18_0017EF08") __attribute__((section(".data")));
 extern int give_reward(int a, int b) __asm__("FUN_L00_00203908");
 extern void lerp_vector(void *, void *, void *, float) __asm__("FUN_001f9a40");
 extern void FUN_L00_00216f90_q(void *, void *, int, int) __asm__("FUN_L00_00216f90");
@@ -2151,6 +2152,9 @@ extern void FUN_L00_002ea9d8_q_002eaa30(void *) __asm__("FUN_L00_002eaa30");
 extern void FUN_L00_002eaaa0_q(void *, void *, int, int, int) __asm__("FUN_L00_002eaaa0");
 extern void FUN_L00_002eac18_q(int) __asm__("FUN_L00_002eac18");
 
+extern int D_L18_0015F404;
+extern int D_L18_00179E10[] __attribute__((section(".data")));
+extern int D_L18_0017EF08 __attribute__((section(".data")));
 void FUN_L18_002df608(struct Moby *moby) {
     char *data = (char *)moby->pvars;
     float v[12];
@@ -2160,7 +2164,7 @@ void FUN_L18_002df608(struct Moby *moby) {
         moby->update_dist = 0xFF;
         break;
     case 2:
-        D_L18_0017EF08_q = 1;
+        D_L18_0017EF08 = 1;
         approach_value((float *)(data + 0x6C), 1.0f, D_0015ED6C_d * 4.0f);
         {
             float t = *(float *)(data + 0x6C);
@@ -2168,7 +2172,7 @@ void FUN_L18_002df608(struct Moby *moby) {
                 D_L18_0015F3FC_d = t;
             }
             if (1.0f <= t) {
-                D_L18_0015F404_d = 1;
+                D_L18_0015F404 = 1;
                 clear_u64_value(v);
                 v[2] = *(float *)(data + 0x4C);
                 FUN_L00_00216f90_q(data + 0x40, v, 0x72, 1);
@@ -2183,7 +2187,7 @@ void FUN_L18_002df608(struct Moby *moby) {
         }
         break;
     case 3:
-        D_L18_0017EF08_q = 1;
+        D_L18_0017EF08 = 1;
         if (fast_dec_timer((int *)(data + 0x74))) {
             advance_accelerated_scalar((float *)(data + 0x60), (float *)(data + 0x64), 1.0f,
                            *(float *)(data + 0x68), *(float *)(data + 0x68),
@@ -2204,7 +2208,7 @@ void FUN_L18_002df608(struct Moby *moby) {
             float d = *(float *)(data + 0x60);
             D_L18_0015F3FC_d = *(float *)(data + 0x6C);
             if (1.0f <= d) {
-                D_L18_0015F404_d = 0;
+                D_L18_0015F404 = 0;
                 clear_u64_value(v + 8);
                 v[10] = *(float *)(data + 0x4C);
                 FUN_L00_00216f90_q(data + 0x40, v + 8, 0, 0);
@@ -2235,14 +2239,14 @@ void FUN_L18_002df608(struct Moby *moby) {
         FUN_L00_002ea9d8_q(v);
         FUN_L00_002ea9d8_q_002eaa30(v + 4);
         if (1.0f <= *(float *)(data + 0x60) ||
-            (0.2f < *(float *)(data + 0x60) && D_L18_00179E10_q[0] == 0 &&
-             D_L18_00179E10_q[9] == -1)) {
+            (0.2f < *(float *)(data + 0x60) && D_L18_00179E10[0] == 0 &&
+             D_L18_00179E10[9] == -1)) {
             float t;
             approach_value((float *)(data + 0x6C), 1.0f, D_0015ED6C_d * 4.0f);
             t = *(float *)(data + 0x6C);
             D_L18_0015F3FC_d = t;
             if (1.0f <= t) {
-                D_L18_0015F404_d = 0;
+                D_L18_0015F404 = 0;
                 *(float *)(data + 0x60) = 1.0f;
                 clear_u64_value(v + 8);
                 v[10] = *(float *)(data + 0x4C);
@@ -2471,10 +2475,6 @@ remove:
 extern float approach_value_alt(float *p, float target, float maxstep) __asm__("FUN_00213ed8");
 extern float fast_add_rotations_c(float, float) __asm__("func_001FA580");
 extern float probe_ground_height_c(void *, int, float) __asm__("func_00213508");
-extern short D_L18_00161ED0_d __asm__("D_L18_00161ED0") __attribute__((sda));
-extern short D_L18_00161ED4_d __asm__("D_L18_00161ED4") __attribute__((sda));
-extern short D_L18_00161ED8_d __asm__("D_L18_00161ED8") __attribute__((sda));
-extern short D_L18_00161EE0_d __asm__("D_L18_00161EE0") __attribute__((sda));
 extern void FUN_L15_002d8710(char *);
 extern void FUN_L18_002ea1f8(struct Moby *);
 extern void FUN_L18_002ea800(void *);
@@ -2484,10 +2484,14 @@ extern void mark_moby_for_removal_c2(void *) __asm__("func_0020C828");
 void FUN_L18_002ea598_c(char *moby) __asm__("FUN_L18_002ea598");
 extern void spark_s(int, void *, float, int, float, float, int, int, int) __asm__("FUN_L00_002598b0");
 
+extern short D_L18_00161ED0 __attribute__((sda));
+extern short D_L18_00161ED4 __attribute__((sda));
+extern short D_L18_00161ED8 __attribute__((sda));
+extern short D_L18_00161EE0 __attribute__((sda));
 void FUN_L18_002e9e70(struct Moby *moby) {
     float *d = (float *)moby->pvars;
-    float t = fast_add_rotations_c(d[0xB], *(float *)&D_L18_00161ED0_d * DEG_TO_RAD * frame_time);
-    float u = *(float *)&D_L18_00161ED4_d * DEG_TO_RAD * frame_time;
+    float t = fast_add_rotations_c(d[0xB], *(float *)&D_L18_00161ED0 * DEG_TO_RAD * frame_time);
+    float u = *(float *)&D_L18_00161ED4 * DEG_TO_RAD * frame_time;
     d[0xB] = t;
     d[0xC] = fast_add_rotations_c(d[0xC], u);
     switch (MOBY(moby)->state) {
@@ -2502,12 +2506,12 @@ void FUN_L18_002e9e70(struct Moby *moby) {
         float buf2[4];
         float *p = &moby->pos.x;
         float *q = d + 4;
-        float lim = *(float *)&D_L18_00161EE0_d * frame_time;
+        float lim = *(float *)&D_L18_00161EE0 * frame_time;
         float len;
         subtract_vector_xyz(buf, d, p);
         len = vector_length_xyz(buf);
         FUN_L18_002ea598_c(moby);
-        FUN_L00_00257d78(q, *(float *)&D_L18_00161ED8_d * d[9], *(float *)&D_L18_00161ED8_d * d[9]);
+        FUN_L00_00257d78(q, *(float *)&D_L18_00161ED8 * d[9], *(float *)&D_L18_00161ED8 * d[9]);
         add_vector_xyz(q, q, p);
         FUN_L18_002eacd8(moby);
         FUN_L18_002eaea0_u(moby);
@@ -2552,7 +2556,6 @@ typedef struct {
 } L18FlarePacket;
 typedef struct { char pad[0x140]; float position[4]; } L18FlareView;
 extern L18FlareView D_L18_00167680;
-extern float D_L18_001677C0_flare[] __asm__("D_L18_001677C0");
 extern L18FlareUV D_L18_001D9B50_flare[] __asm__("D_L18_001D9B50");
 extern L18FlareVector D_L18_001D9B70_flare[] __asm__("D_L18_001D9B70");
 extern int D_L18_00161EE4_flare __asm__("D_L18_00161EE4") __attribute__((sda));
@@ -2637,29 +2640,29 @@ void FUN_L18_002ea1f8(struct Moby *moby) {
 /* Ported from rac1-decomp (src/overlays/l18_veldin2/vendor_002A8400.c: func_L18_002EB988), where it is exact; names translated to the US level program. */
 
 extern char *FUN_00218888(void *, void *, void *, int, int, int, int, int, int);
-extern short D_L18_00161F1C_d __asm__("D_L18_00161F1C") __attribute__((sda));
-extern short D_L18_00161F20_d __asm__("D_L18_00161F20") __attribute__((sda));
-extern short D_L18_00161F24_d __asm__("D_L18_00161F24") __attribute__((sda));
-extern short D_L18_00161F28_d __asm__("D_L18_00161F28") __attribute__((sda));
-extern short D_L18_00161F2C_d __asm__("D_L18_00161F2C") __attribute__((sda));
-extern short D_L18_00161F30_d __asm__("D_L18_00161F30") __attribute__((sda));
-extern short D_L18_00161F34_d __asm__("D_L18_00161F34") __attribute__((sda));
-extern short D_L18_00161F38_d __asm__("D_L18_00161F38") __attribute__((sda));
-extern short D_L18_00161F3C_d __asm__("D_L18_00161F3C") __attribute__((sda));
-extern short D_L18_00161F40_d __asm__("D_L18_00161F40") __attribute__((sda));
-extern short D_L18_00161F44_d __asm__("D_L18_00161F44") __attribute__((sda));
-extern short D_L18_00161F48_d __asm__("D_L18_00161F48") __attribute__((sda));
-extern short D_L18_00161F4C_d __asm__("D_L18_00161F4C") __attribute__((sda));
-extern short D_L18_00161F50_d __asm__("D_L18_00161F50") __attribute__((sda));
-extern short D_L18_00161F54_d __asm__("D_L18_00161F54") __attribute__((sda));
-extern short D_L18_00161F58_d __asm__("D_L18_00161F58") __attribute__((sda));
-extern short D_L18_00161F5C_d __asm__("D_L18_00161F5C") __attribute__((sda));
-extern short D_L18_00161F60_d __asm__("D_L18_00161F60") __attribute__((sda));
-extern short D_L18_00161F64_d __asm__("D_L18_00161F64") __attribute__((sda));
-extern short D_L18_00161F68_d __asm__("D_L18_00161F68") __attribute__((sda));
 extern void FUN_L00_00257d78(float *, float, float);
 extern int func_001FA898_r(float) __asm__("FUN_001fa6d0");
 
+extern short D_L18_00161F1C __attribute__((sda));
+extern short D_L18_00161F20 __attribute__((sda));
+extern short D_L18_00161F24 __attribute__((sda));
+extern short D_L18_00161F28 __attribute__((sda));
+extern short D_L18_00161F2C __attribute__((sda));
+extern short D_L18_00161F30 __attribute__((sda));
+extern short D_L18_00161F34 __attribute__((sda));
+extern short D_L18_00161F38 __attribute__((sda));
+extern short D_L18_00161F3C __attribute__((sda));
+extern short D_L18_00161F40 __attribute__((sda));
+extern short D_L18_00161F44 __attribute__((sda));
+extern short D_L18_00161F48 __attribute__((sda));
+extern short D_L18_00161F4C __attribute__((sda));
+extern short D_L18_00161F50 __attribute__((sda));
+extern short D_L18_00161F54 __attribute__((sda));
+extern short D_L18_00161F58 __attribute__((sda));
+extern short D_L18_00161F5C __attribute__((sda));
+extern short D_L18_00161F60 __attribute__((sda));
+extern short D_L18_00161F64 __attribute__((sda));
+extern short D_L18_00161F68 __attribute__((sda));
 void FUN_L18_002ea598(struct Moby *moby) {
     float v10[4];
     float v20[4];
@@ -2670,54 +2673,42 @@ void FUN_L18_002ea598(struct Moby *moby) {
     float k1, k2, k3, k4;
     FUN_001f9a28(v40, (void *)moby->pvars, &moby->pos);
     FUN_001f9bf8(v40, v40, frame_time * 60.0f);
-    k1 = (*(float *)&(D_L18_00161F54_d)) * frame_time;
-    k2 = (*(float *)&(D_L18_00161F58_d)) * frame_time;
-    k3 = (*(float *)&(D_L18_00161F60_d)) * frame_time;
-    k4 = (*(float *)&(D_L18_00161F64_d)) * frame_time;
+    k1 = (*(float *)&(D_L18_00161F54)) * frame_time;
+    k2 = (*(float *)&(D_L18_00161F58)) * frame_time;
+    k3 = (*(float *)&(D_L18_00161F60)) * frame_time;
+    k4 = (*(float *)&(D_L18_00161F64)) * frame_time;
     for (i = 0; i < 3; i++) {
         FUN_L00_00257d78(v20, k1, k2);
-        FUN_001f9a68(v30, v20, (*(float *)&(D_L18_00161F5C_d)));
+        FUN_001f9a68(v30, v20, (*(float *)&(D_L18_00161F5C)));
         v30[2] -= random_float_between(k3, k4);
         a = func_001FA898_r(FUN_001f96b0(random_float_between(
-            (*(float *)&(D_L18_00161F3C_d)), (*(float *)&(D_L18_00161F40_d)))));
+            (*(float *)&(D_L18_00161F3C)), (*(float *)&(D_L18_00161F40)))));
         b = func_001FA898_r(FUN_001f96b0(random_float_between(
-            (*(float *)&(D_L18_00161F44_d)), (*(float *)&(D_L18_00161F48_d)))));
+            (*(float *)&(D_L18_00161F44)), (*(float *)&(D_L18_00161F48)))));
         c = func_001FA898_r(FUN_001f96b0(random_float_between(
-            (*(float *)&(D_L18_00161F4C_d)), (*(float *)&(D_L18_00161F50_d)))));
-        v20[3] = random_float_between((*(float *)&(D_L18_00161F2C_d)),
-                                          (*(float *)&(D_L18_00161F30_d)));
-        v30[3] = random_float_between((*(float *)&(D_L18_00161F34_d)),
-                                          (*(float *)&(D_L18_00161F38_d)));
+            (*(float *)&(D_L18_00161F4C)), (*(float *)&(D_L18_00161F50)))));
+        v20[3] = random_float_between((*(float *)&(D_L18_00161F2C)),
+                                          (*(float *)&(D_L18_00161F30)));
+        v30[3] = random_float_between((*(float *)&(D_L18_00161F34)),
+                                          (*(float *)&(D_L18_00161F38)));
         FUN_001f9a68(v10, v40, random_float_between(0.0f, 1.0f));
         FUN_001f9a10(v10, v10, &moby->pos);
-        c1 = FUN_001fa6e0((*(int *)&(D_L18_00161F1C_d)), (*(int *)&(D_L18_00161F20_d)),
+        c1 = FUN_001fa6e0((*(int *)&(D_L18_00161F1C)), (*(int *)&(D_L18_00161F20)),
                           random_float_between(0.0f, 1.0f));
-        c2 = FUN_001fa6e0((*(int *)&(D_L18_00161F24_d)), (*(int *)&(D_L18_00161F28_d)),
+        c2 = FUN_001fa6e0((*(int *)&(D_L18_00161F24)), (*(int *)&(D_L18_00161F28)),
                           random_float_between(0.0f, 1.0f));
-        FUN_00218888(v10, v20, v30, c1, c2, a, b, c, (*(int *)&(D_L18_00161F68_d)));
+        FUN_00218888(v10, v20, v30, c1, c2, a, b, c, (*(int *)&(D_L18_00161F68)));
     }
 }
 INCLUDE_ASM("config/us/overlays/asm/FUN_L18_002ea800.s", FUN_L18_002ea800);
 /* Starts the moby's trail when requested: resets the trail points and the counters. */
-extern int D_L18_00161FEC_q __asm__("D_L18_00161FEC") __attribute__((sda));
-extern float D_L18_00161FF0_q __asm__("D_L18_00161FF0") __attribute__((sda));
 extern int D_L18_00162008_q __asm__("D_L18_00162008") __attribute__((sda));
 extern int D_L18_00162010_q __asm__("D_L18_00162010") __attribute__((sda));
 extern int D_L18_00162024_q __asm__("D_L18_00162024") __attribute__((sda));
 extern int D_L18_00162054_q __asm__("D_L18_00162054");
-extern int D_L18_00162080_q __asm__("D_L18_00162080") __attribute__((sda));
-extern short D_L18_001620BE_q[] __asm__("D_L18_001620BE");
 extern short D_L18_001620C8_q __asm__("D_L18_001620C8");
-extern short D_L18_001620CA_q __asm__("D_L18_001620CA");
-extern short D_L18_001620CC_q __asm__("D_L18_001620CC");
-extern short D_L18_001620CE_q __asm__("D_L18_001620CE");
 extern short D_L18_001620D0_q __asm__("D_L18_001620D0");
-extern short D_L18_001620D2_q __asm__("D_L18_001620D2");
-extern short D_L18_001620D4_q __asm__("D_L18_001620D4");
-extern short D_L18_001620D6_q __asm__("D_L18_001620D6");
 extern short D_L18_001620B8_b[4] __asm__("D_L18_001620B8");
-extern int D_L18_001620D8_q __asm__("D_L18_001620D8");
-extern int D_L18_001620DC_q __asm__("D_L18_001620DC");
 extern float D_L18_001D9CF0_q[][4] __asm__("D_L18_001D9CF0");
 extern float D_L18_001D9D00_q[][4] __asm__("D_L18_001D9D00");
 extern int D_L18_001D9F80_q[] __asm__("D_L18_001D9F80");
@@ -2726,19 +2717,30 @@ extern int D_L18_001DA110_q[] __asm__("D_L18_001DA110");
 extern int scale_frames_q(int) __asm__("FUN_001f96f8");
 extern void norm_q(void *, void *, float) __asm__("FUN_001f9bf8");
 
+extern int D_L18_00161FEC __attribute__((sda));
+extern float D_L18_00161FF0 __attribute__((sda));
+extern int D_L18_00162080 __attribute__((sda));
+extern short D_L18_001620CA;
+extern short D_L18_001620CC;
+extern short D_L18_001620CE;
+extern short D_L18_001620D2;
+extern short D_L18_001620D4;
+extern short D_L18_001620D6;
+extern int D_L18_001620D8;
+extern int D_L18_001620DC;
 void FUN_L18_002eacd8(struct Moby *m) {
     char *d = (char *)m->pvars;
     float v[4];
     float step[4];
     int i;
     int j;
-    if (D_L18_00161FEC_q != 0) {
-        D_L18_00161FEC_q = 0;
-        D_L18_001620DC_q = 0;
-        D_L18_001620D8_q = scale_frames_q(D_L18_00162080_q);
+    if (D_L18_00161FEC != 0) {
+        D_L18_00161FEC = 0;
+        D_L18_001620DC = 0;
+        D_L18_001620D8 = scale_frames_q(D_L18_00162080);
         D_L18_00162054_q = 0x7F2020;
         subtract_vector_xyz(v, d + 0x10, &m->pos);
-        norm_q(step, v, D_L18_00161FF0_q / 20.0f);
+        norm_q(step, v, D_L18_00161FF0 / 20.0f);
         qcopy(D_L18_001D9D00_q, &m->pos);
         for (i = 1; i < 20; i++) {
             add_vector_xyz(D_L18_001D9D00_q[i], D_L18_001D9CF0_q[i], step);
@@ -2750,12 +2752,12 @@ void FUN_L18_002eacd8(struct Moby *m) {
             D_L18_001620B8_b[j] = -1;
         D_L18_001620C8_q = 8;
         D_L18_001620D0_q = 4;
-        D_L18_001620CA_q = 4;
-        D_L18_001620D2_q = 2;
-        D_L18_001620D4_q = 4;
-        D_L18_001620CC_q = 8;
-        D_L18_001620CE_q = 4;
-        D_L18_001620D6_q = 2;
+        D_L18_001620CA = 4;
+        D_L18_001620D2 = 2;
+        D_L18_001620D4 = 4;
+        D_L18_001620CC = 8;
+        D_L18_001620CE = 4;
+        D_L18_001620D6 = 2;
         D_L18_00162008_q = 0;
         D_L18_00162010_q = 0;
         D_L18_00162024_q = 0;
@@ -2782,7 +2784,6 @@ extern f32 fast_sin_c(f32) __asm__("func_001F9DE0");
 extern f32 fast_subtract_rotations(f32, f32) __asm__("func_001FA5C8");
 extern f32 random_angle_radians_c(void) __asm__("func_00213308");
 extern f32 random_float_between_c(f32, f32) __asm__("func_002132A8");
-extern float D_0015ED60 __attribute__((section(".sdata")));
 extern float D_L18_001677C0_c[] __asm__("D_L18_001677C0");
 extern float D_L18_001D9F80[];
 extern float D_L18_001DA110[];
@@ -2794,19 +2795,19 @@ extern int scale_game_frames_alt(int) __asm__("FUN_001f96f8");
 extern float D_L18_00161FFC __attribute__((sda));
 extern float D_L18_00162000 __attribute__((sda));
 extern float D_L18_00162004 __attribute__((sda));
-extern float D_L18_00162008 __attribute__((sda));
+extern s32 D_L18_00162008 __attribute__((sda));
 extern float D_L18_0016200C __attribute__((sda));
-extern float D_L18_00162010 __attribute__((sda));
+extern s32 D_L18_00162010 __attribute__((sda));
 extern float D_L18_00162014 __attribute__((sda));
 extern float D_L18_00162018 __attribute__((sda));
 extern float D_L18_0016201C __attribute__((sda));
 extern float D_L18_00162020 __attribute__((sda));
-extern float D_L18_00162024 __attribute__((sda));
+extern s32 D_L18_00162024 __attribute__((sda));
 extern float D_L18_00162028 __attribute__((sda));
 extern float D_L18_0016202C __attribute__((sda));
 extern float D_L18_00162040 __attribute__((sda));
 extern float D_L18_00162044 __attribute__((sda));
-extern short D_L18_00162054_c __asm__("D_L18_00162054") __attribute__((sda));
+extern s32 D_L18_00162054_c __asm__("D_L18_00162054") __attribute__((sda));
 extern float D_L18_00162084 __attribute__((sda));
 extern float D_L18_0016208C __attribute__((sda));
 extern short D_L18_001620B8[] __attribute__((section(".sdata")));
@@ -2820,6 +2821,7 @@ extern void scale_vector_xyz_c(void *, void *, float) __asm__("FUN_001f9a68");
 unsigned char *FUN_L00_00272060(void *pos, int s, int color, int mode, int b, float *v, float x, float y, float z);
 extern void spawn_ec290(void *, int, float, float, int, int, int, void *, float) __asm__("FUN_L00_00272060");
 
+extern f32 frame_scale_macro __asm__("D_0015ED60") __attribute__((section(".sdata")));
 void FUN_L18_002eaea0(void *moby) {
     V_ec290 s[10];
     V_ec290 d[5];
@@ -2977,7 +2979,7 @@ void FUN_L18_002eaea0(void *moby) {
     }
     scale = FUN_L00_00257c48(0.52359879f, 1.04719758f);
     f20 = random_float_between_c(-0.52359879f, 1.04719758f);
-    scale_vector_xyz_c(&s[5], &s[0], *(float *)&D_L18_00162084 * D_0015ED60);
+    scale_vector_xyz_c(&s[5], &s[0], *(float *)&D_L18_00162084 * frame_scale_macro);
     build_look_at_matrix(&s[5], &s[5], &s[6], f20);
     build_look_at_matrix(&s[5], &s[5], &s[7], scale);
     r = random_int_between(1, 8);

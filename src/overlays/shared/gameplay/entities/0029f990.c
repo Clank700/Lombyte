@@ -8,6 +8,7 @@
 #define MACRO_ADDR
 
 #include "qcopy.h"
+#include "rnc/overlay/level_globals.h"
 
 /* Ported from rac1-decomp (src/overlays/shared/vendor_0029FD68.c: func_L00_002A0C20), where it is exact; names translated to the US level program. */
 
@@ -96,7 +97,6 @@ void FUN_L00_0029f990(char *m) {
 typedef struct {
     int a, b, c;
 } I3_29fcd0;
-extern I3_29fcd0 D_L00_00161178_29fcd0 __asm__("D_L00_00161178") __attribute__((section(".data")));
 extern long D_0015EED0_29fcd0 __asm__("D_0015EED0");
 void FUN_0020cd48_29fcd0(void *, int, void *, void *) __asm__("FUN_0020cd48");
 void FUN_001f9a28_29fcd0(void *, void *, void *) __asm__("FUN_001f9a28");
@@ -114,6 +114,7 @@ void FUN_0020d330_29fcd0(void *, int) __asm__("FUN_0020d330");
 void FUN_001f5450_29fcd0(int, int, int, int, int, int, int, int, long,
                          long) __asm__("FUN_001f5450");
 
+extern I3_29fcd0 D_L00_00161178 __attribute__((section(".data")));
 void FUN_L00_0029fcd0(void *m) {
     OvlQuad d1[1];
     OvlQuad d2[1];
@@ -126,7 +127,7 @@ void FUN_L00_0029fcd0(void *m) {
     OvlQuad a, b;
     int x, y, w, h;
     float len;
-    ids = D_L00_00161178_29fcd0;
+    ids = D_L00_00161178;
     FUN_0020cd48_29fcd0(m, 3, &ids, out);
     qcopy(base, out);
     FUN_001f9a28_29fcd0(d1, &out[1], out);
@@ -280,20 +281,17 @@ typedef struct {
     char pad2[0xC];
 } A02b0_tab;
 
-extern s32 D_L00_0015F5D8;
 extern A02b0_obj D_L00_001CA4C0;
-extern s32 D_L00_001CA4C0_w __asm__("D_L00_001CA4C0");
 extern s32 D_L00_0015F3F4;
 extern s32 D_L00_0015F3F8[];
 extern s32 D_L00_0015F3F8_s __asm__("D_L00_0015F3F8");
 extern volatile s32 D_L00_0015F3F8_v[1] __asm__("D_L00_0015F3F8");
-extern s32 D_L00_001611CC;
 extern s32 D_L00_0016118C;
 extern s32 D_L00_00161E38;
 extern s32 D_L00_001BA4C0;
-extern s16 D_001516D8[];
+extern s16 cd_read_active[] __asm__("D_001516D8");
 extern u32 frame_size[] __asm__("D_0013E504");
-extern u32 D_0015EE84;
+extern s32 draw_buffer_address __asm__("D_0015EE84");
 extern u128 D_L00_00166DD0[];
 extern u128 D_L00_00165F80[];
 extern u128 D_L00_00166FE0[];
@@ -402,7 +400,7 @@ void FUN_L00_002a02b0(void) {
         p->f2C = p->f14 + 0x1400;
         FUN_001f9810(p->f2C, 0x400);
         p->f18 = p->f2C + 0x400;
-        if (D_001516D8[0] == 0) {
+        if (cd_read_active[0] == 0) {
             if (start_audio_stream_read(p->f18 + 0x80000, disc_table.animation_streams[48].sector,
                                         disc_table.animation_streams[48].size) != 0) {
                 D_L00_0016118C = 1;
@@ -418,7 +416,7 @@ void FUN_L00_002a02b0(void) {
     default:
         return;
     }
-    FUN_L00_002a0fc8(p->f10, D_0015EE84, frame_size[0] << 11);
+    FUN_L00_002a0fc8(p->f10, draw_buffer_address, frame_size[0] << 11);
     setup_gif_paging(0);
     FUN_001f2260();
     reset_gs_registers();

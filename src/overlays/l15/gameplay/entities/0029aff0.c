@@ -15,8 +15,8 @@
 
 extern float fast_add_rotations(float, float) __asm__("FUN_001fa580");
 extern short D_L15_0015FFD8_d __asm__("D_L15_0015FFD8");
-extern short D_L15_00161EC0_d __asm__("D_L15_00161EC0") __attribute__((sda));
 
+extern short D_L15_00161EC0 __attribute__((sda));
 void FUN_L15_002e46b0(struct Moby *moby) {
     int idx = *(int *)moby->pvars;
     if (idx != -1) {
@@ -25,11 +25,11 @@ void FUN_L15_002e46b0(struct Moby *moby) {
         int st = (unsigned char)other[0x20];
         float step;
         if (st == 2) {
-            step = *(float *)&D_L15_00161EC0_d * DEG_TO_RAD * frame_time;
+            step = *(float *)&D_L15_00161EC0 * DEG_TO_RAD * frame_time;
             if (*(int *)(d + 0x10) != 0)
                 step = -step;
         } else if (st == 4) {
-            step = *(float *)&D_L15_00161EC0_d * DEG_TO_RAD * frame_time;
+            step = *(float *)&D_L15_00161EC0 * DEG_TO_RAD * frame_time;
             if (*(int *)(d + 0x10) == 0)
                 step = -step;
         } else {
@@ -218,7 +218,6 @@ typedef struct {
 extern float D_0015ED6C;
 extern float D_L15_001614F8 __attribute__((sda));
 extern int D_L15_00161AC0;
-extern int D_L15_00184AA8;
 extern unsigned char D_001413F4[];
 extern int is_point_inside_clip_volume(void *arg0, int arg1) __asm__("FUN_00214720");
 extern int func_0022ED80_2A48B0(int, int, GateMoby_2A48B0 *) __asm__("FUN_0022da68");
@@ -946,7 +945,7 @@ typedef struct {
     OvlQuad rest[4];
 } Goal_52b8;
 
-extern char *D_L15_0015FFE4_52b8 __asm__("D_L15_0015FFE4");
+extern char *D_L15_0015FFE4;
 extern float vector_distance(void *, void *) __asm__("FUN_001f9b80");
 extern void add_vector_xyz_52b8(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void clear_u64_value(void *) __asm__("FUN_001f99f8");
@@ -970,7 +969,7 @@ float FUN_L15_002c52b8(struct Moby *m, float *out, Goal_52b8 goal) {
     clear = 1;
     clear_u64_value(out);
     wsum = 0.0f;
-    for (o = D_L15_0015FFE4_52b8; o != 0; o = *(char **)(o + 0x28)) {
+    for (o = D_L15_0015FFE4; o != 0; o = *(char **)(o + 0x28)) {
         if (o == m)
             continue;
         if (*(short *)(o + 0xA6) != m->oclass)
@@ -1300,8 +1299,7 @@ extern short D_L15_00161B28 __attribute__((sda));
 extern short D_L15_00161B34 __attribute__((sda));
 extern short D_L15_00161B38 __attribute__((sda));
 extern short D_L15_00161B3C __attribute__((sda));
-extern short D_L15_00161B1C __attribute__((sda));
-extern unsigned char D_0013E533[];
+int D_L15_00161B1C = 180;
 extern void *FUN_L00_00263fd8(void *, int, void *, void *, int, int, float, void *, void *, void *);
 extern void FUN_001f9c48(void *, void *, float);
 extern void collect_mobies_in_sphere(void *, int, void *, void *, float) __asm__("FUN_L00_001f2868");
@@ -1547,7 +1545,7 @@ void FUN_L15_002cf3a8(UMoby *m) {
                 if (v20.f[2] < 0.0f)
                     v20.f[2] = 0.0f;
                 func_L10_002CD578_v(&v20, 3.0f, &v10, (int)m, (int)tgt,
-                                    scale_game_frames(*(int *)&D_L15_00161B1C));
+                                    scale_game_frames(D_L15_00161B1C));
                 normalize_vector_xyz(&v20, &v20, 3.0f);
                 FUN_L00_001ff290(&v30, &v10, &v20);
                 FUN_L03_00250ae8(m, &v10, 0);

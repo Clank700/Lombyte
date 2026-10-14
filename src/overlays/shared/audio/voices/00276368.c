@@ -3,6 +3,11 @@
 #include "rnc/gameplay/state/overlay_game_state.h"
 #include "rnc/globals.h"
 #include "asm.h"
+#include "rnc/data_labels.h"
+#include "rnc/gameplay/state/game_globals.h"
+#include "rnc/rendering/render_globals.h"
+#include "rnc/video/decoder/decoder_globals.h"
+#include "rnc/overlay/level_globals.h"
 
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00276368.s", FUN_L00_00276368);
@@ -23,7 +28,7 @@ extern s32 D_L00_00180260[];
 extern s32 D_L00_001B9D30[];
 extern s32 D_L00_00141660_init[] __asm__("D_00141660");
 extern void *D_L00_001B9DE0;
-extern s32 D_L00_0015EE84 __asm__("D_0015EE84");
+extern s32 draw_buffer_address __asm__("D_0015EE84");
 extern s32 D_L00_0015EE78 __asm__("D_0015EE78");
 extern s32 D_L00_0015EED8 __asm__("D_0015EED8");
 extern s32 D_L00_0015F578 __attribute__((sda));
@@ -40,7 +45,6 @@ extern void *FUN_L00_002830d8(s32);
 extern void FUN_L00_002577c8(void *, s32, s32);
 extern void FUN_L00_00235668(s32);
 extern void FUN_L00_002a07f8(void);
-extern u8 D_L00_0016CAF0_raw[] __asm__("D_L00_0016CAF0");
 extern u8 D_L00_001B3518[];
 extern u8 D_L00_001B6088[];
 extern u8 D_L00_001B6B38[];
@@ -172,7 +176,7 @@ void FUN_L00_00276368(void) {
     } else {
         FUN_L00_00234fd0(0);
     }
-    FUN_L00_002a0f18(D_L00_001B9D00, D_L00_0015EE84, frame_size << 11);
+    FUN_L00_002a0f18(D_L00_001B9D00, draw_buffer_address, frame_size << 11);
     D_L00_001B9D08 = D_L00_0015EE78;
     if (D_L00_001B9CF0.state == 11 || D_L00_001B9CF0.state == 15) {
         s32 i;
@@ -247,7 +251,6 @@ extern void FUN_L00_00239cc8(void);
 extern void FUN_L00_00239d00(void);
 extern void FUN_L00_00239df8(void);
 extern s32 D_00141660[];
-extern s32 D_00141408[];
 extern s32 D_0015EE78_gp __attribute__((sda));
 extern void *D_L00_00197300[];
 extern u8 D_L00_0017E4D8[] __attribute__((section(".data")));
@@ -416,15 +419,12 @@ extern Own D_L00_001B63F8;
 extern Own D_L00_001B78F0;
 extern Own D_L00_001B6820;
 extern G841F0 D_L00_001841F0;
-extern s16 D_001516D8[];
-extern s32 decode_mode __asm__("D_0015EED8");
 extern s32 D_L00_0015F5AC;
 extern s32 D_L00_0015F578 __attribute__((sda));
-extern s32 D_L00_0015F5C4;
 extern s32 level_timer __asm__("D_L00_0015F5C8") __attribute__((sda));
 extern s32 D_L00_0015F5D8;
 extern s32 D_L00_0016000C __attribute__((sda));
-extern f32 D_L00_0016CAF0 __attribute__((section(".data")));
+extern f32 D_L00_0016CAF0_lui __asm__("D_L00_0016CAF0") __attribute__((section(".data")));
 extern u8 D_L00_001E91B0[];
 
 extern void snd_flush_sound_commands(void) __asm__("FUN_0012dc80");
@@ -481,14 +481,14 @@ void FUN_L00_00276bd0(void) {
                 return;
             }
         }
-        if (D_001516D8[0] != 0) {
+        if (cd_read_active[0] != 0) {
             return;
         }
         D_L00_0015F578 = 0x1E000;
         FUN_002335a0();
         qcopy(&D_L00_00166DC0[0], &D_L00_001B9CF0.v40);
         qcopy(&D_L00_00166DC0[1], &D_L00_001B9CF0.v50);
-        D_L00_0016CAF0 = D_L00_001B9CF0.unkE8;
+        D_L00_0016CAF0_lui = D_L00_001B9CF0.unkE8;
         FUN_L00_00235668(0);
         if (D_L00_001B9CF0.unk140 != 0) {
             D_L00_0016000C = -1;
@@ -664,7 +664,7 @@ typedef struct VoiceRenderEntry {
 } VoiceRenderEntry;
 
 extern s32 frame_size __asm__("D_0013E504");
-extern s32 D_L00_0015EE84 __asm__("D_0015EE84");
+extern s32 draw_buffer_address __asm__("D_0015EE84");
 extern s32 D_L00_001B9E90_init[] __asm__("D_L00_001B9E90");
 extern s32 D_L00_001B23C0[] __asm__("D_L00_001B23C0");
 #define D_L00_001B9DC8 (*(s32 *)((u8 *)&D_L00_001B9CF0 + 0xd8))
@@ -704,7 +704,7 @@ void FUN_L00_002772c0(s32 param_1) {
     struct { u128d image_copy[4]; u128d unused[5]; u128d first, last; } copies;
 
     emit_fixed_dma_packet_if_cursor();
-    FUN_L00_002a0fc8_772c0(D_L00_001B9CF0.unk10, D_L00_0015EE84, frame_size << 11);
+    FUN_L00_002a0fc8_772c0(D_L00_001B9CF0.unk10, draw_buffer_address, frame_size << 11);
     if (param_1 != 0) {
         return;
     }

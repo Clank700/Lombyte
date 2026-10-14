@@ -17,10 +17,10 @@ INCLUDE_ASM("config/us/expected/asm/assembly/textbin/fun_0021a328/FUN_0021a328.s
 #include "rnc/gameplay/state/item_state.h"
 extern int pal_mode __asm__("D_0015ED80") __attribute__((sda));
 extern int current_level_index __asm__("D_0015ED84") __attribute__((sda));
-extern int menu_text_color __asm__("D_001601B0") __attribute__((sda));
+extern int panel_clear_color_gp __asm__("D_001601B0") __attribute__((sda));
 extern int menu_fade_duration __asm__("D_001601B4") __attribute__((sda));
-extern int text_shadow_x __asm__("D_001601B8") __attribute__((sda));
-extern int text_shadow_y __asm__("D_001601BC") __attribute__((sda));
+extern int text_shadow_x_gp __asm__("D_001601B8") __attribute__((sda));
+extern int text_shadow_y_gp __asm__("D_001601BC") __attribute__((sda));
 extern int text_vertical_inset __asm__("D_00160258") __attribute__((sda));
 extern int text_line_spacing __asm__("D_00160268") __attribute__((sda));
 extern char empty_label_text[] __asm__("D_00160270");
@@ -233,7 +233,7 @@ int render_configured_text_label(struct MenuScreen *label) {
             c.bottom = label->height - 1;
         }
         color = func_0021B6D8(label->data.label.fade_timer,
-                              func_001FA6E0(menu_text_color, 0x80FFA888, 0.5f), 0x80FFA888);
+                              func_001FA6E0(panel_clear_color_gp, 0x80FFA888, 0.5f), 0x80FFA888);
         c.flags |= 4;
         font_print_window(&c, color, text, -1, texture_tex0, font);
         window->flags = c.flags ^ 4;
@@ -250,39 +250,39 @@ int render_configured_text_label(struct MenuScreen *label) {
             label->data.label.flags ^= 0x400;
         }
         c.anchor_y = y - (label->data.label.scroll_offset >> 4);
-        c.top += text_shadow_y;
-        c.bottom += text_shadow_y;
-        c.left += text_shadow_x;
-        c.right += text_shadow_x;
-        c.anchor_x += text_shadow_x;
-        c.anchor_y += text_shadow_y;
+        c.top += text_shadow_y_gp;
+        c.bottom += text_shadow_y_gp;
+        c.left += text_shadow_x_gp;
+        c.right += text_shadow_x_gp;
+        c.anchor_x += text_shadow_x_gp;
+        c.anchor_y += text_shadow_y_gp;
         disable_global_state_flag();
         font_print_window(&c, 0x80000000L, text, -1, texture_tex0, font);
         enable_global_state_flag();
-        c.top -= text_shadow_y;
-        c.bottom -= text_shadow_y;
-        c.left -= text_shadow_x;
-        c.right -= text_shadow_x;
-        c.anchor_x -= text_shadow_x;
-        c.anchor_y -= text_shadow_y;
+        c.top -= text_shadow_y_gp;
+        c.bottom -= text_shadow_y_gp;
+        c.left -= text_shadow_x_gp;
+        c.right -= text_shadow_x_gp;
+        c.anchor_x -= text_shadow_x_gp;
+        c.anchor_y -= text_shadow_y_gp;
         font_print_window(&c, color, text, -1, texture_tex0, font);
         if (label->data.label.flags & 0x400) {
             c.anchor_y += c.rendered_height + text_line_spacing * 3;
-            c.top += text_shadow_y;
-            c.bottom += text_shadow_y;
-            c.left += text_shadow_x;
-            c.right += text_shadow_x;
-            c.anchor_x += text_shadow_x;
-            c.anchor_y += text_shadow_y;
+            c.top += text_shadow_y_gp;
+            c.bottom += text_shadow_y_gp;
+            c.left += text_shadow_x_gp;
+            c.right += text_shadow_x_gp;
+            c.anchor_x += text_shadow_x_gp;
+            c.anchor_y += text_shadow_y_gp;
             disable_global_state_flag();
             font_print_window(&c, 0x80000000L, text, -1, texture_tex0, font);
             enable_global_state_flag();
-            c.top -= text_shadow_y;
-            c.bottom -= text_shadow_y;
-            c.left -= text_shadow_x;
-            c.right -= text_shadow_x;
-            c.anchor_x -= text_shadow_x;
-            c.anchor_y -= text_shadow_y;
+            c.top -= text_shadow_y_gp;
+            c.bottom -= text_shadow_y_gp;
+            c.left -= text_shadow_x_gp;
+            c.right -= text_shadow_x_gp;
+            c.anchor_x -= text_shadow_x_gp;
+            c.anchor_y -= text_shadow_y_gp;
             font_print_window(&c, color, text, -1, texture_tex0, font);
             if (label->data.label.flags & 0x400) {
                 label->data.label.scroll_offset += (controller_state.held & 1) ? 10 : 3;

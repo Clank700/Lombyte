@@ -1108,7 +1108,7 @@ extern float fast_add_rotations(float, float) __asm__("FUN_001fa580");
 extern float probe_ground_height(void *, int, float) __asm__("FUN_00213508");
 extern s32 scale_game_frames(s32) __asm__("func_001F96F8");
 extern short D_L13_00161E80 __attribute__((sda));
-extern short D_L13_00161E84;
+int D_L13_00161E84 = 150;
 extern void moby_point_position(void *, int, void *) __asm__("FUN_L00_0024f7c8");
 extern void add_vector_xyz(void *, void *, void *);
 extern void normalize_vector_xyz(void *, void *, float);
@@ -1133,7 +1133,7 @@ void FUN_L13_00309370(struct Moby *m) {
             *(float *)(d + 0x21C + i * 16) = 1.0f;
         }
     }
-    *(float *)(d + 0x1FC) = scale_game_frames(*(int *)&D_L13_00161E84);
+    *(float *)(d + 0x1FC) = scale_game_frames(D_L13_00161E84);
 }
 extern int FUN_001efa68(void *, void *, int, void *, void *);
 extern int FUN_001f9740(int *);
@@ -1278,7 +1278,7 @@ extern float D_L13_00161214;
 extern void *D_L13_001612D0;
 extern void *D_L13_001612D4;
 extern int D_L13_001612D8;
-extern int D_L13_00161EF0 __attribute__((sda));
+int D_L13_00161EF0 = -1;
 extern unsigned short D_L13_00161EF4 __attribute__((sda));
 extern float FUN_001f9dc8(float);
 extern float FUN_001f9de0(float);
@@ -2326,7 +2326,7 @@ extern void FUN_L00_00263fd8(void *, int, void *, void *, int, int, float, void 
 extern void FUN_0020c828(void *);
 
 #include "qzero.h"
-extern s32 D_L13_001BA7D0_cdb8[] __asm__("D_L13_001BA7D0");
+extern s32 D_L13_001BA7D0[];
 void FUN_L13_0030cdb8(struct Moby *moby) {
     char *data;
     void *hit;
@@ -2375,7 +2375,7 @@ void FUN_L13_0030cdb8(struct Moby *moby) {
         zero_vector = D_L13_0015F580;
         D_0014C190_257218[current_level_index][(short)moby->save_id >> 5] |=
             1 << (moby->save_id & 31);
-        D_L13_001BA7D0_cdb8[(short)moby->save_id >> 5] |= 1 << (moby->save_id & 31);
+        D_L13_001BA7D0[(short)moby->save_id >> 5] |= 1 << (moby->save_id & 31);
         for (j = 0; j < 2; j++) {
             for (i = 0x709; i < 0x70d; i++) {
                 qzero(&vector);

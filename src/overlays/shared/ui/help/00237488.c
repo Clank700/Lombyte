@@ -405,11 +405,10 @@ void FUN_L05_0023dc88(int i) {
         }
     }
 }
-extern int D_L05_0015F5CC;
+extern int frame_number __asm__("D_L05_0015F5CC");
 extern CollisionHit D_L05_00174240 __attribute__((section(".data")));
 extern u8 D_L05_00174260[] __attribute__((section(".data")));
 extern u8 D_L05_0017AB20[] __attribute__((section(".data")));
-extern u128 D_0013F3D0;
 extern int FUN_L05_002388a0(float, float, float *) __asm__("FUN_L00_0020a240");
 extern float FUN_L00_0022e0f0(void *) __asm__("FUN_001f9b20");
 extern float FUN_L00_0022e598(float, float) __asm__("FUN_001f9e90");
@@ -435,7 +434,7 @@ void FUN_L05_0024bdc0(void) {
     if (hero.unk20AD == 0) {
         FUN_L05_002413e0();
     }
-    if (D_L05_0015F5CC % 3 == 0) {
+    if (frame_number % 3 == 0) {
         hero.wall_probe_distance = 4.0f;
         hero.unk254 = 0;
         hero.unk255 = 0;
@@ -449,7 +448,7 @@ void FUN_L05_0024bdc0(void) {
             }
         }
     }
-    if (D_L05_0015F5CC % 5 == 0) {
+    if (frame_number % 5 == 0) {
         hero.unk260 = 0;
         hero.unk258 = 0.0f;
         if (hero.grounded_frames) {
@@ -489,7 +488,7 @@ void FUN_L05_0024bdc0(void) {
 /* Adapted from the exact FUN_L00_002279b0 (src/overlays/shared/ui/help/00221310.c): L05 has a wider head guard and its own level data. */
 
 extern float D_L05_00174268 __attribute__((section(".data")));
-extern int D_L05_0015F5CC;
+extern int frame_number __asm__("D_L05_0015F5CC");
 extern int FUN_001f0b58(void);
 extern int FUN_L00_00216de8_c(int a, int b) __asm__("FUN_L00_00216de8");
 extern int func_L00_001EFFF0(void *, void *, int, int, int) __asm__("FUN_001efa68");
@@ -558,9 +557,9 @@ int FUN_L05_002515d0(void) {
     u = &hero;
     if (u->state.control_mode - 0x11 >= 2u && u->state.control_mode != 7 &&
         u->state.control_mode != 0x14 && u->state.current != 0x12 &&
-        (D_L05_0015F5CC & 0xF) == 0) {
+        (frame_number & 0xF) == 0) {
         scale = 4.0f;
-        if ((D_L05_0015F5CC & 0x3F) == 0) {
+        if ((frame_number & 0x3F) == 0) {
             scale = 16.0f;
         }
         FUN_L00_002126b8(v1, v2, 0, scale, 1.3f);
@@ -615,19 +614,10 @@ typedef struct {
     int fDC;
 } Stats_2523C8;
 
-extern char D_0014161B[] __attribute__((section(".data")));
 extern float FUN_001f9b80(void *, void *);
 extern float FUN_001f9e90(float, float);
 extern float fast_difference_between_rotations(float, float) __asm__("func_001FA688");
-extern int D_0013C940_c __asm__("D_0013C940") ; /* no foreign declaration */
-extern int D_0013CAE0_c __asm__("D_0013CAE0") ; /* no foreign declaration */
-extern int D_0013F350; /* no foreign declaration */
-extern int D_00141660_c __asm__("D_00141660") ; /* no foreign declaration */
 extern int D_0015ED84; /* no foreign declaration */
-extern int D_0015EEA4; /* no foreign declaration */
-extern int D_L05_0015F674; /* no foreign declaration */
-extern int D_L05_0015FFD8; /* no foreign declaration */
-extern int D_L05_0017C088;
 extern int FUN_L00_001fefc8(void *);
 extern int help_request(int a, int b) __asm__("FUN_L00_00203908");
 extern int FUN_L00_0020d498(int);
@@ -660,7 +650,7 @@ extern int D_L05_0015F674_g __asm__("D_L05_0015F674") __attribute__((sda));
 extern int func_L05_0024D680_2523C8(int, int) __asm__("FUN_L05_0024cee8");
 extern int func_001F9908_2523C8(int *) __asm__("FUN_001f9740");
 extern Moby *D_L05_00160098_2523C8 __asm__("D_L05_0015FFD8") __attribute__((section(".sdata")));
-extern int D_0015EFA4_2523C8 __asm__("D_0015EEA4") __attribute__((section(".sdata")));
+extern int D_0015EEA4_macro __asm__("D_0015EEA4") __attribute__((section(".sdata")));
 extern int D_0015EE84_2523C8 __asm__("D_0015ED84") __attribute__((section(".sdata")));
 
 int FUN_L05_00251be8(void) {
@@ -1005,10 +995,10 @@ int FUN_L05_00251be8(void) {
             if (stats->hD8 < 0xFFFF) {
                 stats->hD8++;
             }
-            play_time = scale_game_frames_alt(D_0015EFA4_2523C8);
+            play_time = scale_game_frames_alt(D_0015EEA4_macro);
             unit = 600;
             if (play_time / unit > stats->hDA) {
-                stats->hDA = scale_game_frames_alt(D_0015EFA4_2523C8) / 600;
+                stats->hDA = scale_game_frames_alt(D_0015EEA4_macro) / 600;
             }
             stats->fDC = stats->fDC | (1 << D_0015EE84_2523C8) | 0x80000000;
             allocate_voice_for_target_entry_alt(0, 0, (int)item);
@@ -1137,7 +1127,6 @@ extern s32 allocate_voice_for_target_entry(s32, s32, void *) __asm__("FUN_0022da
 extern s32 D_L00_0015F5CC __asm__("D_L00_0015F5CC");
 extern s32 D_0013D4B8;
 extern s32 weapon_ammo_counts[37] __asm__("D_0013D428");
-extern f32 D_0013F420[];
 
 void FUN_L05_00253b48(void) {
     u8 *state;
@@ -1240,9 +1229,8 @@ INCLUDE_ASM("config/us/overlays/asm/FUN_L05_00254058.s", FUN_L05_00254058);
 #include "rnc/gameplay/state/usage_stats.h"
 extern u8 D_0013D388;
 
-extern s32 D_0015EEA4;
 extern s32 D_0015ED84 __attribute__((sda));
-extern s32 D_0015EEA4_sda __asm__("D_0015EEA4") __attribute__((sda));
+extern s32 D_0015EEA4_gp __asm__("D_0015EEA4") __attribute__((sda));
 extern f32 D_L05_002169F8[] __asm__("D_L05_002169F8");
 extern f32 FUN_001f96b0(f32) __asm__("FUN_L05_0022dbc8");
 
@@ -1257,7 +1245,7 @@ void FUN_L05_00254058(void) {
     if (D_0013D388 == 0) return;
     if (hero.unk8A8 != 0) {
         struct UsageStats *stats = (struct UsageStats *)D_00141848;
-        s32 duration = D_0015EEA4_sda;
+        s32 duration = D_0015EEA4_gp;
         s32 frame_count;
         s32 level;
         if (stats->stat[30].count <= 0xFFFE) {
@@ -1267,7 +1255,7 @@ void FUN_L05_00254058(void) {
         frame_count = scale_game_frames(duration) / 600;
         level = D_0015ED84;
         if (stats->stat[30].unk2 < frame_count) {
-            stats->stat[30].unk2 = scale_game_frames(D_0015EEA4_sda) / 600;
+            stats->stat[30].unk2 = scale_game_frames(D_0015EEA4_gp) / 600;
             level = *(s32 *)0x0015ED84;
         }
         stats->stat[30].level_mask |= 1U << level;
@@ -1458,17 +1446,10 @@ extern unsigned char D_0013D408_254608[] __asm__("D_0013D408") __attribute__((se
 extern unsigned char D_0013D4DF_254608 __asm__("D_0013D4DF") __attribute__((section(".data")));
 extern Path_254608 *D_L05_001B0930_254608[] __asm__("D_L05_001B0930");
 extern Ent_254608 *D_L05_0015FFD8_254608 __asm__("D_L05_0015FFD8") __attribute__((section(".sdata")));
-extern float D_0015ED60_254608 __asm__("D_0015ED60") __attribute__((section(".sdata")));
-extern int D_0015EE38_254608 __asm__("D_0015EE38") __attribute__((section(".sdata")));
-extern int D_0015EE3C_254608 __asm__("D_0015EE3C") __attribute__((section(".sdata")));
-extern int D_0015ED80_254608 __asm__("D_0015ED80") __attribute__((section(".sdata")));
-extern int D_0015EE58_254608[2] __asm__("D_0015EE58") __attribute__((section(".sdata")));
-extern int D_0015ED98_254608 __asm__("D_0015ED98") __attribute__((section(".sdata")));
-extern int D_0015EE68_254608[2] __asm__("D_0015EE68") __attribute__((section(".sdata")));
-extern int D_L05_0015F680_254608 __asm__("D_L05_0015F680") __attribute__((sda));
-extern int D_L05_0015F684_254608 __asm__("D_L05_0015F684") __attribute__((sda));
-extern float D_L05_0015F67C_254608 __asm__("D_L05_0015F67C") __attribute__((sda));
-extern int D_L05_0015F6A8_254608 __asm__("D_L05_0015F6A8") __attribute__((sda));
+extern int D_0015EE38_macro __asm__("D_0015EE38") __attribute__((section(".sdata")));
+extern int D_0015EE3C_macro __asm__("D_0015EE3C") __attribute__((section(".sdata")));
+extern int freeze_stats_time_ref_macro[2] __asm__("D_0015EE58") __attribute__((section(".sdata")));
+extern int freeze_stats_score_ref_a_macro[2] __asm__("D_0015EE68") __attribute__((section(".sdata")));
 extern float distance_xyz_254608(void *, void *) __asm__("FUN_001f9b48");
 extern float angle_atan2_254608(float, float) __asm__("FUN_001f9e90");
 extern float fast_difference_between_rotations_254608(float, float) __asm__("FUN_001fa688");
@@ -1481,6 +1462,13 @@ extern void mode_freeze_init_254608(int, void *) __asm__("FUN_001fbab8");
 extern void set_animation_parameter_254608(int, int) __asm__("FUN_001ff570");
 extern void func_001FFFA0_254608(void) __asm__("FUN_001ff768");
 
+extern int D_L05_0015F680 __attribute__((sda));
+extern int D_L05_0015F684 __attribute__((sda));
+extern float D_L05_0015F67C __attribute__((sda));
+extern int D_L05_0015F6A8 __attribute__((sda));
+extern f32 frame_scale __asm__("D_0015ED60") __attribute__((section(".sdata")));
+extern s32 pal_mode __asm__("D_0015ED80") __attribute__((section(".sdata")));
+extern s32 current_bolt_count_macro __asm__("D_0015ED98") __attribute__((section(".sdata")));
 /* Hoverboard race tick: advances the hero's and the opponents' path nodes and laps, handles wrong-way and fall resets, ranks everyone and finishes the race after three laps. */
 void FUN_L05_00254608(void) {
     float v0[4] __attribute__((aligned(16)));
@@ -1565,13 +1553,13 @@ void FUN_L05_00254608(void) {
     if (near != 0 || (fast_difference_between_rotations_254608(hero.motion.rot.f[2], dir) > 1.5707964f && hero.unk88D == 0)) {
         hero.unk8AE++;
         if (hero.unk8AE > FUN_001f96f8_254608(0xB4)) {
-            if (D_L05_0015F680_254608 == 0) {
-                D_L05_0015F680_254608 = 1;
-                D_L05_0015F684_254608 = 0;
-                D_L05_0015F67C_254608 = D_0015ED60_254608 * 0.08f;
+            if (D_L05_0015F680 == 0) {
+                D_L05_0015F680 = 1;
+                D_L05_0015F684 = 0;
+                D_L05_0015F67C = frame_scale * 0.08f;
             }
             hero.unk8AF = 1;
-            if (D_L05_0015F684_254608 == 1) {
+            if (D_L05_0015F684 == 1) {
                 hero.unk8AF = 0;
                 func_L05_00254B38_254608(v0, v1);
                 hero.unk8AE = 0;
@@ -1627,17 +1615,17 @@ void FUN_L05_00254608(void) {
         return;
     }
     if (*(D_0013D388_254608) != 0) {
-        D_L05_0015F6A8_254608 = 1;
+        D_L05_0015F6A8 = 1;
     }
     if (D_0015ED84_254608 == 5) {
-        D_0015EE38_254608++;
+        D_0015EE38_macro++;
     } else if (D_0015ED84_254608 == 0x10) {
-        D_0015EE3C_254608++;
+        D_0015EE3C_macro++;
     }
     if (D_0015ED84_254608 == 5) {
         int t;
 
-        if (D_0015ED80_254608 != 0) {
+        if (pal_mode != 0) {
             t = FUN_001f96f8_254608(0x1680);
         } else {
             t = FUN_001f96f8_254608(0x1644);
@@ -1658,16 +1646,16 @@ void FUN_L05_00254608(void) {
             hero.unk890 = (u8 *)(&D_L05_0015FFD8_254608[d->f28]);
             mode_freeze_init_254608(0, 0);
         }
-        if (D_0015EE58_254608[0] == 0) {
-            D_0015EE58_254608[0] = hero.unk894;
-            D_0015ED98_254608 += 0x3E8;
-        } else if (hero.unk894 < D_0015EE58_254608[0]) {
-            D_0015EE58_254608[0] = hero.unk894;
-            D_0015ED98_254608 += 0x3E8;
+        if (freeze_stats_time_ref_macro[0] == 0) {
+            freeze_stats_time_ref_macro[0] = hero.unk894;
+            current_bolt_count_macro += 0x3E8;
+        } else if (hero.unk894 < freeze_stats_time_ref_macro[0]) {
+            freeze_stats_time_ref_macro[0] = hero.unk894;
+            current_bolt_count_macro += 0x3E8;
         }
-        if (D_0015EE68_254608[0] < hero.unk8A8) {
-            D_0015EE68_254608[0] = hero.unk8A8;
-            D_0015ED98_254608 += 0x3E8;
+        if (freeze_stats_score_ref_a_macro[0] < hero.unk8A8) {
+            freeze_stats_score_ref_a_macro[0] = hero.unk8A8;
+            current_bolt_count_macro += 0x3E8;
         }
         D_L05_0015FFD8_254608[d->f28].f30 = 0xFF;
         if (hero.unk880 != -1) {
@@ -1685,16 +1673,16 @@ void FUN_L05_00254608(void) {
             hero.unk890 = (u8 *)(&D_L05_0015FFD8_254608[d->f28]);
             mode_freeze_init_254608(0, 0);
         }
-        if (D_0015EE58_254608[1] == 0) {
-            D_0015EE58_254608[1] = hero.unk894;
-            D_0015ED98_254608 += 0x3E8;
-        } else if (hero.unk894 < D_0015EE58_254608[1]) {
-            D_0015EE58_254608[1] = hero.unk894;
-            D_0015ED98_254608 += 0x3E8;
+        if (freeze_stats_time_ref_macro[1] == 0) {
+            freeze_stats_time_ref_macro[1] = hero.unk894;
+            current_bolt_count_macro += 0x3E8;
+        } else if (hero.unk894 < freeze_stats_time_ref_macro[1]) {
+            freeze_stats_time_ref_macro[1] = hero.unk894;
+            current_bolt_count_macro += 0x3E8;
         }
-        if (D_0015EE68_254608[1] < hero.unk8A8) {
-            D_0015EE68_254608[1] = hero.unk8A8;
-            D_0015ED98_254608 += 0x3E8;
+        if (freeze_stats_score_ref_a_macro[1] < hero.unk8A8) {
+            freeze_stats_score_ref_a_macro[1] = hero.unk8A8;
+            current_bolt_count_macro += 0x3E8;
         }
         D_L05_0015FFD8_254608[d->f28].f30 = 0xFF;
         if (hero.unk880 != -1) {

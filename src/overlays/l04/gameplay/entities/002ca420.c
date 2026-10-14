@@ -677,8 +677,8 @@ typedef struct WBQuery {
     /* 0x24 */ int pad24[3];
 } WBQuery;
 
-extern WBAngles D_L04_001DC468;
-extern WBJoints D_L04_001DC450;
+WBAngles D_L04_001DC468 = {{0.5235988f, 0.7853982f, 0.2617994f, 1.0471976f, 0.0f}};
+WBJoints D_L04_001DC450 = {{0, 2, 1, 3, 4, 5}};
 extern char *find_moby_hit(void *, int, int) __asm__("FUN_L00_0025a420");
 extern char D_L04_00166F40[];
 extern f32 fast_cos(f32) __asm__("func_001F9DC8");
@@ -703,7 +703,6 @@ extern int FUN_L04_00295778(void *, void *, float, float, float);
 extern int is_value_within_interpolated_window(char *, float) __asm__("FUN_00214cc8");
 extern s32 random_integer_below(s32) __asm__("func_00213260");
 extern s32 scale_game_frames(s32) __asm__("func_001F96F8");
-extern unsigned char D_0013E533[];
 extern void *memset(void *, int, unsigned int);
 extern void FUN_001efa68(void *, void *, int, void *, void *);
 extern void FUN_001f9770(void *);
@@ -1345,7 +1344,6 @@ void FUN_L04_002d16b8(WBMoby *m) {
 /* update: blend two keyframes of a path and write the result to a position */
 /* Ported from rac1-decomp (src/overlays/l04_eudora/vendor_002CB800.c: func_L04_002D8348), where it is exact; names translated to the US level program. */
 
-extern char *D_L04_0015FFD0_e[] __asm__("D_L04_0015FFD0") __attribute__((section(".sdata")));
 extern f32 convert_integer_to_float(s32) __asm__("func_001FA6C0");
 extern float FUN_L00_00200260(float, float);
 extern int *D_L04_001B0630[];
@@ -1354,10 +1352,11 @@ extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void scale_vector_xyz(void *out, void *a, f32 s) __asm__("FUN_001f9a68");
 extern int func_001FA898_r(float) __asm__("FUN_001fa6d0");
 
+extern char *D_L04_0015FFD0[] __attribute__((section(".sdata")));
 void FUN_L04_002d6f68(char *moby) {
     int *p = *(int **)(moby + 0x78);
     int *t = D_L04_001B0630[p[2]];
-    char *base = D_L04_0015FFD0_e[2];
+    char *base = D_L04_0015FFD0[2];
     int o0 = p[0] * 256;
     float *src = *(float **)(base + o0 + 0x78);
     char *dst = base + p[1] * 256;
@@ -1527,7 +1526,6 @@ struct RiserVars {
     s32 timer;
 };
 
-extern s32 D_0014C190[][64];
 extern s32 D_L04_001BA650[];
 extern LevelCollected D_L04_001BB3B0;
 extern int FUN_L00_0028dc90(int, int, struct Moby *, int);
@@ -1535,6 +1533,7 @@ extern int FUN_001f96f8(int);
 extern int FUN_001f9740(s32 *);
 extern int FUN_0022da68(int, int, struct Moby *);
 
+extern s32 D_0014C190_257218[][64] __asm__("D_0014C190");
 void FUN_L04_002e17d8(struct Moby *m) {
     struct RiserVars *d = (struct RiserVars *)m->pvars;
     struct Moby *t;
@@ -1549,7 +1548,7 @@ void FUN_L04_002e17d8(struct Moby *m) {
     case 1:
         id = m->save_id;
         idx = id;
-        if (D_L04_001BB3B0.collected[idx] == 0 && !((D_0014C190[current_level_index][idx >> 5] >> (id & 0x1F)) & 1)) {
+        if (D_L04_001BB3B0.collected[idx] == 0 && !((D_0014C190_257218[current_level_index][idx >> 5] >> (id & 0x1F)) & 1)) {
             if (d->trigger == -1)
                 break;
             t = (struct Moby *)((d->trigger << 8) + D_L04_0015FFD8);
@@ -1564,7 +1563,7 @@ void FUN_L04_002e17d8(struct Moby *m) {
     case 2:
         m->pos.z += riser_rise_speed(m) * frame_time;
         if (FUN_001f9740(&d->timer)) {
-            D_0014C190[current_level_index][(s16)m->save_id >> 5] |= 1 << (m->save_id & 0x1F);
+            D_0014C190_257218[current_level_index][(s16)m->save_id >> 5] |= 1 << (m->save_id & 0x1F);
             D_L04_001BA650[(s16)m->save_id >> 5] |= 1 << (m->save_id & 0x1F);
             if (m->oclass == 0x44D)
                 FUN_0022da68(1, 0, m);
@@ -1670,7 +1669,7 @@ extern unsigned char *func_L00_00273E08_298940(void *, int, unsigned char, int, 
                                                float) __asm__("FUN_L00_00272f68");
 extern int func_001FA898_298940(float) __asm__("FUN_001fa6d0");
 extern char D_L10_00167240_298940[] __asm__("D_L04_00166F40");
-extern int D_L04_0015F5C4_t __asm__("D_L04_0015F5C4");
+extern int D_L04_0015F5C4;
 void FUN_L04_002e1d00(char *m) {
     L10SpriteData_298940 *p = *(L10SpriteData_298940 **)(m + 0x78);
     float d[4] __attribute__((aligned(16)));
@@ -1698,7 +1697,7 @@ void FUN_L04_002e1d00(char *m) {
         f = func_001FA888_298940(func_001F9850_298940(0xFF) - p->c[i]);
         f = f / (float)func_001F9850_298940(0xFF);
         col = func_001FA8A8_298940(0x4040FFFF, 0x1040FFFF, func_001F9B88_298940(0.5f - f));
-        if (D_L04_0015F5C4_t != 2)
+        if (D_L04_0015F5C4 != 2)
             func_L00_00273E08_298940(d, col, func_001FA898_298940(p->a[i]) & 0xFF, 0x35, 1, 2, 0,
                                      p->d[i]);
         func_001F9BD8_298940(d, d, e);
