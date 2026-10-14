@@ -1617,17 +1617,13 @@ void FUN_L07_00314150(unsigned char *moby) {
     FUN_L07_00312150((char *)data);
 }
 #endif
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L07_00317910.s", FUN_L07_00317910);
-#else
 extern u64 get_effect_texture_l07(int) __asm__("FUN_001f44b8");
 extern void vu1_add_g_sregister_l07(int, u64) __asm__("FUN_00233980");
 extern void draw_geometry_quad_l07(void *, int, int) __asm__("FUN_001f7d30");
 extern float D_L07_00161B74 __attribute__((sda));
 extern float D_L07_00161B78 __attribute__((sda));
 extern float D_L07_00161B7C __attribute__((sda));
-extern RopeVec D_L07_0020DAF0_c[] __asm__("D_L07_0020DAF0");
-extern RopeVec D_L07_0020DB00_c[] __asm__("D_L07_0020DB00");
+extern RopeVec rope_grid_317910[][20] __asm__("D_L07_0020DBE0");
 extern short D_L07_0020DBC8[];
 
 typedef struct {
@@ -1637,17 +1633,16 @@ typedef struct {
     u64 header[4];
 } L07RopeDrawPacket;
 
+/* Draws the rope grid as textured quads between neighbouring rows, each row faded by its level. */
 void FUN_L07_00317910(void) {
     L07RopeDrawPacket packet;
     float phase;
     float row_phase;
-    float next_phase;
+    float end_phase;
     int row;
     int column;
-    int next_column;
+    int k;
     int color;
-    int alpha;
-    int row_offset;
     float phase_step;
     float column_step;
 
@@ -1663,34 +1658,23 @@ void FUN_L07_00317910(void) {
     phase += phase_step;
     column_step = 0.05f;
     vu1_add_g_sregister_l07(0x4e, (depth_buffer_address >> 13) | 0x1000000 | ((u64)0x8000 << 17));
-
     for (row = 1; row < 10; row++) {
         row_phase = D_L07_00161B78;
         D_L07_00161B78 += D_L07_00161B7C;
         if (D_L07_00161B78 > 7.0f) D_L07_00161B78 -= 7.0f;
-        row_offset = row * 0x140;
         for (column = 0; column < 20; column++) {
-            float end_phase;
-            qcopy(packet.pos[0], (char *)&D_L07_0020DB00_c[14] + (row_offset + (column << 4)));
-            next_column = (column + 1) % 20;
-            qcopy(packet.pos[1], (char *)&D_L07_0020DB00_c[14] + (row_offset + (next_column << 4)));
-            qcopy(packet.pos[2], ((char *)&D_L07_0020DB00_c[14] - 0x140) + (row_offset + (column << 4)));
-            qcopy(packet.pos[3], ((char *)&D_L07_0020DB00_c[14] - 0x140) + (row_offset + (((column + 1) % 20) << 4)));
+            qcopy(packet.pos[0], rope_grid_317910[row][column]);
+            qcopy(packet.pos[1], rope_grid_317910[row][(column + 1) % 20]);
+            qcopy(packet.pos[2], rope_grid_317910[row - 1][column]);
+            qcopy(packet.pos[3], rope_grid_317910[row - 1][(column + 1) % 20]);
             end_phase = row_phase + column_step;
-            {
-                u16 previous = D_L07_0020DBC8[row - 1];
-                s64 current = D_L07_0020DBC8[row];
-                s32 j;
-                u32 *color_out = packet.color;
-                for (j = 1; j >= 0; j--) {
-                    if (current < 0) current = 0;
-                    if (current > 64) current = 64;
-                    color = ((u32)current << 24) | 0x404040;
-                    color_out[0] = color;
-                    color_out[1] = color;
-                    current = (s16)previous;
-                    color_out += 2;
-                }
+            color = D_L07_0020DBC8[row];
+            for (k = 0; k < 2; k++) {
+                if (color < 0) color = 0;
+                if (color > 64) color = 64;
+                color = (color << 24) | 0x404040;
+                packet.color[k * 2 + 1] = packet.color[k * 2] = color;
+                color = D_L07_0020DBC8[row - 1];
             }
             if (row == 1) {
                 packet.color[3] = 0x20404040;
@@ -1715,7 +1699,6 @@ void FUN_L07_00317910(void) {
     vu1_add_g_sregister_l07(0x4e, (s64)(depth_buffer_address >> 13) | 0x1000000);
     vu1_add_g_sregister_l07(0x47, 0x5360b);
 }
-#endif
 
 extern int D_L07_00161B6C_c __asm__("D_L07_00161B6C") __attribute__((sda));
 extern int D_L07_00161B70_c __asm__("D_L07_00161B70") __attribute__((sda));
@@ -1844,9 +1827,6 @@ void FUN_L07_00318e98(int target_entry) {
     }
     FUN_L00_002defe0(target_entry);
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L07_00319040.s", FUN_L07_00319040);
-#else
 extern Vec4 D_L07_00166E40;
 extern struct Moby *D_L07_00173ED8 __attribute__((section(".data")));
 extern Vec4 D_L07_00173EF0;
@@ -1871,27 +1851,40 @@ extern void FUN_00212f90(void *, int, int, int);
 extern f32 FUN_001fa580(f32, f32);
 extern void FUN_L01_0026e0e0(s32, s32);
 
+typedef struct {
+    u8 pad0[0x20];
+    f32 health;            /* 0x20: lowered by FUN_00213928 */
+    u8 pad24[0x14];
+    struct Moby *target;   /* 0x38 */
+    u8 pad3C[0x24];
+    Vec4 home;             /* 0x60: spawn position */
+    f32 speed;             /* 0x70 */
+    s32 sound;             /* 0x74: -1 when none */
+    s32 timeout;           /* 0x78 */
+    s32 bob_timer;         /* 0x7C */
+} Mine_19040;
+
+/* Floating mine: wakes when its target or a seen point comes close, then bobs and chases the seen
+   point. It blows up when a hit lands (not from classes 0x456/0x365/0x367), on contact with a
+   solid moby or when its timer runs out, and is removed once 64 units from home. */
 void FUN_L07_00319040(struct Moby *moby) {
-    u8 *vars;
-    u8 *collision;
+    Mine_19040 *vars;
+    f32 *health;
     char sight[0x50];
     char *hit;
     Vec4 dir;
     u8 contact[0x30];
     Vec4 probe;
     Vec4 push;
-    volatile s32 touching;
+    s32 touching;
     f32 speed;
-    union { s32 bits; f32 value; } one;
-    f32 stable_one;
-    f32 effect_scale;
     f32 turn;
     f32 new_speed;
     f32 max_speed;
     s32 timer;
 
     if (moby == NULL) return;
-    vars = moby->pvars;
+    vars = (Mine_19040 *)moby->pvars;
     if (vars == NULL) return;
 
     sight_19040(moby, sight, 8.0f);
@@ -1899,11 +1892,11 @@ void FUN_L07_00319040(struct Moby *moby) {
         FUN_L00_0025a120(moby);
         moby->shadow_range = 0x15;
     }
-    collision = vars + 0x20;
+    health = &vars->health;
     hit = hit_lookup_19040(moby, 0x230000, 0);
-    hit_test_19040(moby, hit, collision, 0, &touching, 0, 0, 4);
-    if (touching >= 2 && hit != NULL && *(s16 *)(*(char **)(hit + 0x20) + 0xa6) != 0x456 &&
-        *(s16 *)(*(char **)(hit + 0x20) + 0xa6) != 0x365 && *(s16 *)(*(char **)(hit + 0x20) + 0xa6) != 0x367) {
+    hit_test_19040(moby, hit, health, 0, &touching, 0, 0, 4);
+    if (touching >= 2 && hit != NULL && (*(struct Moby **)(hit + 0x20))->oclass != 0x456 &&
+        (*(struct Moby **)(hit + 0x20))->oclass != 0x365 && (*(struct Moby **)(hit + 0x20))->oclass != 0x367) {
         clear_u64_value(dir.f);
         FUN_L00_0025e450(moby, &dir, NULL, 0.0f, 0.0f, 3, 3, 5, 2.0f, 1.0f, 4.0f, 1.0f, 2, 7.0f, 0, 1, -1, 0);
         FUN_L00_00257470(moby, 0, -1);
@@ -1914,25 +1907,25 @@ void FUN_L07_00319040(struct Moby *moby) {
     switch (moby->state) {
     case 0:
         moby->flags |= 0x1000;
-        qcopy(vars + 0x60, &moby->pos);
+        qcopy(&vars->home, &moby->pos);
         moby->collision = moby->pclass->collision;
         moby->state = 1;
         break;
     case 1:
         timer = scale_ticks(600);
         turn = D_0015ED6C * 6.2831855f;
-        *(s32 *)(vars + 0x78) = timer;
+        vars->timeout = timer;
         moby->rot.z = FUN_001fa580(moby->rot.z, turn);
-        if ((*(struct Moby **)(vars + 0x38) != NULL &&
-             FUN_001f9b80(&moby->pos, &(*(struct Moby **)(vars + 0x38))->pos) < 20.0f &&
-             FUN_001f99c0(moby->pos.z - (*(struct Moby **)(vars + 0x38))->pos.z) < 3.0f) ||
+        if ((vars->target != NULL &&
+             FUN_001f9b80(&moby->pos, &(vars->target)->pos) < 20.0f &&
+             FUN_001f99c0(moby->pos.z - (vars->target)->pos.z) < 3.0f) ||
             (*(s32 *)(sight + 0x40) != 0 && FUN_001f9b48(&moby->pos, sight) < 8.0f)) {
-            *(f32 *)(vars + 0x70) = 0.0f;
-            *(s32 *)(vars + 0x78) = scale_ticks(600);
+            vars->speed = 0.0f;
+            vars->timeout = scale_ticks(600);
             moby->command = 1;
-            *(s32 *)(vars + 0x7c) = scale_ticks(7);
+            vars->bob_timer = scale_ticks(7);
             moby->state = 3;
-            if (*(s32 *)(vars + 0x74) != -1) FUN_L01_0026e0e0(*(s32 *)(vars + 0x74), 2);
+            if (vars->sound != -1) FUN_L01_0026e0e0(vars->sound, 2);
             moby->state = 2;
         }
         break;
@@ -1944,52 +1937,47 @@ void FUN_L07_00319040(struct Moby *moby) {
             FUN_00212f90(moby, 2, 0, 10);
         }
         speed = frame_time_sq;
-        new_speed = *(f32 *)(vars + 0x70) + speed * 30.0f;
+        new_speed = vars->speed + speed * 30.0f;
         max_speed = D_0015ED6C * 6.0f;
-        *(f32 *)(vars + 0x70) = new_speed;
+        vars->speed = new_speed;
         if (max_speed < new_speed)
-            *(f32 *)(vars + 0x70) = max_speed;
+            vars->speed = max_speed;
         if (moby->command == 1) {
             moby->pos.z += frame_scale * 0.1f;
-            if (tick_countdown_32_alt((s32 *)(vars + 0x7c))) {
-                *(s32 *)(vars + 0x7c) = scale_ticks(7);
+            if (tick_countdown_32_alt(&vars->bob_timer)) {
+                vars->bob_timer = scale_ticks(7);
                 moby->command = 2;
             }
         } else if (moby->command == 2) {
             moby->pos.z -= frame_scale * 0.1f;
-            if (tick_countdown_32_alt((s32 *)(vars + 0x7c))) moby->command = 0;
+            if (tick_countdown_32_alt(&vars->bob_timer)) moby->command = 0;
         }
         subtract_vector_xyz(&dir, sight, &moby->pos);
-        normalize_vector_xyz(&dir, &dir, *(f32 *)(vars + 0x70));
+        normalize_vector_xyz(&dir, &dir, vars->speed);
         add_vector_xyz(&moby->pos, &moby->pos, &dir);
-        if (!(FUN_001f9b48(&moby->pos, vars + 0x60) > 64.0f)) {
-            /* Keep the descriptor scale available across the contact probe. */
-            *(s32 *)&one = 0x3f800000;
-            stable_one = one.value;
-            make_hit_descriptor_19040(contact, moby, 0x10001, stable_one, &dir);
-            qcopy(&probe, &moby->pos);
-            probe.f[2] += 0.75f;
-            if (!(!probe_world_sphere(0.75f, &probe, 0x10, moby, contact) ||
-                D_L07_00173ED8 == NULL || D_L07_00173ED8->oclass == 0x363 ||
-                D_L07_00173ED8->oclass == 0x456 || D_L07_00173ED8->oclass == 0x458 ||
-                D_L07_00173ED8->oclass == 0x365 || D_L07_00173ED8->oclass == 0x367)) {
-                /* The saved descriptor scale is exactly 1.0f; its difference is +0.0f. */
-                effect_scale = stable_one;
-                turn = stable_one - stable_one;
-            } else {
-                qcopy(&probe, &moby->pos);
-                probe.f[2] += 0.55f;
-                if (coll_sphere(0.55f, &probe, 0, moby)) {
-                    subtract_vector_xyz(&push, &D_L07_00173EF0, &probe);
-                    add_vector_xyz(&moby->pos, &moby->pos, &push);
-                }
-                if (!tick_countdown_32_alt((s32 *)(vars + 0x78))) break;
-                /* Reload the IEEE-754 effect scale on timeout. */
-                *(s32 *)&effect_scale = 0x3f800000;
-                turn = 0.0f;
-            }
-            FUN_L00_0025e450(moby, &dir, NULL, turn, turn, 3, 3, 5, 2.0f, effect_scale, 4.0f, effect_scale, 2, 7.0f, 0, 1, -1, 0);
+        if (FUN_001f9b48(&moby->pos, &vars->home) > 64.0f) {
+            mark_moby_for_removal(moby);
+            return;
         }
+        make_hit_descriptor_19040(contact, moby, 0x10001, 1.0f, &dir);
+        qcopy(&probe, &moby->pos);
+        probe.f[2] += 0.75f;
+        if (probe_world_sphere(0.75f, &probe, 0x10, moby, contact) &&
+            D_L07_00173ED8 != NULL && D_L07_00173ED8->oclass != 0x363 &&
+            D_L07_00173ED8->oclass != 0x456 && D_L07_00173ED8->oclass != 0x458 &&
+            D_L07_00173ED8->oclass != 0x365 && D_L07_00173ED8->oclass != 0x367) {
+            FUN_L00_0025e450(moby, &dir, NULL, 0.0f, 0.0f, 3, 3, 5, 2.0f, 1.0f, 4.0f, 1.0f, 2, 7.0f, 0, 1, -1, 0);
+            mark_moby_for_removal(moby);
+            return;
+        }
+        qcopy(&probe, &moby->pos);
+        probe.f[2] += 0.55f;
+        if (coll_sphere(0.55f, &probe, 0, moby)) {
+            subtract_vector_xyz(&push, &D_L07_00173EF0, &probe);
+            add_vector_xyz(&moby->pos, &moby->pos, &push);
+        }
+        if (!tick_countdown_32_alt(&vars->timeout)) break;
+        FUN_L00_0025e450(moby, &dir, NULL, 0.0f, 0.0f, 3, 3, 5, 2.0f, 1.0f, 4.0f, 1.0f, 2, 7.0f, 0, 1, -1, 0);
         mark_moby_for_removal(moby);
         return;
     case 4:
@@ -1997,7 +1985,6 @@ void FUN_L07_00319040(struct Moby *moby) {
     }
     FUN_L00_00259fe8(moby, 0.7f);
 }
-#endif
 extern int scale_ticks(int) __asm__("FUN_001f96f8");
 extern void mark_moby_for_removal(void *) __asm__("FUN_0020c828");
 

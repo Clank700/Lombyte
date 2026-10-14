@@ -2583,280 +2583,381 @@ void FUN_L00_002d5988(Obj_2d5988 *o, Path_2d5988 *path, s32 p) {
         }
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002d5de8.s", FUN_L00_002d5de8);
-#else
-extern u8 level_available[] __asm__("D_0013DD40");
-extern u8 *D_0015FFD8_2d3a10 __asm__("D_L00_0015FFD8") __attribute__((sda));
-extern u8 *D_L00_001600EC_2d5de8 __asm__("D_L00_001600EC") __attribute__((sda));
-extern s32 D_15F5C4_2d6cd0 __asm__("D_L00_0015F5C4");
-void mark_moby_for_removal() __asm__("FUN_0020c828");
-void FUN_L00_002d6bf0();
-void FUN_L00_002d6cd0(char *);
-void FUN_L00_00266858(void *, s32);
-void FUN_L00_002607d0(s32);
-void FUN_L00_002502a0(s32);
-void FUN_L00_00284e50(void *, void *);
-void FUN_L00_00262d38(s32);
-void FUN_L00_00298840_2d5de8(s32) __asm__("FUN_L00_00298840");
-void FUN_L00_00299460_2d5de8(s32) __asm__("FUN_L00_00299460");
-void FUN_0024d430_2d5de8(s32, s32) __asm__("FUN_0020b178");
-#define IV5(p, o) (*(s32 *)((u8 *)(p) + (o)))
-#define FV5(p, o) (*(f32 *)((u8 *)(p) + (o)))
+#include "types.h"
+#include "sda.h"
+#include "rnc/gameplay/entities/moby.h"
 
-/* Retail treats vars+0x5C/0x60/0xA4 and path segment lengths as floats.
- * State 1 and out-of-range states still run the common attachment update. */
-void FUN_L00_002d5de8(struct Moby *m) {
-    Vec4_2d5988 offset, delta, point;
-    struct { s32 idx; f32 t[3]; } sample;
-    u8 *v;
-    u8 *path, *first, *second, *length, *other;
-    s32 i, j;
-    s32 *paths;
-    f32 radius, angle, d, speed, step, progress, x, y, timing;
+/* Infobot (class 750) update: flies the path set D_L00_001B04B0 between
+   planets, then plays the unlock sequence. */
+
+typedef union {
+    u128 q;
+    f32 f[4];
+    struct {
+        f32 x, y, z, w;
+    } v;
+} Vec;
+
+/* The moby position, read and written as one quadword. */
+#define MPOS(m) ((Vec *)&(m)->pos)
+
+typedef struct {
+    s32 count;
+    u8 pad4[0xC];
+    Vec pts[1]; /* pts[i].v.w: length of segment i */
+} Path;
+
+typedef struct {
+    s32 arrived;    /* 0x00 */
+    s32 planet;     /* 0x04 */
+    s32 cutscene;   /* 0x08 */
+    s8 msg0;        /* 0x0C */
+    s8 msg1;        /* 0x0D */
+    s8 msg2;        /* 0x0E */
+    u8 pad0F[0x41];
+    s32 attach;     /* 0x50 */
+    s32 carrier;    /* 0x54 */
+    s32 path;       /* 0x58 */
+    f32 bob;        /* 0x5C */
+    f32 speed;      /* 0x60 */
+    f32 spin[3];    /* 0x64: x, y, z turn rates */
+    s32 slots[8];   /* 0x70 */
+    u8 pad90[0x14];
+    f32 sway;       /* 0xA4 */
+    s32 seg;        /* 0xA8 */
+    f32 yaw;        /* 0xAC */
+    s32 waiting;    /* 0xB0 */
+    u8 padB4[0xC];
+    u128 home;      /* 0xC0 */
+} Infobot;
+
+typedef struct {
+    Vec pos;
+    u8 pad10[0x2218];
+    s32 active;     /* 0x2228 */
+} Player;
+
+typedef struct {
+    u8 pad0[0x80];
+    Vec target;     /* 0x80 */
+} Camera;
+
+typedef struct {
+    u8 pad0[0x30];
+    Vec pos;        /* 0x30 */
+    u8 pad40[0x30];
+    Vec dir;        /* 0x70 */
+} Cutscene;         /* 0x80 */
+
+extern Path *D_L00_001B04B0[];
+extern u8 level_available[] __asm__("D_0013DD40");
+extern Player D_0013F3D0;
+extern Camera D_0013F350;
+extern f32 D_0015ED6C;
+extern f32 D_0015ED70;
+extern s32 D_L00_0015F5C4;
+extern struct Moby *D_L00_0015FFD8;   /* the level's moby array */
+extern Cutscene *D_L00_001600EC_2d5de8 __asm__("D_L00_001600EC");
+
+extern void FUN_L00_002d6bf0_2d5de8(struct Moby *) __asm__("FUN_L00_002d6bf0");
+extern void FUN_L00_002d6cd0_2d5de8(struct Moby *) __asm__("FUN_L00_002d6cd0");
+extern void FUN_L00_002d5988_2d5de8(struct Moby *, Path *, s32) __asm__("FUN_L00_002d5988");
+extern f32 FUN_001f9b48(void *, void *);
+extern void FUN_001f9a10(void *, void *, void *);
+extern void FUN_001f9a28(void *, void *, void *);
+extern void FUN_001f9a68(void *, void *, f32);
+extern void FUN_001f9bf8(void *, void *, f32);
+extern f32 FUN_001f9af0(void *);
+extern f32 FUN_001f9e90(f32, f32);
+extern f32 FUN_001f9dc8(f32);
+extern f32 FUN_001f9de0(f32);
+extern f32 FUN_001fa580(f32, f32);
+extern f32 FUN_001fa5c8(f32, f32);
+extern s32 FUN_001fa6d0(f32);
+extern f32 FUN_001fa6c0(s32);
+extern f32 spring_turn_2d5de8(f32 angle, f32 target, f32 accel, f32 damping, f32 limit, f32 *speed) __asm__("FUN_L00_00258110");
+extern void FUN_L00_0025df68(Path *, void *, void *, s32 *, f32 *, s32, f32, f32, f32);
+extern s32 FUN_L00_00260400(struct Moby *, struct Moby *, void *, void *, void *, void *);
+extern void FUN_L00_002607d0(s32);
+extern void FUN_L00_002502a0(s32);
+extern void FUN_L00_00284e50(void *, void *);
+extern void FUN_L00_00298840(s32);
+extern void FUN_L00_00299460(s32);
+extern void FUN_L00_00262d38(s32);
+extern void FUN_L00_00266858(struct Moby *, s32);
+extern void FUN_0020b178(s32, s32);
+extern void FUN_0020c828(struct Moby *);
+
+/* Store each segment's length in its start point's w. */
+static inline void measure_path(Path *path) {
+    s32 j;
+
+    for (j = 0; j < path->count - 2; j++) {
+        path->pts[j].v.w = FUN_001f9b48(&path->pts[j], &path->pts[j + 1]);
+    }
+}
+
+void FUN_L00_002d5de8(struct Moby *moby)
+{
+    Vec offset;
+    Vec step;
+    Vec point;
+    s32 segment;
+    f32 fraction;
+    Infobot *infobot;
+    Path *path;
+    Vec *pos;
+    struct Moby *carrier;
+    Cutscene *scene;
+    s32 i;
+    f32 range;
+    f32 distance;
+    f32 end;
+    f32 accel;
+    f32 speed;
+    f32 heading;
+    f32 tilt_y;
+    f32 tilt_x;
+    f32 max_speed;
+
     offset.q = 0;
-    v = *(u8 **)((u8 *)m + 0x78);
-    switch (m->state) {
+    infobot = (Infobot *)moby->pvars;
+    switch (moby->state) {
     case 0:
-        ((u8 *)m)[0x30] = 0xff;
-        FV5(v, 0xac) = FV5(m, 0x48);
-        *(u128_2d5988 *)(v + 0xc0) = *(u128_2d5988 *)((u8 *)m + 0x10);
-        if (IV5(v, 0) != 0) {
-            m->state = 2;
-            FUN_L00_002d6bf0(m);
+        moby->update_dist = 0xFF;
+        infobot->yaw = moby->rot.z;
+        infobot->home = MPOS(moby)->q;
+        if (infobot->arrived != 0) {
+            moby->state = 2;
+            FUN_L00_002d6bf0_2d5de8(moby);
         } else {
-            m->state = IV5(v, 0xb0) == 0 ? 1 : 2;
-            *(u16 *)((u8 *)m + 0x34) |= 0x41;
+            if (infobot->waiting != 0) {
+                moby->state = 2;
+            } else {
+                moby->state = 1;
+            }
+            moby->flags |= 0x41;
         }
-        if (IV5(v, 0x50) != -1) {
-            m->state = 5;
-            FUN_L00_002d6bf0(m);
+        if (infobot->attach != -1) {
+            moby->state = 5;
+            FUN_L00_002d6bf0_2d5de8(moby);
             break;
         }
-        i = 0;
-        if (IV5(v, 0x70) != -1) {
-            paths = (s32 *)(v + 0x70);
-            do {
-                if (paths[i] != -1) {
-                    path = D_L00_001B04B0_2d0538[paths[i]];
-                    j = 0;
-                    if (0 < IV5(path, 0) - 2) {
-                        length = path + 0x1c;
-                        second = path + 0x20;
-                        first = path + 0x10;
-                        do {
-                            FV5(length, 0) = distance_xyz(first, second);
-                            j++;
-                            second += 16; length += 16; first += 16;
-                        } while (j < IV5(path, 0) - 2);
-                    }
-                }
-                i++;
-            } while (i < 8);
-            path = D_L00_001B04B0_2d0538[IV5(v, 0x70)];
-            *(u128_2d5988 *)((u8 *)m + 0x10) = *(u128_2d5988 *)(path + 0x10);
-            IV5(v, 0xa8) = 0;
-            m->state = 3;
+        if (infobot->slots[0] == -1) {
+            break;
         }
+        for (i = 0; i < 8; i++) {
+            if (infobot->slots[i] == -1) {
+                continue;
+            }
+            measure_path(D_L00_001B04B0[infobot->slots[i]]);
+        }
+        MPOS(moby)->q = D_L00_001B04B0[infobot->slots[0]]->pts[0].q;
+        infobot->seg = 0;
+        moby->state = 3;
+        break;
+    case 1:
         break;
     case 2:
-        radius = 1.0f;
-        if (IV5(v, 0xb0) != 0 && (*(u16 *)((u8 *)m + 0x34) & 1)) radius = 3.0f;
-        if (IV5(v, 4) == 12) radius = 3.0f;
-        d = turn_f((f32 *)(v + 0x6c), FV5(m, 0x48), FV5(v, 0xac), 0.01f, 0.3f, 0.1f);
-        step = frame_time_sq;
-        speed = frame_time;
-        x = step * 1.0471976f;
-        y = step * 0.5235988f;
-        progress = speed * 0.7853982f;
-        FV5(m, 0x48) = d;
-        d = turn_f((f32 *)(v + 0x68), FV5(m, 0x44), 0.0f, y, x, progress);
-        step = frame_time_sq;
-        speed = frame_time;
-        x = step * 1.0471976f;
-        y = step * 2.0943952f;
-        progress = speed * 1.5707964f;
-        FV5(m, 0x44) = d;
-        FV5(m, 0x40) = turn_f((f32 *)(v + 0x64), FV5(m, 0x40), 0.0f, x, y, progress);
-        FUN_L00_002d6cd0((char *)m);
-        if (level_available[IV5(v, 4)]) goto remove;
-        if (distance_xyz(&hero.motion.pos, (u8 *)m + 0x10) < radius && hero.health.hp) m->state = 8;
+        range = 1.0f;
+        if (infobot->waiting != 0 && (moby->flags & 1)) {
+            range = 3.0f;
+        }
+        if (infobot->planet == 0xC) {
+            range = 3.0f;
+        }
+        moby->rot.z = spring_turn_2d5de8(moby->rot.z, infobot->yaw, 0.01f, 0.3f, 0.1f, &infobot->spin[2]);
+        moby->rot.y = spring_turn_2d5de8(moby->rot.y, 0.0f, D_0015ED70 * 0.5235988f, D_0015ED70 * 1.0471976f, D_0015ED6C * 0.7853982f, &infobot->spin[1]);
+        moby->rot.x = spring_turn_2d5de8(moby->rot.x, 0.0f, D_0015ED70 * 1.0471976f, D_0015ED70 * 2.0943952f, D_0015ED6C * 1.5707964f, &infobot->spin[0]);
+        FUN_L00_002d6cd0_2d5de8(moby);
+        if (level_available[infobot->planet] != 0) {
+            FUN_0020c828(moby);
+            return;
+        }
+        if (FUN_001f9b48(&D_0013F3D0, &moby->pos) < range && D_0013F3D0.active != 0) {
+            moby->state = 8;
+        }
         break;
     case 3:
-        FUN_L00_002d6cd0((char *)m);
-        if (level_available[IV5(v, 4)]) goto remove;
-        if (IV5(v, 0x70 + IV5(v, 0xa8) * 4) == -1) {
-            m->state = 2;
-        } else {
-            angle = angle_atan2(hero.motion.pos.f[0] - FV5(m, 0x10), hero.motion.pos.f[1] - FV5(m, 0x14));
-            d = turn_f((f32 *)(v + 0x6c), FV5(m, 0x48), angle, 0.01f, 0.3f, 0.1f);
-            step = frame_time_sq;
-            speed = frame_time;
-            x = step * 1.0471976f;
-            y = step * 0.5235988f;
-            progress = speed * 0.7853982f;
-            FV5(m, 0x48) = d;
-            d = turn_f((f32 *)(v + 0x68), FV5(m, 0x44), 0.0f, y, x, progress);
-            step = frame_time_sq;
-            speed = frame_time;
-            x = step * 1.0471976f;
-            y = step * 2.0943952f;
-            progress = speed * 1.5707964f;
-            FV5(m, 0x44) = d;
-            FV5(m, 0x40) = turn_f((f32 *)(v + 0x64), FV5(m, 0x40), 0.0f, x, y, progress);
-            if (distance_xyz(&hero.motion.pos, (u8 *)m + 0x10) < 8.0f) {
-                m->state = 4;
-                FUN_L00_00266858(m, 1);
-            }
+        FUN_L00_002d6cd0_2d5de8(moby);
+        if (level_available[infobot->planet] != 0) {
+            FUN_0020c828(moby);
+            return;
+        }
+        if (infobot->slots[infobot->seg] == -1) {
+            moby->state = 2;
+            break;
+        }
+        heading = FUN_001f9e90(D_0013F350.target.v.x - moby->pos.x, D_0013F350.target.v.y - moby->pos.y);
+        moby->rot.z = spring_turn_2d5de8(moby->rot.z, heading, 0.01f, 0.3f, 0.1f, &infobot->spin[2]);
+        moby->rot.y = spring_turn_2d5de8(moby->rot.y, 0.0f, D_0015ED70 * 0.5235988f, D_0015ED70 * 1.0471976f, D_0015ED6C * 0.7853982f, &infobot->spin[1]);
+        moby->rot.x = spring_turn_2d5de8(moby->rot.x, 0.0f, D_0015ED70 * 1.0471976f, D_0015ED70 * 2.0943952f, D_0015ED6C * 1.5707964f, &infobot->spin[0]);
+        if (FUN_001f9b48(&D_0013F350.target, &moby->pos) < 8.0f) {
+            moby->state = 4;
+            FUN_L00_00266858(moby, 1);
         }
         break;
     case 4:
-        FUN_L00_002d5988((Obj_2d5988 *)m, (Path_2d5988 *)D_L00_001B04B0_2d0538[IV5(v, 0x70 + IV5(v, 0xa8) * 4)], 3);
-        FUN_L00_002d6cd0((char *)m);
-        if (m->state != 4) IV5(v, 0xa8)++;
+        FUN_L00_002d5988_2d5de8(moby, D_L00_001B04B0[infobot->slots[infobot->seg]], 3);
+        FUN_L00_002d6cd0_2d5de8(moby);
+        if (moby->state != 4) {
+            infobot->seg++;
+        }
         break;
     case 5:
-        FUN_L00_002d6cd0((char *)m);
-        if (level_available[IV5(v, 4)]) goto remove;
-        FV5(v, 0x5c) = FUN_001fa580_2d54c8(FV5(v, 0x5c), frame_time * 3.1415927f);
-        offset.f[0] = fast_cos(FV5(v, 0x5c));
-        offset.f[1] = fast_sin(FV5(v, 0x5c));
-        offset.f[2] = 3.0f;
-        FV5(m, 0x48) = FUN_001fa580_2d54c8(FV5(v, 0x5c), 1.5707964f);
-        if (IV5(v, 0x54) == -1) break;
-        other = D_0015FFD8_2d3a10 + IV5(v, 0x54) * 256;
-        if (*(s16 *)(other + 0xa6) != 0x336 || other[0xbc] != 6 || IV5(v, 0x58) == -1) break;
-        m->state = 6;
-        IV5(v, 0x50) = -1;
-        path = D_L00_001B04B0_2d0538[IV5(v, 0x58)];
-        *(u128_2d5988 *)((u8 *)m + 0x10) = *(u128_2d5988 *)(path + 0x10);
-        path = D_L00_001B04B0_2d0538[IV5(v, 0x58)];
-        FV5(m, 0x48) = angle_atan2(FV5(path, 0x20) - FV5(path, 0x10), FV5(path, 0x24) - FV5(path, 0x14));
-        path = D_L00_001B04B0_2d0538[IV5(v, 0x58)];
-        j = 0;
-        length = path + 0x1c;
-        if (0 < IV5(path, 0) - 2) {
-            second = path + 0x20; first = path + 0x10;
-            do {
-                FV5(length, 0) = distance_xyz(first, second);
-                j++;
-                second += 16; length += 16; first += 16;
-            } while (j < IV5(path, 0) - 2);
+        FUN_L00_002d6cd0_2d5de8(moby);
+        if (level_available[infobot->planet] != 0) {
+            FUN_0020c828(moby);
+            return;
         }
+        infobot->bob = FUN_001fa580(infobot->bob, D_0015ED6C * 3.1415927f);
+        offset.v.x = FUN_001f9dc8(infobot->bob);
+        offset.v.y = FUN_001f9de0(infobot->bob);
+        offset.v.z = 3.0f;
+        moby->rot.z = FUN_001fa580(infobot->bob, 1.5707964f);
+        if (infobot->carrier == -1) {
+            break;
+        }
+        if (D_L00_0015FFD8[infobot->carrier].oclass != 0x336) {
+            break;
+        }
+        if (D_L00_0015FFD8[infobot->carrier].command != 6) {
+            break;
+        }
+        if (infobot->path == -1) {
+            break;
+        }
+        moby->state = 6;
+        infobot->attach = -1;
+        MPOS(moby)->q = D_L00_001B04B0[infobot->path]->pts[0].q;
+        moby->rot.z = FUN_001f9e90(D_L00_001B04B0[infobot->path]->pts[1].v.x - D_L00_001B04B0[infobot->path]->pts[0].v.x,
+                                D_L00_001B04B0[infobot->path]->pts[1].v.y - D_L00_001B04B0[infobot->path]->pts[0].v.y);
+        measure_path(D_L00_001B04B0[infobot->path]);
         break;
-    case 6: {
-        u8 *path;
-        path = D_L00_001B04B0_2d0538[IV5(v, 0x58)];
-        FUN_L00_002d6cd0((char *)m);
-        FUN_L00_0025df68_2d5988(path, (u8 *)m + 0x10, &point, &sample.idx, sample.t, 0, 999.0f, 5.0f, 0.0f);
-        progress = convert_integer_to_float(sample.idx) * FV5(path, 0x1c) + sample.t[0] + 2.0f;
-        d = distance_xyz((u8 *)m + 0x10, path + IV5(path, 0) * 16);
-        speed = FV5(v, 0x60);
-        step = frame_time_sq * 16.0f;
-        if (d <= (speed * speed) / (step + step)) {
-            FV5(v, 0x60) = speed - step;
-            if (speed - step < 0.0f) FV5(v, 0x60) = 0.0f;
+    case 6:
+        path = D_L00_001B04B0[infobot->path];
+        pos = (Vec *)&moby->pos;
+        FUN_L00_002d6cd0_2d5de8(moby);
+        FUN_L00_0025df68(path, pos, &point, &segment, &fraction, 0, 999.0f, 5.0f, 0.0f);
+        end = FUN_001fa6c0(segment) * path->pts[0].v.w + fraction + 2.0f;
+        distance = FUN_001f9b48(pos, &path->pts[path->count - 1]);
+        accel = D_0015ED70 * 16.0f;
+        speed = infobot->speed;
+        if (distance <= speed * speed / (accel + accel)) {
+            infobot->speed = speed - accel;
+            if (speed - accel < 0.0f) {
+                infobot->speed = 0.0f;
+            }
         } else {
-            FV5(v, 0x60) = speed + step;
-            if (frame_time * 16.0f < speed + step) FV5(v, 0x60) = frame_time * 16.0f;
+            max_speed = D_0015ED6C * 16.0f;
+            infobot->speed = speed + accel;
+            if (max_speed < speed + accel) {
+                infobot->speed = max_speed;
+            }
         }
-        sample.idx = truncate_float_to_s32(progress / FV5(path, 0x1c));
-        sample.t[0] = (progress - convert_integer_to_float(sample.idx) * FV5(path, 0x1c)) / FV5(path, 0x1c);
-        if (sample.idx >= IV5(path, 0) - 1) {
-            if (FV5(v, 0x60) <= frame_time_sq * 16.0f) {
-                m->state = 7;
-                *(u128_2d5988 *)((u8 *)m + 0x10) = *(u128_2d5988 *)(path + IV5(path, 0) * 16);
+        segment = FUN_001fa6d0(end / path->pts[0].v.w);
+        fraction = (end - FUN_001fa6c0(segment) * path->pts[0].v.w) / path->pts[0].v.w;
+        if (segment >= path->count - 1) {
+            if (infobot->speed <= D_0015ED70 * 16.0f) {
+                MPOS(moby)->q = ((Vec *)path)[path->count].q;
+                moby->state = 7;
                 break;
             }
-            sample.idx = IV5(path, 0) - 2;
-            sample.t[0] = 1.0f;
+            segment = path->count - 2;
+            fraction = 1.0f;
         }
-        subtract_vector_xyz(&point, path + sample.idx * 16 + 0x20, path + sample.idx * 16 + 0x10);
-        scale_vector_xyz(&point, &point, sample.t[0]);
-        add_vector_xyz(&point, &point, path + sample.idx * 16 + 0x10);
-        angle = angle_atan2(FV5(path, (sample.idx + 1) * 16 + 0x10) - FV5(path, sample.idx * 16 + 0x10), FV5(path, (sample.idx + 1) * 16 + 0x14) - FV5(path, sample.idx * 16 + 0x14));
-        FV5(m, 0x48) = turn_f((f32 *)(v + 0x6c), FV5(m, 0x48), angle, 0.01f, 0.3f, 0.1f);
-        subtract_vector_xyz(&delta, &point, (u8 *)m + 0x10);
-        d = vector_length_xyz(&delta);
-        if (FV5(v, 0x60) < d) d = FV5(v, 0x60);
-        normalize_vector_xyz(&delta, &delta, d);
-        add_vector_xyz((u8 *)m + 0x10, (u8 *)m + 0x10, &delta);
-        angle = FUN_001fa5c8_2d5988(angle_atan2(delta.f[0], delta.f[1]), FV5(m, 0x48));
-        x = (FV5(v, 0x60) * 0.34906584f * fast_cos(angle)) / (frame_time * 16.0f);
-        y = (FV5(v, 0x60) * -0.34906584f * fast_sin(angle)) / (frame_time * 16.0f);
-        FV5(m, 0x44) = turn_f((f32 *)(v + 0x68), FV5(m, 0x44), x, frame_time_sq * 0.5235988f, frame_time_sq * 1.0471976f, frame_time * 0.7853982f);
-        FV5(m, 0x40) = turn_f((f32 *)(v + 0x64), FV5(m, 0x40), y, frame_time_sq * 1.0471976f, frame_time_sq * 2.0943952f, frame_time * 1.5707964f);
+        FUN_001f9a28(&point, &path->pts[segment + 1], &path->pts[segment]);
+        FUN_001f9a68(&point, &point, fraction);
+        FUN_001f9a10(&point, &point, &path->pts[segment]);
+        heading = FUN_001f9e90(path->pts[segment + 1].v.x - path->pts[segment].v.x,
+                         path->pts[segment + 1].v.y - path->pts[segment].v.y);
+        moby->rot.z = spring_turn_2d5de8(moby->rot.z, heading, 0.01f, 0.3f, 0.1f, &infobot->spin[2]);
+        pos = &step;
+        FUN_001f9a28(pos, &point, MPOS(moby));
+        distance = FUN_001f9af0(pos);
+        if (infobot->speed < distance) {
+            distance = infobot->speed;
+        }
+        FUN_001f9bf8(pos, pos, distance);
+        FUN_001f9a10(MPOS(moby), MPOS(moby), pos);
+        heading = FUN_001fa5c8(FUN_001f9e90(step.v.x, step.v.y), moby->rot.z);
+        tilt_y = infobot->speed * 0.34906584f * FUN_001f9dc8(heading) / (D_0015ED6C * 16.0f);
+        tilt_x = infobot->speed * -0.34906584f * FUN_001f9de0(heading) / (D_0015ED6C * 16.0f);
+        moby->rot.y = spring_turn_2d5de8(moby->rot.y, tilt_y, D_0015ED70 * 0.5235988f, D_0015ED70 * 1.0471976f, D_0015ED6C * 0.7853982f, &infobot->spin[1]);
+        moby->rot.x = spring_turn_2d5de8(moby->rot.x, tilt_x, D_0015ED70 * 1.0471976f, D_0015ED70 * 2.0943952f, D_0015ED6C * 1.5707964f, &infobot->spin[0]);
         break;
-    }
     case 7: {
-        u8 *path;
-        path = D_L00_001B04B0_2d0538[IV5(v, 0x58)];
-        FUN_L00_002d6cd0((char *)m);
-        FV5(v, 0xa4) += frame_time;
-        if (1.0f < FV5(v, 0xa4)) FV5(v, 0xa4) = 1.0f;
-        FV5(v, 0x5c) = FUN_001fa580_2d54c8(FV5(v, 0x5c), frame_time * 3.1415927f);
-        offset.f[0] = fast_cos(FV5(v, 0x5c)) * FV5(v, 0xa4);
-        offset.f[1] = fast_sin(FV5(v, 0x5c)) * FV5(v, 0xa4);
-        offset.f[2] = 0.0f;
-        angle = FUN_001fa580_2d54c8(FV5(v, 0x5c), 1.5707964f);
-        FV5(m, 0x48) = turn_f((f32 *)(v + 0x6c), FV5(m, 0x48), angle, frame_time * 25.132742f, frame_time * 25.132742f, frame_time * 12.566371f);
-        add_vector_xyz(&delta, &offset, path + IV5(path, 0) * 16);
-        *(u128_2d5988 *)((u8 *)m + 0x10) = delta.q;
-        d = distance_xyz(&hero.motion.pos, path + IV5(path, 0) * 16);
-        timing = frame_time_sq;
-        if (d < 2.0f && hero.health.hp) {
-            m->state = 8;
-            timing = frame_time_sq;
+        Path *p = D_L00_001B04B0[infobot->path];
+        FUN_L00_002d6cd0_2d5de8(moby);
+        infobot->sway = infobot->sway + D_0015ED6C;
+        if (1.0f < infobot->sway) {
+            infobot->sway = 1.0f;
         }
-        FV5(m, 0x44) = turn_f((f32 *)(v + 0x68), FV5(m, 0x44), 0.0f, timing * 0.5235988f, timing * 1.0471976f, frame_time * 0.7853982f);
-        FV5(m, 0x40) = turn_f((f32 *)(v + 0x64), FV5(m, 0x40), 0.0f, frame_time_sq * 1.0471976f, frame_time_sq * 2.0943952f, frame_time * 1.5707964f);
+        infobot->bob = FUN_001fa580(infobot->bob, D_0015ED6C * 3.1415927f);
+        offset.v.x = FUN_001f9dc8(infobot->bob) * infobot->sway;
+        offset.v.y = FUN_001f9de0(infobot->bob) * infobot->sway;
+        offset.v.z = 0.0f;
+        heading = FUN_001fa580(infobot->bob, 1.5707964f);
+        moby->rot.z = spring_turn_2d5de8(moby->rot.z, heading, D_0015ED6C * 25.132742f, D_0015ED6C * 25.132742f, D_0015ED6C * 12.566371f, &infobot->spin[2]);
+        FUN_001f9a10(&step, &offset, &p->pts[p->count - 1]);
+        MPOS(moby)->q = step.q;
+        if (FUN_001f9b48(&D_0013F3D0, &p->pts[p->count - 1]) < 2.0f && D_0013F3D0.active != 0) {
+            moby->state = 8;
+        }
+        moby->rot.y = spring_turn_2d5de8(moby->rot.y, 0.0f, D_0015ED70 * 0.5235988f, D_0015ED70 * 1.0471976f, D_0015ED6C * 0.7853982f, &infobot->spin[1]);
+        moby->rot.x = spring_turn_2d5de8(moby->rot.x, 0.0f, D_0015ED70 * 1.0471976f, D_0015ED70 * 2.0943952f, D_0015ED6C * 1.5707964f, &infobot->spin[0]);
         break;
     }
     case 8:
-        *(u16 *)((u8 *)m + 0x34) |= 0x41;
-        FUN_L00_002607d0(IV5(v, 4));
-        FUN_L00_002502a0(((u8 *)m)[0xb0]);
-        if (IV5(v, 8) != -1) {
-            other = D_L00_001600EC_2d5de8 + IV5(v, 8) * 128;
-            FUN_L00_00284e50(other + 0x30, other + 0x70);
+        moby->flags |= 0x41;
+        FUN_L00_002607d0(infobot->planet);
+        FUN_L00_002502a0(moby->mission);
+        if (infobot->cutscene != -1) {
+            FUN_L00_00284e50(&D_L00_001600EC_2d5de8[infobot->cutscene].pos, &D_L00_001600EC_2d5de8[infobot->cutscene].dir);
         }
-        m->state = 9;
-        if ((s8)v[0xc] != -1) FUN_L00_00298840_2d5de8((s8)v[0xc]);
+        moby->state = 9;
+        if (infobot->msg0 != -1) {
+            FUN_L00_00298840(infobot->msg0);
+        }
         break;
     case 9:
-        if (D_15F5C4_2d6cd0 != 2) {
-            m->state = 10;
-            if ((s8)v[0xd] != -1) FUN_L00_00299460_2d5de8((s8)v[0xd]);
+        if (D_L00_0015F5C4 == 2) {
+            break;
+        }
+        moby->state = 10;
+        if (infobot->msg1 != -1) {
+            FUN_L00_00299460(infobot->msg1);
         }
         break;
     case 10:
-        if (D_15F5C4_2d6cd0 != 2) {
-            if ((s8)v[0xe] != -1) FUN_L00_00298840_2d5de8((s8)v[0xe]);
-            m->state = 11;
+        if (D_L00_0015F5C4 == 2) {
+            break;
         }
+        if (infobot->msg2 != -1) {
+            FUN_L00_00298840(infobot->msg2);
+        }
+        moby->state = 11;
         break;
     case 11:
-        if (D_15F5C4_2d6cd0 == 2) return;
-        FUN_0024d430_2d5de8(0, -1);
-        FUN_L00_00262d38(IV5(v, 4));
-remove:
-        mark_moby_for_removal(m);
+        if (D_L00_0015F5C4 == 2) {
+            return;
+        }
+        FUN_0020b178(0, -1);
+        FUN_L00_00262d38(infobot->planet);
+        FUN_0020c828(moby);
         return;
     }
-    if (IV5(v, 0x50) != -1 && IV5(v, 0x54) != -1) {
-        other = D_0015FFD8_2d3a10 + IV5(v, 0x54) * 256;
-        if (*(s16 *)(other + 0xa6) == 0x336) {
-            delta.q = 0;
-            first = D_L00_001600EC_2d5de8 + IV5(v, 0x50) * 128 + 0x30;
-            FUN_L00_00260400_2d0538(m, (s32)other, first, &delta, first, &delta);
-            add_vector_xyz(&point, &offset, D_L00_001600EC_2d5de8 + IV5(v, 0x50) * 128 + 0x30);
-            *(u128_2d5988 *)((u8 *)m + 0x10) = point.q;
+    if (infobot->attach != -1 && infobot->carrier != -1) {
+        carrier = &D_L00_0015FFD8[infobot->carrier];
+        if (carrier->oclass == 0x336) {
+            step.q = 0;
+            FUN_L00_00260400(moby, carrier, &D_L00_001600EC_2d5de8[infobot->attach].pos, &step,
+                             &D_L00_001600EC_2d5de8[infobot->attach].pos, &step);
+            FUN_001f9a10(&point, &offset, &D_L00_001600EC_2d5de8[infobot->attach].pos);
+            MPOS(moby)->q = point.q;
         }
     }
 }
-#undef IV5
-#undef FV5
-#endif
 typedef struct {
     u8 p0[0x10];
     f32 r[4];

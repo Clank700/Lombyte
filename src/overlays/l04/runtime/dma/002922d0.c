@@ -40,113 +40,74 @@ void FUN_L04_00292370(void *unused, char *arg) {
     *(float *)(arg + 0x1BC) = -1.5707964f;
     *(float *)(arg + 0x1C0) = 0.19634955f;
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L04_002923b8.s", FUN_L04_002923b8);
-#else
 extern char invalid_animation_message[] __asm__("D_L04_001DB360");
 extern char rig_size_message[] __asm__("D_L04_001DB3F0");
 extern void stub_printf() __asm__("FUN_001e93b0");
 extern void FUN_001f97b0(void);
-extern float animation_start_923b8(int, unsigned int) __asm__("FUN_L04_002418b0");
-extern float FUN_L04_00241910(int, unsigned int) __asm__("FUN_L04_00241910");
+extern float animation_start(int, int) __asm__("FUN_L04_002418b0");
+extern float animation_end(int, int) __asm__("FUN_L04_00241910");
 extern float FUN_001f96b0(float) __asm__("FUN_L04_001f1978");
-extern void transform_scaled_vertex_batch(char *, int, void *, char *) __asm__("FUN_0020cd48");
-extern void FUN_0020cca8(char *, int, void *);
+extern void transform_scaled_vertex_batch(struct Moby *m, int count, int *joints, void *out) __asm__("FUN_0020cd48");
+extern void get_joint_matrix(struct Moby *m, int joint, float *mtx) __asm__("FUN_0020cca8");
 extern float FUN_001f9e90(float, float);
-extern void attach_manipulator(char *, int, void *) __asm__("FUN_0020cb10");
+extern void attach_manipulator(struct Moby *m, int slot, LegRigManip *manip) __asm__("FUN_0020cb10");
 
-void FUN_L04_002923b8(char *arg0, char *arg1) {
+void FUN_L04_002923b8(struct Moby *moby, LegRig *rig) {
     int joints[6];
-    float transformed[16];
-    LegRigAnim **entry = (LegRigAnim **)(arg1 + 0x70);
-    int *current;
-    unsigned char i;
-    unsigned short j;
-    int offset;
-    char *record;
-    char *upper;
-    char *lower;
+    float matrix[4][4];
+    int i;
+    int j;
+    int k;
 
     for (i = 0; i < 13; i++) {
-        LegRigAnim **slot;
-        offset = i * 4;
-        slot = (LegRigAnim **)((char *)entry + offset);
-        if ((*slot)->id < 0) {
-            stub_printf(invalid_animation_message, i, *(short *)(arg0 + 0xa6));
+        if (rig->anims[i]->id < 0) {
+            stub_printf(invalid_animation_message, i, moby->oclass);
             FUN_001f97b0();
         }
-        (*slot)->start = animation_start_923b8((unsigned char)arg0[0x22], (*slot)->id);
-        (*slot)->len = FUN_L04_00241910((unsigned char)arg0[0x22], (*slot)->id) -
-                                                (*slot)->start;
-        if ((*slot)->len != 0.0f) {
-            j = 0;
-            do {
-                int offset = j * 4;
-                float difference;
-                float *current;
-                LegRigAnim *item = *slot;
-                float start = item->phase[1].from[j];
-                float end = item->phase[1].to[j];
-                current = &item->phase[1].span[j];
-                if (start <= end)
-                    difference = end - start;
-                else
-                    difference = (end + item->len) - start;
-                *current = difference;
-                item = *slot;
-                start = item->phase[0].from[j];
-                end = item->phase[0].to[j];
-                current = &item->phase[0].span[j];
-                if (start <= end)
-                    difference = end - start;
-                else
-                    difference = (end + item->len) - start;
-                *current = difference;
-                j++;
-            } while (j < 2);
-            slot = (LegRigAnim **)((char *)entry + offset);
-            (*slot)->rate = (*slot)->unk4 /
-                FUN_001f96b0((*slot)->len + (*slot)->len);
+        rig->anims[i]->start = animation_start(moby->class_slot, rig->anims[i]->id);
+        rig->anims[i]->len = animation_end(moby->class_slot, rig->anims[i]->id) - rig->anims[i]->start;
+        if (rig->anims[i]->len != 0.0f) {
+            for (j = 0; j < 2; j++) {
+                rig->anims[i]->phase[1].span[j] = rig->anims[i]->phase[1].from[j] <= rig->anims[i]->phase[1].to[j]
+                    ? rig->anims[i]->phase[1].to[j] - rig->anims[i]->phase[1].from[j]
+                    : rig->anims[i]->phase[1].to[j] + rig->anims[i]->len - rig->anims[i]->phase[1].from[j];
+                rig->anims[i]->phase[0].span[j] = rig->anims[i]->phase[0].from[j] <= rig->anims[i]->phase[0].to[j]
+                    ? rig->anims[i]->phase[0].to[j] - rig->anims[i]->phase[0].from[j]
+                    : rig->anims[i]->phase[0].to[j] + rig->anims[i]->len - rig->anims[i]->phase[0].from[j];
+            }
+            rig->anims[i]->rate = rig->anims[i]->unk4 / FUN_001f96b0(rig->anims[i]->len + rig->anims[i]->len);
         }
     }
-
-    joints[0] = (unsigned char)arg1[0xf0];
-    joints[1] = (unsigned char)arg1[0xf1];
-    joints[2] = (unsigned char)arg1[0x1a0];
-    joints[3] = (unsigned char)arg1[0x1a1];
-    joints[4] = (unsigned char)arg1[0xb4];
-    joints[5] = (unsigned char)arg1[0xb5];
-    transform_scaled_vertex_batch(arg0, 6, joints, arg1);
-
-    record = arg1;
-    do {
-        upper = record + 0x160;
-        lower = record + 0x120;
-        FUN_0020cca8(arg0, (unsigned char)record[0xf0], transformed);
-        *(int *)(record + 0x104) = 0;
-        *(int *)(record + 0xfc) = 0;
-        *(float *)(record + 0xf8) = FUN_001f9e90(transformed[4], transformed[5]);
-        if (((LegRigManip *)(record + 0x160))->attached == 0)
-            attach_manipulator(arg0, (unsigned char)record[0xf3], upper);
-        if (((LegRigManip *)(record + 0x120))->attached == 0)
-            attach_manipulator(arg0, (unsigned char)record[0xf2], lower);
-        record += 0xb0;
-    } while ((int)record < (int)(arg1 + 0x160));
-
-    *(short *)(arg1 + 0xee) = 0;
-    *(unsigned char *)(arg1 + 0xb7) = 0;
-    *(int *)(arg1 + 0xb8) = 0;
-    *(int *)(arg1 + 0xbc) = 0;
-    *(int *)(arg1 + 0xc0) = 0;
-    *(int *)(arg1 + 0xc8) = 0;
-    *(int *)(arg1 + 0xe8) = 0;
-    *(int *)(arg1 + 0xd8) = 0;
-    *(int *)(arg1 + 0xe4) = 0;
-    *(short *)(arg1 + 0xec) = 0;
-    *(unsigned char *)(arg1 + 0xb6) = 5;
+    joints[0] = rig->legs[0].joint;
+    joints[1] = rig->legs[0].joint2;
+    joints[2] = rig->legs[1].joint;
+    joints[3] = rig->legs[1].joint2;
+    joints[4] = rig->jointB4;
+    joints[5] = rig->jointB5;
+    transform_scaled_vertex_batch(moby, 6, joints, rig);
+    for (k = 0; k < 2; k++) {
+        get_joint_matrix(moby, rig->legs[k].joint, matrix[0]);
+        rig->legs[k].upper_turn = 0;
+        rig->legs[k].lower_turn = 0;
+        rig->legs[k].yaw = FUN_001f9e90(matrix[1][0], matrix[1][1]);
+        if (rig->legs[k].manip_b.attached == 0)
+            attach_manipulator(moby, rig->legs[k].slot_b, &rig->legs[k].manip_b);
+        if (rig->legs[k].manip_a.attached == 0)
+            attach_manipulator(moby, rig->legs[k].slot_a, &rig->legs[k].manip_a);
+    }
+    rig->unkEE = 0;
+    rig->unkB7 = 0;
+    rig->unkB8 = 0;
+    rig->unkBC = 0;
+    rig->speed = 0.0f;
+    rig->unkC8 = 0;
+    rig->unkE8 = 0;
+    rig->unkD8 = 0;
+    rig->unkE4 = 0;
+    rig->unkEC = 0;
+    rig->mode = 5;
     stub_printf(rig_size_message, 0x250);
 }
-#endif
 /* Ported from rac1-decomp (src/overlays/l04_eudora/vuchain_00293490.c: func_L04_00293990), where it is exact; names translated to the US level program. */
 
 extern int walker_gait_mask(int *a, char *b) __asm__("FUN_L00_002a13f0");
@@ -392,11 +353,11 @@ INCLUDE_ASM("config/us/overlays/asm/FUN_L04_00295778.s", FUN_L04_00295778);
 #else
 extern float FUN_0020c9e0(struct Moby *) __asm__("FUN_0020c9e0");
 extern float FUN_001fa6c0(int) __asm__("FUN_001fa6c0");
-extern float FUN_L04_002418b0(int, int) __asm__("FUN_L04_002418b0");
+extern float animation_start(int, int) __asm__("FUN_L04_002418b0");
 extern float rig_turn(float, float, float *, float, float, float) __asm__("FUN_L00_00258110");
 extern int rig_pick_mode(struct Moby *, LegRig *, float) __asm__("FUN_L04_002927d0");
 extern void rig_animate(struct Moby *, LegRig *, int, float) __asm__("FUN_L04_00292d48");
-extern void transform_joint_points(struct Moby *, int, int *, void *) __asm__("FUN_0020cd48");
+extern void transform_scaled_vertex_batch(struct Moby *, int, int *, void *) __asm__("FUN_0020cd48");
 extern void rig_zero_vector(float *) __asm__("FUN_001f99f8");
 extern void rig_sub_vector(float *, float *, float *) __asm__("FUN_001f9a28");
 extern void rig_divide_vector(float, float *, float *) __asm__("FUN_L00_001ff378");
@@ -438,7 +399,7 @@ int FUN_L04_00295778(struct Moby *m, LegRig *rig, float amount, float target, fl
     if (m->seq != 0xff)
         time = FUN_0020c9e0(m);
     else
-        time = FUN_001fa6c0(m->prev_frame) + FUN_L04_002418b0(m->class_slot, m->prev_seq);
+        time = FUN_001fa6c0(m->prev_frame) + animation_start(m->class_slot, m->prev_seq);
     mode = rig_pick_mode(m, rig, time);
     if (rig->unkEE & 4) {
         m->rot.z = rig_turn(m->rot.z, *(float *)((char *)rig + 0x6c), (float *)&rig->unkC8, rig->unkCC, rig->unkD0, rig->unkD4);
@@ -457,7 +418,7 @@ int FUN_L04_00295778(struct Moby *m, LegRig *rig, float amount, float target, fl
     local.joints[3] = ((u8 *)rig)[0x1a1];
     local.joints[4] = rig->jointB4;
     local.joints[5] = rig->jointB5;
-    transform_joint_points(m, 6, local.joints, transformed);
+    transform_scaled_vertex_batch(m, 6, local.joints, transformed);
     if ((rig->unkEE & 4) == 0) {
         count = 0.0f;
         bit = 1;
@@ -528,7 +489,7 @@ int FUN_L04_00295778(struct Moby *m, LegRig *rig, float amount, float target, fl
     local.joints[3] = ((u8 *)rig)[0x1a1];
     local.joints[4] = rig->jointB4;
     local.joints[5] = rig->jointB5;
-    transform_joint_points(m, 6, local.joints, rig);
+    transform_scaled_vertex_batch(m, 6, local.joints, rig);
     if (rig->unkB7 != 0x12 || m->seq != rig->anims[12]->id) {
         m->anim_speed = 1.0f;
         first = rig->anims;
@@ -559,13 +520,13 @@ int FUN_L04_00295778(struct Moby *m, LegRig *rig, float amount, float target, fl
 }
 #endif
 extern u8 D_L04_001CA938[13][4];
-extern void transform_joint_points(struct Moby *m, int count, int *joints, void *out) __asm__("FUN_0020cd48");
+extern void transform_scaled_vertex_batch(struct Moby *m, int count, int *joints, void *out) __asm__("FUN_0020cd48");
 extern void get_joint_matrix(struct Moby *m, int joint, float *mtx) __asm__("FUN_0020cca8");
-extern void attach_rig_manip(struct Moby *m, int slot, LegRigManip *manip) __asm__("FUN_0020cb10");
+extern void attach_manipulator(struct Moby *m, int slot, LegRigManip *manip) __asm__("FUN_0020cb10");
 extern float FUN_001f9e90(float, float);
 extern float FUN_0020c9e0(struct Moby *);
 extern float FUN_001fa6c0(int);
-extern float FUN_L04_002418b0(int, int);
+extern float animation_start(int, int) __asm__("FUN_L04_002418b0");
 extern float FUN_001f99c0(float);
 extern int rig_pick_mode(struct Moby *m, LegRig *rig, float t) __asm__("FUN_L04_002927d0");
 
@@ -583,22 +544,22 @@ void FUN_L04_00295de8(struct Moby *m, LegRig *rig) {
     joints[3] = rig->legs[1].joint2;
     joints[4] = rig->jointB4;
     joints[5] = rig->jointB5;
-    transform_joint_points(m, 6, joints, rig);
+    transform_scaled_vertex_batch(m, 6, joints, rig);
     for (i = 0; i < 2; i++) {
         get_joint_matrix(m, rig->legs[i].joint, mtx[0]);
         rig->legs[i].upper_turn = 0;
         rig->legs[i].lower_turn = 0;
         rig->legs[i].yaw = FUN_001f9e90(mtx[1][0], mtx[1][1]);
         if (rig->legs[i].manip_b.attached == 0)
-            attach_rig_manip(m, rig->legs[i].slot_b, &rig->legs[i].manip_b);
+            attach_manipulator(m, rig->legs[i].slot_b, &rig->legs[i].manip_b);
         if (rig->legs[i].manip_a.attached == 0)
-            attach_rig_manip(m, rig->legs[i].slot_a, &rig->legs[i].manip_a);
+            attach_manipulator(m, rig->legs[i].slot_a, &rig->legs[i].manip_a);
     }
     if (m->seq != 0xFF) {
         t = FUN_0020c9e0(m);
     } else {
         t = FUN_001fa6c0(m->prev_frame);
-        t += FUN_L04_002418b0(m->class_slot, m->prev_seq);
+        t += animation_start(m->class_slot, m->prev_seq);
     }
     rig->mode = 5;
     rig->speed = 0.0f;
