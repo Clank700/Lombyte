@@ -1827,11 +1827,11 @@ extern void clear_vector_303160(float *) __asm__("FUN_001f99f8");
 extern void approach_angle_303160(float *, float *, float, float, float, float) __asm__("FUN_L00_0025be00");
 extern void event_303160(int, int, char *) __asm__("FUN_0022dba0");
 extern void FUN_L06_00303748(float, char *, char *, char *, int);
-extern void FUN_L06_00303b68(char *);
+extern void FUN_L06_00303b68(struct Moby *);
 
 int FUN_L06_00303160(char *moby, int path) {
     char *data = *(char **)(moby + 0x78);
-    volatile int *ids = (volatile int *)(data + path * 4);
+    int *ids = (int *)(data + path * 4);
     float *first = D_L06_001B0C30_303160[ids[0x60 / 4]];
     float *middle = D_L06_001B0C30_303160[ids[0x74 / 4]];
     float *third = D_L06_001B0C30_303160[ids[0x88 / 4]];
@@ -1847,11 +1847,11 @@ int FUN_L06_00303160(char *moby, int path) {
     first_time = *(float *)(data + 0xf4) * (float)(*(int *)first - 1);
     first_index = truncate_float_303160(first_time);
     first_index_float = (float)(int)first_index;
-    first_fraction = first_time - first_index_float;
     middle_index = truncate_float_303160(*(float *)(data + 0xf4) * (float)(*(int *)middle - 1));
     third_time = *(float *)(data + 0xf4) * (float)(*(int *)third - 1);
     third_fraction = third_time - first_index_float;
     third_index = truncate_float_303160(third_time);
+    first_fraction = first_time - first_index_float;
     lerp_vector_303160(from, first + ((int)first_index * 4 + 4), first + ((int)first_index * 4 + 8), first_fraction);
     lerp_vector_303160((float *)(moby + 0x10), third + (int)third_index * 4 + 4,
                        third + (int)third_index * 4 + 8, third_fraction);
@@ -1912,7 +1912,7 @@ int FUN_L06_00303160(char *moby, int path) {
                              D_L06_001600EC_303160 + next_index * 0x80, 6);
         } else if (event == 10 || previous_event == 10) {
             event_303160(1, 0, moby);
-            FUN_L06_00303b68(moby);
+            FUN_L06_00303b68((struct Moby *)moby);
         }
     }
     return *(float *)(data + 0xf4) == 1.0f;
@@ -2406,7 +2406,8 @@ void FUN_L06_003049f8(char *m) {
                 float *p = points;
                 float *q = scratch;
                 int j;
-                for (j = 29; j >= 0; j--) {
+                int index;
+                for (index = 29; index >= 0; index--) {
                     float scale;
                     FUN_L06_00217300(p);
                     p += 4;
@@ -2421,7 +2422,7 @@ void FUN_L06_003049f8(char *m) {
                     /* The completed countdown is -1: these cursors start at
                      * the second and third scratch vectors. */
                     float *second, *third;
-                    j += 2;
+                    j = index + 2;
                     second = scratch + j * 4;
                     third = scratch + (j + 1) * 4;
                     q = scratch;

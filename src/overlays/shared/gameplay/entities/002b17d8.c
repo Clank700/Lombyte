@@ -348,7 +348,7 @@ void FUN_L14_002b2928(struct Moby *m)
     Vec4 *template;
     Vec4 *beam_start;
     Vec4 *beam_end;
-    u32 color;
+    u64 color;
     s32 i;
 
     {
@@ -380,12 +380,11 @@ void FUN_L14_002b2928(struct Moby *m)
         quad.texture_coordinates[3][0] = 1.0f;
         quad.texture_coordinates[3][1] = 1.0f;
         corner = &quad.positions[0];
-        template = &D_L14_001D8850[0];
         do {
+            template = &D_L14_001D8850[3 - i];
             FUN_001f9a68(corner, template, 0.4f);
             transform_vector_l14(corner, corner, &basis[0]);
             corner++;
-            template++;
             i--;
         } while (i >= 0);
         draw_geometry_quad_l14(&quad, 0, 0);
@@ -405,12 +404,11 @@ void FUN_L14_002b2928(struct Moby *m)
     quad.colors[0] = 0x202020FF;
     i = 3;
     corner = &quad.positions[0];
-    template = &D_L14_001D8850[0];
     do {
+        template = &D_L14_001D8850[3 - i];
         FUN_001f9a68(corner, template, 0.2f);
         transform_vector_l14(corner, corner, &basis[0]);
         corner++;
-        template++;
         i--;
     } while (i >= 0);
     draw_geometry_quad_l14(&quad, 0, 0);
@@ -429,12 +427,11 @@ void FUN_L14_002b2928(struct Moby *m)
     quad.colors[0] = 0x4020FF20;
     i = 3;
     corner = &quad.positions[0];
-    template = &D_L14_001D8850[0];
     do {
+        template = &D_L14_001D8850[3 - i];
         FUN_001f9a68(corner, template, 0.2f);
         transform_vector_l14(corner, corner, &basis[0]);
         corner++;
-        template++;
         i--;
     } while (i >= 0);
     draw_geometry_quad_l14(&quad, 0, 0);
@@ -455,12 +452,11 @@ void FUN_L14_002b2928(struct Moby *m)
     quad.colors[0] = color | 0xFF2020;
     i = 3;
     corner = &quad.positions[0];
-    template = &D_L14_001D8850[0];
     do {
+        template = &D_L14_001D8850[3 - i];
         FUN_001f9a68(corner, template, D_L14_001614C0);
         transform_vector_l14(corner, corner, &basis[0]);
         corner++;
-        template++;
         i--;
     } while (i >= 0);
     draw_geometry_quad_l14(&quad, 0, 0);
@@ -479,12 +475,11 @@ void FUN_L14_002b2928(struct Moby *m)
     quad.colors[0] = color | 0xFF2020;
     i = 3;
     corner = &quad.positions[0];
-    template = &D_L14_001D8850[0];
     do {
+        template = &D_L14_001D8850[3 - i];
         FUN_001f9a68(corner, template, D_L14_001614C0);
         transform_vector_l14(corner, corner, &basis[0]);
         corner++;
-        template++;
         i--;
     } while (i >= 0);
     draw_geometry_quad_l14(&quad, 0, 0);
@@ -943,6 +938,8 @@ void FUN_L14_002de670(struct Moby *moby) {
     s32 n;
     s32 alpha;
     s32 color;
+    s32 particle_type;
+    s32 fade_mode;
     f32 size;
     f32 absolute_velocity;
     u8 *particle;
@@ -988,6 +985,8 @@ effect:
     return;
 particles:
     alpha = 0x60000000;
+    particle_type = 0x44;
+    fade_mode = 2;
     FUN_L00_0026cbb0_de670(position, D_L14_0015F580, 0x4F007FFF, 0x1FFFFFFF,
                          FUN_L00_00257b90(FUN_001f96f8(10), FUN_001f96f8(20)), 1, 60000.0f);
     for (i = 1; i >= 0; --i) {
@@ -999,10 +998,10 @@ particles:
                                        D_L14_0015F580, size,
                                        color | ((color << 16) | ((color << 8) | alpha)));
         if (particle != 0) {
-            particle[3] = 0x44;
+            particle[3] = particle_type;
             fade = particle + 0x20;
             *(s16 *)(particle + 0xA) = FUN_001f96f8(0x3C);
-            *(s32 *)(fade + 4) = 2;
+            *(s32 *)(fade + 4) = fade_mode;
             fade[0xA] = 0x60;
             fade[0xB] = particle[0xA];
         }
@@ -1090,6 +1089,7 @@ void FUN_L14_002dfd10(struct Moby *moby) {
     float absolute_velocity;
     void *path;
     float one;
+    int one_bits;
     float zero;
 
     if (moby->state == 0) {
@@ -1107,7 +1107,8 @@ void FUN_L14_002dfd10(struct Moby *moby) {
         normalize_vector_xyz(vec, vec, zero);
         qcopy(path_position, position);
         pos[2] += 0.25f;
-        *(int *)&one = 0x3f800000;
+        one_bits = 0x3f800000;
+        one = *(float *)&one_bits;
         zero = 0.0f;
         FUN_L00_0028dc90(1, 0, moby, *(short *)(*(char **)data + 0xa6));
         FUN_L00_0025e450(moby, vec, path_position, zero, zero, 5, 2, 4,
@@ -1143,7 +1144,8 @@ void FUN_L14_002dfd10(struct Moby *moby) {
                     goto random_check;
                 }
             }
-            *(int *)&one = 0x3f800000;
+            one_bits = 0x3f800000;
+            one = *(float *)&one_bits;
             FUN_L00_0028dc90(0, 0, moby, *(short *)(*(char **)data + 0xa6));
             FUN_L00_0025e450(moby, velocity, position, zero, zero, 5, 2, 4,
                                 one, 0.5f, 9.0f, one, -1, 15.0f, 0, 3, -1, 0);
