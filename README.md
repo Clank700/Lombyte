@@ -32,14 +32,14 @@
 <h3>Decompilation progress</h3>
 
 <p align="center">
-  <a href="https://bytematch.dev/lombyte-project/Lombyte">
-    <img src="https://raw.githubusercontent.com/lombyte-project/lombyte/progress/decomp_map.svg" alt="Lombyte decompilation progress" width="100%">
+  <a href="https://lombyte-project.github.io/namingdesk">
+    <img src="https://raw.githubusercontent.com/lombyte-project/lombyte/progress/naming-desk-card.svg" alt="Open the Naming Desk" width="100%">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://lombyte-project.github.io/namingdesk">
-    <img src="assets/naming-desk-card.svg" alt="Open the Naming Desk" width="100%">
+  <a href="https://bytematch.dev/lombyte-project/Lombyte">
+    <img src="https://raw.githubusercontent.com/lombyte-project/lombyte/progress/decomp_map.svg" alt="Lombyte decompilation progress" width="100%">
   </a>
 </p>
 
