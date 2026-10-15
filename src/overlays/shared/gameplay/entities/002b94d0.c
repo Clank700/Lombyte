@@ -736,7 +736,29 @@ typedef struct {
 } SparkleRowC860;
 
 extern char D_0013E533[];
-extern char D_L00_001DBBA0[];
+/* One arc: its start point and four bent points toward the D_L00_001DBB90 row. */
+typedef struct {
+    float point[5][4];
+} SparkleArc;
+SparkleArc D_L00_001DBBA0[10] = {0};
+SparkleArc D_L01_001DC020[10] = {0};
+SparkleArc D_L02_001D0620[10] = {0};
+SparkleArc D_L03_001D0120[10] = {0};
+SparkleArc D_L04_001D01A0[10] = {0};
+SparkleArc D_L05_001D04C0[10] = {0};
+SparkleArc D_L06_001D07A0[10] = {0};
+SparkleArc D_L07_001D00A0[10] = {0};
+SparkleArc D_L08_001D0820[10] = {0};
+SparkleArc D_L09_001D01A0[10] = {0};
+SparkleArc D_L10_001D04A0[10] = {0};
+SparkleArc D_L11_001D0A20[10] = {0};
+SparkleArc D_L12_001E30C0[10] = {0};
+SparkleArc D_L13_001D0930[10] = {0};
+SparkleArc D_L14_001DCFE0[10] = {0};
+SparkleArc D_L15_001D0AA0[10] = {0};
+SparkleArc D_L16_001D04A0[10] = {0};
+SparkleArc D_L17_001D0D20[10] = {0};
+SparkleArc D_L18_001D0A20[10] = {0};
 extern float convert_integer_to_float(int) __asm__("func_001FA6C0");
 extern float D_L00_001616D4;
 extern float D_L00_00166DC0[];
@@ -750,10 +772,46 @@ extern int scale_game_frames(int) __asm__("FUN_001f96f8");
 extern int tick_countdown_32();
 extern float D_L00_001616A4 __attribute__((sda));
 extern short D_L00_00161660_e[] __asm__("D_L00_00161660") __attribute__((section(".sdata")));
-extern short D_L00_001DBED8[];
+short D_L00_001DBED8[10] = {0};
+short D_L01_001DC358[10] = {0};
+short D_L02_001D0958[10] = {0};
+short D_L03_001D0458[10] = {0};
+short D_L04_001D04D8[10] = {0};
+short D_L05_001D07F8[10] = {0};
+short D_L06_001D0AD8[10] = {0};
+short D_L07_001D03D8[10] = {0};
+short D_L08_001D0B58[10] = {0};
+short D_L09_001D04D8[10] = {0};
+short D_L10_001D07D8[10] = {0};
+short D_L11_001D0D58[10] = {0};
+short D_L12_001E33F8[10] = {0};
+short D_L13_001D0C68[10] = {0};
+short D_L14_001DD318[10] = {0};
+short D_L15_001D0DD8[10] = {0};
+short D_L16_001D07D8[10] = {0};
+short D_L17_001D1058[10] = {0};
+short D_L18_001D0D58[10] = {0};
 extern char D_L00_001616A8[4] __attribute__((sda));
 extern char D_L00_001616AC[4] __attribute__((sda));
-extern short D_L00_001DBEC0[];
+short D_L00_001DBEC0[10] = {0};
+short D_L01_001DC340[10] = {0};
+short D_L02_001D0940[10] = {0};
+short D_L03_001D0440[10] = {0};
+short D_L04_001D04C0[10] = {0};
+short D_L05_001D07E0[10] = {0};
+short D_L06_001D0AC0[10] = {0};
+short D_L07_001D03C0[10] = {0};
+short D_L08_001D0B40[10] = {0};
+short D_L09_001D04C0[10] = {0};
+short D_L10_001D07C0[10] = {0};
+short D_L11_001D0D40[10] = {0};
+short D_L12_001E33E0[10] = {0};
+short D_L13_001D0C50[10] = {0};
+short D_L14_001DD300[10] = {0};
+short D_L15_001D0DC0[10] = {0};
+short D_L16_001D07C0[10] = {0};
+short D_L17_001D1040[10] = {0};
+short D_L18_001D0D40[10] = {0};
 extern short D_L00_001DBEF0[];
 extern short D_L00_001DBF08[];
 extern void random_spherical_offset(void *, float, float) __asm__("FUN_00213358");
@@ -844,7 +902,7 @@ void FUN_L00_002bb558(char *m) {
                 D_L00_001DBEC0[i] = 2;
                 D_L00_001DBED8[i] = 0x40;
                 random_spherical_offset(vec1, D_L00_001616A4, D_L00_001616A4);
-                qcopy(D_L00_001DBBA0 + i * 0x50, vec0);
+                qcopy(D_L00_001DBBA0[i].point[0], vec0);
                 n = i + 1;
                 sign = 1.0f;
                 for (k = 1; k < 5; k++) {
@@ -853,7 +911,7 @@ void FUN_L00_002bb558(char *m) {
                     ang = random_float_between(0.17453292f, 0.7853982f) * sign;
                     sign = -sign;
                     build_look_at_matrix(vec1, vec1, t, ang);
-                    add_vector_xyz(((float(*)[4])(D_L00_001DBBA0 + i * 0x50))[k],
+                    add_vector_xyz(D_L00_001DBBA0[i].point[k],
                                    D_L00_001DBB90[i].point[k - 1], vec1);
                 }
             } else {
@@ -864,16 +922,16 @@ void FUN_L00_002bb558(char *m) {
             float(*workspace)[4] = w;
             for (k = 1; k < 5; k++) {
                 float *v = workspace[k];
-                subtract_vector_xyz(v, ((float(*)[4])(D_L00_001DBBA0 + i * 0x50))[k],
+                subtract_vector_xyz(v, D_L00_001DBBA0[i].point[k],
                                     D_L00_001DBB90[i].point[k - 1]);
                 v[0] += FUN_L00_00257c48(0.0f, 0.1f);
                 v[1] += FUN_L00_00257c48(0.0f, 0.1f);
                 v[2] += FUN_L00_00257c48(0.0f, 0.1f);
             }
             n = i + 1;
-            qcopy(D_L00_001DBBA0 + i * 0x50, vec0);
+            qcopy(D_L00_001DBBA0[i].point[0], vec0);
             for (k = 1; k < 5; k++) {
-                add_vector_xyz(((float(*)[4])(D_L00_001DBBA0 + i * 0x50))[k],
+                add_vector_xyz(D_L00_001DBBA0[i].point[k],
                                D_L00_001DBB90[i].point[k - 1], workspace[k]);
             }
             if (D_L00_001DBEC0[i] > 0)
@@ -884,10 +942,6 @@ void FUN_L00_002bb558(char *m) {
     }
     enqueue_callback_list_1(FUN_L00_002bbb00_c, m);
 }
-typedef struct {
-    u8 b[0x50];
-} E002bbb00;
-extern E002bbb00 D_L00_001DBBA0_u[] __asm__("D_L00_001DBBA0");
 extern f32 D_L00_00161660_f[] __asm__("D_L00_00161660") __attribute__((section(".sdata")));
 extern f32 D_L00_00161690 __attribute__((sda));
 extern f32 D_L00_00161694 __attribute__((sda));
@@ -901,7 +955,7 @@ void FUN_L00_002bbb00(void *o) {
     for (i = 0; i < 10; i++) {
         if (D_L00_001DBEC0[i] != 0) {
             r = truncate_float_to_s32(FUN_001fa6c0(D_L00_001DBED8[i]) * D_L00_00161660_f[29]);
-            FUN_L00_002bbbc8(&D_L00_001DBBA0_u[i], r, r, 5, D_L00_00161690, D_L00_00161694, 0.2f);
+            FUN_L00_002bbbc8(&D_L00_001DBBA0[i], r, r, 5, D_L00_00161690, D_L00_00161694, 0.2f);
         }
     }
     FUN_L00_002bc1a0(o);
@@ -1714,7 +1768,25 @@ extern Vec_2BE3A8 D_L00_001DC250_2BE3A8[12] __asm__("D_L00_001DBF50");
 extern Vec_2BE3A8 D_L00_001DC260_2BE3A8[12] __asm__("D_L00_001DBF60");
 extern Vec_2BE3A8 D_L00_001DC320_2BE3A8[12] __asm__("D_L00_001DC020");
 extern Vec_2BE3A8 D_L00_001DC3E0_2BE3A8[12] __asm__("D_L00_001DC0E0");
-extern Vec_2BE3A8 D_L00_001DC4A0_2BE3A8[12][20] __asm__("D_L00_001DC1A0");
+Vec_2BE3A8 D_L00_001DC1A0_2BE3A8[12][20] __asm__("D_L00_001DC1A0") = {0};
+Vec_2BE3A8 D_L01_001DC620[12][20] = {0};
+Vec_2BE3A8 D_L02_001D0C20[12][20] = {0};
+Vec_2BE3A8 D_L03_001D0720[12][20] = {0};
+Vec_2BE3A8 D_L04_001D07A0[12][20] = {0};
+Vec_2BE3A8 D_L05_001D0AC0[12][20] = {0};
+Vec_2BE3A8 D_L06_001D0DA0[12][20] = {0};
+Vec_2BE3A8 D_L07_001D06A0[12][20] = {0};
+Vec_2BE3A8 D_L08_001D0E20[12][20] = {0};
+Vec_2BE3A8 D_L09_001D07A0[12][20] = {0};
+Vec_2BE3A8 D_L10_001D0AA0[12][20] = {0};
+Vec_2BE3A8 D_L11_001D1020[12][20] = {0};
+Vec_2BE3A8 D_L12_001E36C0[12][20] = {0};
+Vec_2BE3A8 D_L13_001D0F30[12][20] = {0};
+Vec_2BE3A8 D_L14_001DD5E0[12][20] = {0};
+Vec_2BE3A8 D_L15_001D10A0[12][20] = {0};
+Vec_2BE3A8 D_L16_001D0AA0[12][20] = {0};
+Vec_2BE3A8 D_L17_001D1320[12][20] = {0};
+Vec_2BE3A8 D_L18_001D1020[12][20] = {0};
 extern Vec_2BE3A8 D_L00_001DD3A0_2BE3A8[3] __asm__("D_L00_001DD0A0");
 extern Vec_2BE3A8 D_L00_001DD3D0_2BE3A8[3] __asm__("D_L00_001DD0D0");
 extern Vec_2BE3A8 D_L00_00173F60_2BE3A8 __asm__("D_L00_00173E60");
@@ -1833,7 +1905,7 @@ void FUN_L00_002bd0a0(struct Moby *moby) {
 
                 for (ring_index = 0; ring_index < 20; ring_index++) {
                     func_002156E0_2BE3A8(&ring, &side, &dir, (float)ring_index * D_L00_001617D4_2BE3A8);
-                    func_001F9BD8_2BE3A8(&D_L00_001DC4A0_2BE3A8[i][ring_index], &ring, &D_L00_001DC260_2BE3A8[i]);
+                    func_001F9BD8_2BE3A8(&D_L00_001DC1A0_2BE3A8[i][ring_index], &ring, &D_L00_001DC260_2BE3A8[i]);
                 }
                 qcopy(&node, &D_L00_001DC260_2BE3A8[i]);
                 func_L00_001FF4B0_2BE3A8(&fwd, &dir, 1.0f);

@@ -1876,9 +1876,6 @@ int FUN_L06_00303160(char *moby, int path) {
     }
     return ride->progress == 1.0f;
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L06_00303748.s", FUN_L06_00303748);
-#else
 typedef struct { int v[6]; } Colors_303748;
 extern Colors_303748 D_L06_00201948, D_L06_00201960;
 extern float D_L06_00162114 __attribute__((sda));
@@ -1913,36 +1910,35 @@ extern void FUN_L00_0026a9f0(void *, void *, int, int, float, int, int, int, int
 
 void FUN_L06_00303748(float scale, char *moby, char *pos, char *push, int count) {
     float position[4], direction[4], velocity[4], acceleration[4];
-    Colors_303748 a, b;
+    Colors_303748 first_colors, second_colors;
     int i;
     float strength;
     prepare_piece_effect_303748(moby, pos, -1, 2.0f, 13.0f);
-    a = D_L06_00201948;
-    b = D_L06_00201960;
-    if (count > 0) {
-        int left = count;
-        do {
-            int *pa = a.v + random_integer_below(6);
-            int *pb;
-            int r1, r2;
+    first_colors = D_L06_00201948;
+    second_colors = D_L06_00201960;
+    {
+        int piece;
+        for (piece = 0; piece < count; piece++) {
+            int *first_color = first_colors.v + random_integer_below(6);
+            int *second_color;
+            int first_time, second_time;
             strength = scale * 400000.0f;
-            left--;
-            pb = b.v + random_integer_below(6);
+            second_color = second_colors.v + random_integer_below(6);
             {
                 int low, high;
                 low = scale_game_frames(15);
                 high = scale_game_frames(20);
-                r1 = random_int_between(low, high);
+                first_time = random_int_between(low, high);
             }
             {
                 int low, high;
                 low = scale_game_frames(25);
                 high = scale_game_frames(30);
-                r2 = random_int_between(low, high);
+                second_time = random_int_between(low, high);
             }
-            FUN_L00_0026a9f0(pos, push, *pa, *pb, strength, r1, r2, 0, 0,
+            FUN_L00_0026a9f0(pos, push, *first_color, *second_color, strength, first_time, second_time, 0, 0,
                              frame_time_03b68 * 10.0f * scale);
-        } while (left != 0);
+        }
     }
     for (i = 0; i < count * D_L06_00162150;) {
         int color1, color2, life, size, fade;
@@ -1968,7 +1964,6 @@ void FUN_L06_00303748(float scale, char *moby, char *pos, char *push, int count)
             D_L06_00162154 + (D_L06_00162158 << 16));
     }
 }
-#endif
 extern char *D_L06_0015FFD8_03b68 __asm__("D_L06_0015FFD8");
 extern short *D_L06_001ABFC0_03b68[] __asm__("D_L06_001ABFC0");
 extern float D_L06_0016215C __attribute__((sda));

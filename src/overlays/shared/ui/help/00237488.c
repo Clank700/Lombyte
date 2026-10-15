@@ -1418,7 +1418,7 @@ next_point:
     direction[2] = FUN_001f9e90(path->points[selected + 1].x - path->points[selected].x, path->points[selected + 1].y - path->points[selected].y);
 }
 #endif
-extern int D_0015ED84_254608 __asm__("D_0015ED84") __attribute__((section(".sdata")));
+extern int D_0015ED84_lui __asm__("D_0015ED84") __attribute__((section(".sdata")));
 extern int FUN_001f96f8_254608(int) __asm__("FUN_001f96f8");
 typedef int u128_254608 __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) Node_254608;
@@ -1493,7 +1493,7 @@ void FUN_L05_00254608(void) {
     }
     path = D_L05_001B0930_254608[d->f20];
     hero.unk8B4 = (void *)path;
-    if (D_0015ED84_254608 == 0x10) {
+    if (D_0015ED84_lui == 0x10) {
         *(u128_254608 *)v0 = 0;
         v0[0] = 163.0f;
         v0[1] = 119.0f;
@@ -1533,7 +1533,7 @@ void FUN_L05_00254608(void) {
         }
     }
     near = 0;
-    if (D_0015ED84_254608 == 0x10) {
+    if (D_0015ED84_lui == 0x10) {
         if (hero.motion.pos.f[2] < path->p[hero.unk898].z - 2.0f) {
             near = 1;
             if (hero.unk8AE < FUN_001f96f8_254608(0x46)) {
@@ -1618,12 +1618,12 @@ void FUN_L05_00254608(void) {
     if (*(D_0013D388_254608) != 0) {
         D_L05_0015F6A8 = 1;
     }
-    if (D_0015ED84_254608 == 5) {
+    if (D_0015ED84_lui == 5) {
         D_0015EE38_macro++;
-    } else if (D_0015ED84_254608 == 0x10) {
+    } else if (D_0015ED84_lui == 0x10) {
         D_0015EE3C_macro++;
     }
-    if (D_0015ED84_254608 == 5) {
+    if (D_0015ED84_lui == 5) {
         int t;
 
         if (pal_mode != 0) {
@@ -1664,7 +1664,7 @@ void FUN_L05_00254608(void) {
             hero.unk880 = -1;
         }
         func_001FFFA0_254608();
-    } else if (D_0015ED84_254608 == 0x10) {
+    } else if (D_0015ED84_lui == 0x10) {
         if (d->f28 == -1) {
             return;
         }
@@ -1720,9 +1720,6 @@ int FUN_L05_002551d0(void) {
 
 #define MACRO_ADDR
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L05_00255208.s", FUN_L05_00255208);
-#else
 extern s32 current_level_index __asm__("D_0015ED84") __attribute__((sda));
 extern float frame_time __asm__("D_0015ED6C") __attribute__((section(".sdata")));
 extern void fast_vec_normalize(void *, void *, float) __asm__("FUN_001f9bf8");
@@ -1731,29 +1728,29 @@ extern int FUN_L00_0025d7a0(void *, int, int, int);
 extern int D_L05_0015F698 __attribute__((sda));
 
 int FUN_L05_00255208(void) {
-    struct Hero *g = &hero;
+    struct Hero *player = &hero;
     float start[4] __attribute__((aligned(16)));
     float end[4] __attribute__((aligned(16)));
     float velocity[4] __attribute__((aligned(16)));
     int level;
     int state;
     int can_fall;
-    if (frame_time * 12.0f < g->motion.unk164) {
+    if (frame_time * 12.0f < player->motion.unk164) {
         FUN_L00_0025c9d8(start, 0.0f, 0.0f, 0.75f);
         qcopy(end, start);
-        qcopy(velocity, &g->motion.velocity);
+        qcopy(velocity, &player->motion.velocity);
         fast_vec_normalize(velocity, velocity, 0.55f);
-        fast_vec_add(velocity, velocity, &g->motion.velocity);
+        fast_vec_add(velocity, velocity, &player->motion.velocity);
         velocity[2] = 0.0f;
         fast_vec_add(end, start, velocity);
         if (FUN_L00_0021e8d8(start, end, 2, 0, 0) &&
             D_L05_00174240.moby == 0 && D_L05_00174240.unk1C != 0) {
             CollisionHit *wall = &D_L05_00174240;
             if (1.2217305f < FUN_L00_0022e598(wall->normal_z, FUN_L00_0022e0f0(&wall->normal_x))) {
-                g->unk8A4 = fast_add_rotations(FUN_L00_0022e598(wall->normal_x, wall->normal_y), 3.1415927f);
-                if (fast_difference_between_rotations(FUN_L00_0022e598(g->motion.velocity.f[0], g->motion.velocity.f[1]), g->unk8A4) < 0.7853982f) {
+                player->unk8A4 = fast_add_rotations(FUN_L00_0022e598(wall->normal_x, wall->normal_y), 3.1415927f);
+                if (fast_difference_between_rotations(FUN_L00_0022e598(player->motion.velocity.f[0], player->motion.velocity.f[1]), player->unk8A4) < 0.7853982f) {
                     state = 0x6F;
-                    if (!(g->ground_distance < 1.0f)) state = 0x6D;
+                    if (!(player->ground_distance < 1.0f)) state = 0x6D;
                     goto change_state;
                 }
             }
@@ -1836,8 +1833,8 @@ continue_fall:
             queue_dialogue_message_254608(0x53D6, -1);
         }
         {
-            struct Hero *g = &hero;
-            *(int *)((char *)g + 0x714) = 0;
+            struct Hero *player = &hero;
+            *(int *)((char *)player + 0x714) = 0;
         }
     }
     if ((&hero)->state.current == 0x6C) {
@@ -1856,7 +1853,6 @@ continue_fall:
     }
     return 0;
 }
-#endif
 /* Ported from rac1-decomp (src/overlays/shared/help_00237B00.c: func_L05_0025BDA8), where it is exact; names translated to the US level program. */
 
 extern char D_L05_0017C068[];

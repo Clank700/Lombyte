@@ -7,9 +7,6 @@
 #include "rnc/overlay/entities.h"
 #include "rnc/overlay/level_labels.h"
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L15_002e5958.s", FUN_L15_002e5958);
-#else
 typedef struct {
     s16 timer;
     s16 delay;
@@ -39,7 +36,7 @@ extern void FUN_L00_002502f0(void *, int, int, int);
 extern int FUN_L00_002591d0(struct Moby **, int, int, int);
 extern int FUN_L00_002592b8(struct Moby **, struct Moby *, int, int);
 extern void FUN_L01_0026e0e0(int, int);
-extern void allocate_voice_for_target_entry(int, int, struct Moby *) __asm__("FUN_0022da68");
+extern int allocate_voice_for_target_entry(int, int, struct Moby *) __asm__("FUN_0022da68");
 extern u8 D_0013F3D0[];
 extern s32 current_level_index __asm__("D_0015ED84");
 extern u8 D_L15_001BB830[];
@@ -124,8 +121,7 @@ void FUN_L15_002e5958(struct Moby *moby) {
             if (vars->child_count >= vars->notified_count) {
                 FUN_L01_0026e0e0(moby->group, 4);
                 allocate_voice_for_target_entry(1, 0x31, moby);
-                near_parent = (u16)vars->restart_timer;
-                vars->timer = near_parent;
+                vars->timer = vars->restart_timer;
                 moby->state = 4;
                 break;
             } else {
@@ -179,7 +175,6 @@ void FUN_L15_002e5958(struct Moby *moby) {
     }
     }
 }
-#endif
 #define NOT_SDA
 
 #define MACRO_ADDR

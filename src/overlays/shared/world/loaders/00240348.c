@@ -30,65 +30,62 @@ void FUN_L00_00241728(s32 *h) {
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00241788.s", FUN_L00_00241788);
 #else
-extern f32 convert_integer_to_float(s32) __asm__("FUN_001fa6c0");
-extern s32 truncate_float_to_s32(f32) __asm__("FUN_001fa6d0");
-extern f64 fptodp(f32);
-extern char D_L00_001E8640[];
-extern void stub_printf(const char *, ...) __asm__("FUN_001e93b0");
-
-struct MobySortEntry {
+typedef struct {
     f32 id;
-    f32 value;
-};
+    f32 length;
+} P_241788;
 
-void FUN_L00_00241788(s32 *entries, s32 count) {
-    struct MobySortEntry sorted[512];
+extern f32 FUN_001fa6c0(s32);
+extern s32 FUN_001fa6d0(f32);
+extern s32 FUN_00120478(f32);
+extern void FUN_001e93b0(void *, s32, s32);
+extern u8 D_L00_001E8640[];
+
+void FUN_L00_00241788(u8 *src, s32 n) {
+    P_241788 entries[512];
     s32 i;
-    s32 changed;
-    f32 id;
-    f32 value;
-    struct MobySortEntry *entry;
+    s32 done;
+    s32 k;
+    s32 j;
 
-    for (i = 0; i < count; i++, entries += 8) {
-        sorted[i].id = (f32)entries[1];
-        if (entries[0] == 0) {
-            sorted[i].value = 0.0f;
+    for (i = 0; i < n; i++) {
+        entries[i].id = (f32)*(s32 *)(src + 4);
+        if (*(s32 *)(src + 0) == 0) {
+            entries[i].length = 0.0f;
         } else {
-            s32 end = entries[8];
-            if (end == 0)
-                end = entries[16];
-            sorted[i].value = convert_integer_to_float(end - entries[0]) * 0.0009765625f;
-            sorted[i + 1].value = 0.0f;
-            sorted[i + 1].id = -1.0f;
-        }
-    }
+            s32 next_start = *(s32 *)(src + 0x20);
 
+            if (next_start == 0) {
+                next_start = *(s32 *)(src + 0x40);
+            }
+            entries[i].length = FUN_001fa6c0(next_start - *(s32 *)(src + 0)) * 0.0009765625f;
+            entries[i + 1].id = -1.0f;
+            entries[i + 1].length = 0.0f;
+        }
+        src += 0x20;
+    }
     do {
-        changed = 1;
-        for (i = 0; i < count; i++) {
-            entry = &sorted[i];
-            if (entry->value < (entry + 1)->value) {
-                id = sorted[i].id;
-                value = sorted[i].value;
-                sorted[i].value = sorted[i + 1].value;
-                sorted[i].id = sorted[i + 1].id;
-                sorted[i + 1].value = value;
-                sorted[i + 1].id = id;
-                changed = 0;
+        done = 1;
+        for (j = 0; j < n - 1; j++) {
+            if (entries[j].length < entries[j + 1].length) {
+                f32 id = entries[j].id;
+                f32 length = entries[j].length;
+
+                entries[j].id = entries[j + 1].id;
+                entries[j].length = entries[j + 1].length;
+                entries[j + 1].id = id;
+                entries[j + 1].length = length;
+                done = 0;
             }
         }
-    } while (!changed);
+    } while (done == 0);
+    for (k = 0; k < n; k++) {
+        s32 entry_id = FUN_001fa6d0(entries[k].id);
+        s32 entry_length = FUN_00120478(entries[k].length);
 
-    if (count > 0) {
-        i = count;
-        entry = sorted;
-        do {
-            i--;
-            stub_printf(D_L00_001E8640, truncate_float_to_s32(entry->id),
-                        fptodp(entry->value));
-            entry++;
-        } while (i != 0);
+        FUN_001e93b0(D_L00_001E8640, entry_id, entry_length);
     }
+
 }
 #endif
 /* Reads the gameplay file of a level, which lists the objects placed in the

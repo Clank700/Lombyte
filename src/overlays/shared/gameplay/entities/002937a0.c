@@ -369,9 +369,6 @@ void FUN_L08_002d36e0(char *m) {
         *(int *)(d + 0x1B0) = ((int)hero.moby);
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L08_002d3878.s", FUN_L08_002d3878);
-#else
 typedef struct { float v[4]; } Vec_002d3878 __attribute__((aligned(16)));
 typedef struct {
     Vec_002d3878 vertices[4];
@@ -394,8 +391,8 @@ extern u32 D_00151878_002d3878 __asm__("D_00151878") __attribute__((sda));
 extern u32 D_0015187C_002d3878 __asm__("D_0015187C") __attribute__((sda));
 extern u32 D_00151880_002d3878 __asm__("D_00151880") __attribute__((sda));
 extern u32 D_00151884_002d3878 __asm__("D_00151884") __attribute__((sda));
-void FUN_L08_002d3878(char *m) {
-    char *data = *(char **)(m + 0x78);
+void FUN_L08_002d3878(char *moby) {
+    char *data = *(char **)(moby + 0x78);
     Packet_002d3878 pk;
     Vec_002d3878 matrix[3], direction, pos, delta, angles;
     float length;
@@ -403,7 +400,7 @@ void FUN_L08_002d3878(char *m) {
     Vec_002d3878 *points;
     char *source0;
     char *source1;
-    float *v;
+    float *vertex;
     int i;
     tag = FUN_001f44b8_002d3878(14);
     pk.color[0] = D_00151878_002d3878;
@@ -418,7 +415,7 @@ void FUN_L08_002d3878(char *m) {
     pk.uv[2] = 1.0f; pk.uv[3] = 0.0f;
     pk.uv[4] = 0.0f; pk.uv[5] = 1.0f;
     pk.uv[6] = 1.0f; pk.uv[7] = 1.0f;
-    get_moby_position_002d3878(m, 2, &pos);
+    get_moby_position_002d3878(moby, 2, &pos);
     fast_vec_sub(&delta, *(char **)(data + 0x218) + 0x10, &pos);
     scale_vector_002d3878(3.0f, &delta);
     delta.v[2] = (*(float *)(*(char **)(data + 0x218) + 0x18) + 0.25f) - pos.v[2];
@@ -466,10 +463,10 @@ void FUN_L08_002d3878(char *m) {
     pk.vertices[3].v[2] += 0.25f; pk.vertices[3].v[3] = 1.0f;
     FUN_001f7d30_002d3878(pk.vertices, matrix, 1);
     {
-        float *v;
-        for (i = 0, v = pk.vertices[0].v; i < 4; i++, v += 4) {
-            if (i < 2) { v[1] += -0.25f; v[2] += 0.25f; }
-            else { v[1] += 0.25f; v[2] += -0.25f; }
+        float *vertex;
+        for (i = 0, vertex = pk.vertices[0].v; i < 4; i++, vertex += 4) {
+            if (i < 2) { vertex[1] += -0.25f; vertex[2] += 0.25f; }
+            else { vertex[1] += 0.25f; vertex[2] += -0.25f; }
         }
     }
     FUN_001f7d30_002d3878(pk.vertices, matrix, 1);
@@ -488,15 +485,14 @@ void FUN_L08_002d3878(char *m) {
     pk.vertices[3].v[2] = 0.0f; pk.vertices[3].v[3] = 1.0f;
     FUN_001f7d30_002d3878(pk.vertices, matrix, 1);
     {
-        float *v;
-        for (i = 0, v = pk.vertices[0].v; i < 4; i += 2, v += 8) {
-            if (i < 2) { v[1] += -0.25f; v[2] += 0.25f; }
-            else { v[1] += 0.25f; v[2] += -0.25f; }
+        float *vertex;
+        for (i = 0, vertex = pk.vertices[0].v; i < 4; i += 2, vertex += 8) {
+            if (i < 2) { vertex[1] += -0.25f; vertex[2] += 0.25f; }
+            else { vertex[1] += 0.25f; vertex[2] += -0.25f; }
         }
     }
     FUN_001f7d30_002d3878(pk.vertices, matrix, 1);
 }
-#endif
 #define NOT_SDA
 
 #define MACRO_ADDR
@@ -1564,7 +1560,7 @@ extern void start_knockback_3024d8(float, void *, void *, int, int, int) __asm__
 extern void play_reaction_3024d8(void *, int, int, int, int) __asm__("FUN_L00_00260a88");
 extern void update_animation_3024d8(void *, void *) __asm__("FUN_L00_0025d458");
 extern void finish_animation_3024d8(void *, void *) __asm__("FUN_L00_0025d538");
-extern void update_angle_3024d8(short *) __asm__("FUN_001f9770");
+extern int tick_countdown_16_3024d8(short *) __asm__("FUN_001f9770");
 extern int random_integer_3024d8(int) __asm__("FUN_00213260");
 extern int scan_target_3024d8(float, void *, void *, int, int, void *, int) __asm__("FUN_L00_0025ff38");
 extern float distance_xy_3024d8(void *, void *) __asm__("FUN_001f9b80");
@@ -1665,17 +1661,17 @@ void FUN_L08_003024d8(char *m) {
         case 1:
         case 2: {
             float knock_angle, pose_scale, timer_scale, angle;
-            angle = D_00162190_3024d8 * frame_time;
-            timer_scale = D_00162194_3024d8 * frame_time;
             pose_scale = D_00162184_3024d8 * frame_time_sq;
+            timer_scale = D_00162194_3024d8 * frame_time;
+            angle = D_00162190_3024d8 * frame_time;
             *(unsigned short *)(m + 0x34) &= 0xefff;
             *(int *)(d + 0x90) = 0x200;
-            *(float *)(d + 0xc4) = 16.0f;
-            *(float *)(d + 0x98) = 0.25f;
-            *(float *)(d + 0xc0) = 11.0f;
             *(float *)(d + 0x80) = pose_scale;
-            *(float *)(d + 0x88) = timer_scale;
+            *(float *)(d + 0x98) = 0.25f;
             *(float *)(d + 0x8c) = angle;
+            *(float *)(d + 0x88) = timer_scale;
+            *(float *)(d + 0xc0) = 11.0f;
+            *(float *)(d + 0xc4) = 16.0f;
             angle = angle_atan2_3024d8(*(float *)(m + 0x10) - *(float *)(*(char **)(h + 0x20) + 0x10),
                 *(float *)(m + 0x14) - *(float *)(*(char **)(h + 0x20) + 0x14));
             *(u128 *)pos = *(u128 *)(h + 0x10);
@@ -1697,9 +1693,11 @@ void FUN_L08_003024d8(char *m) {
         *(short *)(d + 0x1d8) = truncate_3024d8(FUN_001f96b0(angle));
         *(int *)(d + 0x38) = 0;
     }
-    update_angle_3024d8((short *)(d + 0x1d8));
-    reach = *(short *)(d + 0x1d8) != 0 ? *(float *)(d + 0x1e4) + 6.0f : *(float *)(d + 0x1e4);
-    *(float *)(d + 0x1dc) = reach;
+    tick_countdown_16_3024d8((short *)(d + 0x1d8));
+    if (*(short *)(d + 0x1d8) != 0)
+        *(float *)(d + 0x1dc) = *(float *)(d + 0x1e4) + 6.0f;
+    else
+        *(float *)(d + 0x1dc) = *(float *)(d + 0x1e4);
     if (random_integer_3024d8(4) == 0) {
         e = D_L08_001B0CB0[*(int *)(d + 0x1d0)];
         if (scan_target_3024d8(*(float *)(d + 0x1dc), m, d + 0x120, 0, 0, e + 0x10, *(int *)e) != 2) {

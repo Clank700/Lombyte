@@ -239,9 +239,6 @@ void FUN_L00_00276368(void) {
     }
 }
 #endif
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00276908.s", FUN_L00_00276908);
-#else
 struct GameState;
 struct Ent;
 extern struct Ent *D_L00_001B9E90[];
@@ -262,10 +259,12 @@ extern void hud_send_resident_bank(s32, s32, s32) __asm__("FUN_001ff128");
 extern void FUN_L00_00235310(s32);
 extern struct Ent *delete_moby(struct Ent *) __asm__("FUN_00225530");
 extern s32 show_health_hud(void) __asm__("FUN_L00_00234e00");
-extern void hud_keep_visible(s32, s32) __asm__("FUN_L00_00235e18");
+extern s32 hud_keep_visible(s32, s32) __asm__("FUN_L00_00235e18");
 extern s32 queue_animation_update(s32, s32, void *, void *, void *, void *, s32) __asm__("FUN_001ff308");
 
 #include "rnc/gameplay/hero.h"
+/* Closes the scene once its progress reaches 10: releases its objects, restores the hero's
+   items and HUD bank, deletes the 14 scene mobies, shows the health and bolt HUD, enters state 0x14. */
 void FUN_L00_00276908(void) {
     s32 i;
     s32 value;
@@ -355,7 +354,6 @@ void FUN_L00_00276908(void) {
         FUN_L00_002a09d8(1);
     }
 }
-#endif
 #include "eetypes.h"
 #include "qcopy.h"
 
