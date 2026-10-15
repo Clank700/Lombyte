@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4499,
-  "matching_c": 3950,
+  "matching_c": 3952,
   "intentional_asm": 318,
-  "pending_c": 231,
+  "pending_c": 229,
   "bytes_total": 3669068,
-  "bytes_matching_c": 3177908,
+  "bytes_matching_c": 3182964,
   "bytes_intentional_asm": 122736,
-  "bytes_pending_c": 368424,
-  "c_exact_percent_of_recoverable": 89.6111,
-  "c_fuzzy_percent_of_recoverable": 90.8527,
+  "bytes_pending_c": 363368,
+  "c_exact_percent_of_recoverable": 89.7537,
+  "c_fuzzy_percent_of_recoverable": 90.9953,
   "data": {
     "bytes_total": 12433372,
     "bytes_matching_c": 5317823,
@@ -2019,12 +2019,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2839,
-    "pending_c": 175,
+    "matching_c": 2841,
+    "pending_c": 173,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2875628,
-    "bytes_pending_c": 317800,
-    "c_exact_percent_of_recoverable": 90.0483,
+    "bytes_matching_c": 2880684,
+    "bytes_pending_c": 312744,
+    "c_exact_percent_of_recoverable": 90.2066,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -2033,12 +2033,12 @@
       "planet": "Shared code",
       "description": "Functions present in two or more levels",
       "functions": 1583,
-      "matching_c": 1454,
-      "pending_c": 129,
+      "matching_c": 1455,
+      "pending_c": 128,
       "bytes_total": 1130492,
-      "bytes_matching_c": 930784,
-      "bytes_pending_c": 199708,
-      "c_exact_percent_of_recoverable": 82.3344,
+      "bytes_matching_c": 931968,
+      "bytes_pending_c": 198524,
+      "c_exact_percent_of_recoverable": 82.4392,
       "files": [
         {
           "file": "src/overlays/shared/sdk/debug/001eb0b0.c",
@@ -3009,9 +3009,9 @@
         {
           "file": "src/overlays/shared/gameplay/entities/sentrybot.c",
           "functions": 31,
-          "matching_c": 28,
+          "matching_c": 29,
           "bytes_total": 31840,
-          "bytes_matching_c": 23756
+          "bytes_matching_c": 24940
         },
         {
           "file": "src/overlays/shared/gameplay/entities/00295100.c",
@@ -4462,12 +4462,12 @@
         "planet": "Hoven",
         "description": "Bomb Factory: ice, magnetic walls and the Hologuise",
         "functions": 77,
-        "matching_c": 70,
-        "pending_c": 7,
+        "matching_c": 71,
+        "pending_c": 6,
         "bytes_total": 127460,
-        "bytes_matching_c": 114316,
-        "bytes_pending_c": 13144,
-        "c_exact_percent_of_recoverable": 89.6877,
+        "bytes_matching_c": 118188,
+        "bytes_pending_c": 9272,
+        "c_exact_percent_of_recoverable": 92.7256,
         "files": [
           {
             "file": "src/overlays/l12/gameplay/hero/0022de30.c",
@@ -4514,9 +4514,9 @@
           {
             "file": "src/overlays/l12/gameplay/entities/platform.c",
             "functions": 33,
-            "matching_c": 32,
+            "matching_c": 33,
             "bytes_total": 31880,
-            "bytes_matching_c": 28008
+            "bytes_matching_c": 31880
           },
           {
             "file": "src/overlays/l12/gameplay/entities/002bf6d0.c",
@@ -5089,15 +5089,15 @@
   },
   "total": {
     "units_total": 4499,
-    "matching_c": 3950,
+    "matching_c": 3952,
     "intentional_asm": 318,
-    "pending_c": 231,
+    "pending_c": 229,
     "bytes_total": 3669068,
-    "bytes_matching_c": 3177908,
+    "bytes_matching_c": 3182964,
     "bytes_intentional_asm": 122736,
-    "bytes_pending_c": 368424,
-    "c_exact_percent_of_recoverable": 89.6111,
-    "c_fuzzy_percent_of_recoverable": 90.8527,
+    "bytes_pending_c": 363368,
+    "c_exact_percent_of_recoverable": 89.7537,
+    "c_fuzzy_percent_of_recoverable": 90.9953,
     "data": {
       "bytes_total": 12433372,
       "bytes_matching_c": 5317823,
