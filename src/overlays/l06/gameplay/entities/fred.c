@@ -877,7 +877,7 @@ extern unsigned char big_head_cheat_enabled_301070[] __asm__("D_0015EDB0") __att
 extern unsigned char cheats_301070[] __asm__("D_0015EDB0") __attribute__((section(".sdata")));
 extern int D_0013D8AC_lui __asm__("D_0013D8AC") __attribute__((section(".data")));
 
-extern char D_L06_00201880[];
+char D_L06_00201880[] = "Scrawny Scientist";
 extern Obj_301070 *D_L06_00167580 __attribute__((section(".data")));
 extern unsigned char D_0013D505[];
 extern f32 frame_time_macro __asm__("D_0015ED6C") __attribute__((section(".sdata")));
@@ -1877,7 +1877,8 @@ int FUN_L06_00303160(char *moby, int path) {
     return ride->progress == 1.0f;
 }
 typedef struct { int v[6]; } Colors_303748;
-extern Colors_303748 D_L06_00201948, D_L06_00201960;
+Colors_303748 D_L06_00201960 = {{0x2f005f7f, 0x2f004f7f, 0x2f003f7f, 0x2f00004f, 0x2f000000, 0x3f000000}};
+Colors_303748 D_L06_00201948 = {{0x4f008fff, 0x4f008fff, 0x4f007fff, 0x4f006fff, 0x2fffffff, 0x2fffffff}};
 extern float D_L06_00162114 __attribute__((sda));
 extern float D_L06_00162118 __attribute__((sda));
 extern float D_L06_0016211C __attribute__((sda));
@@ -2312,7 +2313,7 @@ s32 FUN_L06_003047f8(const u8 *moby) {
 
 typedef struct { int v[6]; } V6;
 
-extern V6 D_L06_002019A0;
+V6 D_L06_002019A0 = {{0x4f008fff, 0x4f008fff, 0x4f007fff, 0x4f006fff, 0x2fffffff, 0x2fffffff}};
 extern V6 D_L06_002019B8;
 extern f32 random_float_between(f32, f32) __asm__("func_002132A8");
 extern int random_int_between(int, int) __asm__("FUN_L00_00257b90");

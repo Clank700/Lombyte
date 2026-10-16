@@ -559,9 +559,9 @@ extern f32 D_0015ED6C_w __asm__("D_0015ED6C");
 extern struct { f32 v; } D_L14_00162230, D_L14_00162234;
 extern s32 D_L14_00162238;
 extern f32 D_L14_00162240;
-extern char D_L14_001FC980[];
-extern char D_L14_001FC9E0[];
-extern char D_L14_001FCA38[];
+char D_L14_001FC980[] = "*Error: Moby 610 (wind-control) with no cuboid index (wind pushing hero area). UID: %d - RAR\n";
+char D_L14_001FC9E0[] = "*Error: Moby 610 (wind-control) with no fxArea cuboid (fx drawing area). UID: %d - RAR\n";
+char D_L14_001FCA38[] = "*Error: Moby 610 (wind-control) with no fxAct cuboid (fx activation area). UID: %d - RAR\n";
 extern void wind_print(const char *, short) __asm__("FUN_001e93b0");
 extern void wind_remove(struct Moby *) __asm__("FUN_0020c828");
 extern float wind_length(void *) __asm__("FUN_001f9af0");
@@ -832,7 +832,12 @@ extern void xform_m(void *, void *, void *) __asm__("FUN_001f9d20");
 extern void draw_m(void *, int, int) __asm__("FUN_001f7d30");
 
 extern int D_L14_00161C0C __attribute__((sda));
-extern float D_L14_001DFD40[4][4];
+float D_L14_001DFD40[4][4] = {
+    {0.0f, 1.0f, 1.0f, 1.0f},
+    {0.0f, 1.0f, -1.0f, 1.0f},
+    {0.0f, -1.0f, 1.0f, 1.0f},
+    {0.0f, -1.0f, -1.0f, 1.0f},
+};
 void FUN_L14_002eb810(struct Moby *m) {
     Spk_k *d = (Spk_k *)m->pvars;
     Pk_m pk;
@@ -2833,8 +2838,8 @@ extern int D_0015EE08;
 extern struct { char pad[0x18]; unsigned char flag; } D_0013D408;
 extern s32 D_L14_00161F5C __attribute__((sda));
 extern char D_0013E550[];
-extern char D_L14_001FCE10[];
-extern char D_L14_001FCE48[];
+char D_L14_001FCE10[] = "Enemy Fighter (moby908) with no flyPath. UID: %d - RAR\n";
+char D_L14_001FCE48[] = "Enemy Fighter (moby908) with a flyPath that has no points. UID: %d - RAR\n";
 extern char *D_L14_001B0BB0_cart[] __asm__("D_L14_001B0BB0");
 
 typedef struct {

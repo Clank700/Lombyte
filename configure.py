@@ -424,6 +424,21 @@ RODATA_OVERLAYS = {
     "mode_freeze_init": (0x1E78D0, 0xE8850, 28),  # switch table
     "update_menu_entry_actions": (0x1E8770, 0xE96F0, 48),  # menu action switch table
     "draw_dialog_text": (0x1E7920, 0xE88A0, 124),  # switch table
+    "sdk/rpc/sce_sif_reboot_iop": (0x152960, 0x538E0, 11),
+    "sdk/storage/cd_check_ncmd": (0x152EB0, 0x53E30, 39),
+    "sdk/storage/cd_check_scmd": (0x152F10, 0x53E90, 39),
+    "sdk/library/checkModelVersion": (0x153030, 0x53FB0, 12),
+    "sdk/dma/wait_dma": (0x1533E0, 0x54360, 22),
+    "sdk/library/sceDbcInit": (0x153518, 0x54498, 57),
+    "sdk/library/mb_address_increment": (0x1537A8, 0x54728, 50),
+    "sdk/library/slicea0": (0x153800, 0x54780, 38),
+    "sdk/library/_quantMatrixExtension": (0x153910, 0x54890, 44),
+    "sdk/library/is_out_size_ok": (0x153980, 0x54900, 41),
+    "sdk/callbacks/report_mpeg_sequence_scalable_unsupported": (0x153B48, 0x54AC8, 48),
+    "sdk/callbacks/report_unknown_mpeg_extension": (0x153B78, 0x54AF8, 18),
+    "sdk/callbacks/report_mpeg_picture_spatial_scalable_unsupported": (0x153B90, 0x54B10, 50),
+    "sdk/callbacks/report_mpeg_picture_temporal_scalable_unsupported": (0x153BC8, 0x54B48, 51),
+    "sdk/library/GetRomName": (0x153C00, 0x54B80, 12),
 }
 
 # Recovered C units that define the small-data variables their original
@@ -479,6 +494,11 @@ DATA_OVERLAYS = {
     "textbin/rebuild_configured_text_label_list": (0x1E8728, 0xE96A8, 60),
     "ui/menus/update_menu_resource_stream": (0x1E87D0, 0xE9750, 24),
     "textbin/video/player/init_all": (0x1E8AF0, 0xE9A70, 18),
+    "rendering/view/update_view_context": (0x18CFC0, 0x8DF40, 64),
+    "input/pad/init_pads": (0x1CD760, 0xCE6E0, 16),
+    "ui/menus/fun_002223f0": (0x1D5298, 0xD6218, 3),
+    "gameplay/vendor/fun_00237ed0": (0x1E63FC, 0xE737C, 4),
+    "rendering/draw_dialog_text": (0x1E78F0, 0xE8870, 48),
 }
 
 # Uninitialised variables a unit defines.  `.sbss` (small ones) sits in the
