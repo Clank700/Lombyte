@@ -257,6 +257,7 @@ OVERLAY_SN_UNITS = {
     "l11/gameplay/hero/0023c7a0.c",
     "l11/gameplay/hero/00253a18.c",
     "l11/gameplay/hero/hero_set_state.c",
+    "l12/gameplay/entities/003054b0.c",
     "l12/gameplay/entities/hoven_turret.c",
     "l12/gameplay/entities/platform.c",
     "l12/gameplay/entities/water_reservoir.c",
@@ -301,7 +302,9 @@ OVERLAY_SN_UNITS = {
     "shared/audio/voices/00276368.c",
     "shared/gameplay/camera/001fc008.c",
     "shared/gameplay/camera/follow_camera_setup.c",
+    "shared/gameplay/camera/follow_camera_update.c",
     "shared/gameplay/camera/init_camera_system.c",
+    "shared/gameplay/entities/00264e40.c",
     "shared/gameplay/entities/00295100.c",
     "shared/gameplay/entities/0029f990.c",
     "shared/gameplay/entities/002aee30.c",
@@ -488,7 +491,7 @@ DATA_OVERLAYS = {
     "assembly/textbin/rendering/effects/build_resident_indexed_texture_warp_meshes": (0x1D9A10, 0xDA990, 32),
     "assembly/textbin/ui/map/draw_level_selection_map": (0x1DDE28, 0xDEDA8, 320),
     "assembly/textbin/rendering/register_object_render_class": (0x1E1900, 0xE2880, 256),
-    "assembly/textbin/gameplay/vendor/render_capture_scrolling_text": (0x1E6018, 0xE6F98, 512),
+    "gameplay/vendor/render_capture_scrolling_text": (0x1E6018, 0xE6F98, 512),
     "assembly/textbin/gameplay/vendor/render_vendor_capture_pass_sequence": (0x1E6218, 0xE7198, 96),
     "textbin/render_vendor_capture_texture_overlays_pass": (0x1E6620, 0xE75A0, 64),
     "textbin/rebuild_configured_text_label_list": (0x1E8728, 0xE96A8, 60),
@@ -2109,13 +2112,14 @@ def build_overlays() -> Path:
     ninja_path = OVERLAYS_BUILD / "build.ninja"
     ninja = ninja_syntax.Writer(open(str(ninja_path), "w"), width=9999)
     # obj/ only checks that the file compiles as written; its code is never
-    # compared.  -G0 keeps GNU as from relaxing bare symbol accesses, which
-    # it asserts on (tc-mips.c:11454) when one sits in a noreorder delay slot
-    # and an unsized symbol is loaded later in the same frag.
+    # compared.  GNU as can assert (tc-mips.c:11454) on a bare symbol access
+    # in a noreorder delay slot, with -G0 on some files and without it on
+    # others, so a file passes when it assembles either way.
+    overlay_cc = f"{game_root}/ee-gcc -c {includes} {LANG_DEFINE} {COMPILER_FLAGS} $in -o $out"
     ninja.rule(
         "overlay-cc",
         description="overlay-cc $in",
-        command=f"{game_root}/ee-gcc -c {includes} -Wa,-G0 {LANG_DEFINE} {COMPILER_FLAGS} $in -o $out",
+        command=f"{overlay_cc.replace(' -c ', ' -c -Wa,-G0 ', 1)} 2>/dev/null || {overlay_cc}",
     )
     ninja.rule(
         "c-only",
