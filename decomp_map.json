@@ -2,15 +2,15 @@
   "schema": "rnc-public-progress-v3",
   "source": "scripts/generate_treemap.py",
   "units_total": 4499,
-  "matching_c": 3970,
+  "matching_c": 3973,
   "intentional_asm": 306,
-  "pending_c": 223,
+  "pending_c": 220,
   "bytes_total": 3669064,
-  "bytes_matching_c": 3193588,
+  "bytes_matching_c": 3196488,
   "bytes_intentional_asm": 120964,
-  "bytes_pending_c": 354512,
-  "c_exact_percent_of_recoverable": 90.0084,
-  "c_fuzzy_percent_of_recoverable": 91.2494,
+  "bytes_pending_c": 351612,
+  "c_exact_percent_of_recoverable": 90.0901,
+  "c_fuzzy_percent_of_recoverable": 91.3311,
   "data": {
     "bytes_total": 12433372,
     "bytes_matching_c": 5322477,
@@ -2019,12 +2019,12 @@
   },
   "overlays": {
     "functions_total": 3014,
-    "matching_c": 2844,
-    "pending_c": 170,
+    "matching_c": 2847,
+    "pending_c": 167,
     "bytes_total": 3193428,
-    "bytes_matching_c": 2889200,
-    "bytes_pending_c": 304228,
-    "c_exact_percent_of_recoverable": 90.4733,
+    "bytes_matching_c": 2892100,
+    "bytes_pending_c": 301328,
+    "c_exact_percent_of_recoverable": 90.5641,
     "intentional_asm": 61,
     "bytes_intentional_asm": 27396,
     "shared": {
@@ -4079,12 +4079,12 @@
         "planet": "Umbris",
         "description": "Qwark's headquarters and the Snagglebeast",
         "functions": 82,
-        "matching_c": 73,
-        "pending_c": 9,
+        "matching_c": 74,
+        "pending_c": 8,
         "bytes_total": 77488,
-        "bytes_matching_c": 46056,
-        "bytes_pending_c": 31432,
-        "c_exact_percent_of_recoverable": 59.4363,
+        "bytes_matching_c": 47252,
+        "bytes_pending_c": 30236,
+        "c_exact_percent_of_recoverable": 60.9798,
         "files": [
           {
             "file": "src/overlays/l07/runtime/startup/00265b58.c",
@@ -4159,9 +4159,9 @@
           {
             "file": "src/overlays/l07/gameplay/vendor/0031d2e0.c",
             "functions": 3,
-            "matching_c": 2,
+            "matching_c": 3,
             "bytes_total": 2236,
-            "bytes_matching_c": 1040
+            "bytes_matching_c": 2236
           },
           {
             "file": "src/overlays/l07/gameplay/vendor/0031f3d8.c",
@@ -4653,12 +4653,12 @@
         "planet": "Oltanis",
         "description": "Gorda City Ruins: a bombed city in a storm",
         "functions": 130,
-        "matching_c": 128,
-        "pending_c": 2,
+        "matching_c": 130,
+        "pending_c": 0,
         "bytes_total": 151084,
-        "bytes_matching_c": 149380,
-        "bytes_pending_c": 1704,
-        "c_exact_percent_of_recoverable": 98.8722,
+        "bytes_matching_c": 151084,
+        "bytes_pending_c": 0,
+        "c_exact_percent_of_recoverable": 100.0,
         "files": [
           {
             "file": "src/overlays/l14/gameplay/hero/0021dd30.c",
@@ -4712,9 +4712,9 @@
           {
             "file": "src/overlays/l14/gameplay/entities/jet.c",
             "functions": 39,
-            "matching_c": 38,
+            "matching_c": 39,
             "bytes_total": 32136,
-            "bytes_matching_c": 31340
+            "bytes_matching_c": 32136
           },
           {
             "file": "src/overlays/l14/gameplay/entities/bolt_thief.c",
@@ -4726,9 +4726,9 @@
           {
             "file": "src/overlays/l14/gameplay/entities/morphoray.c",
             "functions": 24,
-            "matching_c": 23,
+            "matching_c": 24,
             "bytes_total": 15916,
-            "bytes_matching_c": 15008
+            "bytes_matching_c": 15916
           },
           {
             "file": "src/overlays/l14/gameplay/vendor/00303370.c",
@@ -5089,15 +5089,15 @@
   },
   "total": {
     "units_total": 4499,
-    "matching_c": 3970,
+    "matching_c": 3973,
     "intentional_asm": 306,
-    "pending_c": 223,
+    "pending_c": 220,
     "bytes_total": 3669064,
-    "bytes_matching_c": 3193588,
+    "bytes_matching_c": 3196488,
     "bytes_intentional_asm": 120964,
-    "bytes_pending_c": 354512,
-    "c_exact_percent_of_recoverable": 90.0084,
-    "c_fuzzy_percent_of_recoverable": 91.2494,
+    "bytes_pending_c": 351612,
+    "c_exact_percent_of_recoverable": 90.0901,
+    "c_fuzzy_percent_of_recoverable": 91.3311,
     "data": {
       "bytes_total": 12433372,
       "bytes_matching_c": 5322477,
