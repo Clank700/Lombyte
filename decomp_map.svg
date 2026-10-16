@@ -146,13 +146,14 @@
 <text x="400.0" y="35" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5"><tspan font-size="12" font-weight="800" fill="#c3cbd8">42.8%</tspan> data in C<title>Data in C: 5,318,107 of 12,433,372 B, of which 4,579,905 B are zeros (zero-initialised level data).</title></text>
 <text x="400.0" y="67" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="30" font-weight="800" fill="#de812f">90.0%</text>
 <text x="400.0" y="83" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">exe + overlays in C</text>
-<rect x="625" y="18" width="157" height="70" rx="6" fill="#0d1117" fill-opacity="0.72" pointer-events="none"/>
+<linearGradient id="legend-shade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0d1117" stop-opacity="0"/><stop offset="0.4" stop-color="#0d1117" stop-opacity="0.5"/><stop offset="1" stop-color="#0d1117" stop-opacity="0.5"/></linearGradient>
+<rect x="565" y="10" width="225" height="86" fill="url(#legend-shade)" clip-path="url(#drawer-clip)" pointer-events="none"/>
 <rect x="635" y="29.0" width="10" height="10" rx="2" fill="#de812f"></rect>
-<text x="650" y="38.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#a6adc8">matching C &#183; 3,193,588 B</text>
+<text x="650" y="38.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">matching C &#183; 3,193,588 B</text>
 <rect x="635" y="48.0" width="10" height="10" rx="2" fill="#c3cbd8"></rect>
-<text x="650" y="57.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#a6adc8">intentional asm &#183; 93,568 B</text>
+<text x="650" y="57.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">intentional asm &#183; 93,568 B</text>
 <rect x="635" y="67.0" width="10" height="10" rx="2" fill="url(#progress-range)"><title>Pending C: dark plate to copper shows C_EXACT coverage; bolt orange marks 100% exact.</title></rect>
-<text x="650" y="76.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#a6adc8">pending C &#183; 354,512 B</text>
+<text x="650" y="76.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">pending C &#183; 354,512 B</text>
 <text x="10" y="114" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#c3cbd8" fill-opacity="0.9">EXECUTABLE</text>
 <text x="10" y="184" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#c3cbd8" fill-opacity="0.9">LEVEL OVERLAYS &#183; 2,889,200 of 3,193,428 B matching C (90.5%)</text>
 <line x1="24" y1="120" x2="24" y2="136" stroke="#3a3632" stroke-width="2"/>
