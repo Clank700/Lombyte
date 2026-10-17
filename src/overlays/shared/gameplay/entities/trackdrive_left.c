@@ -1357,10 +1357,10 @@ extern int D_L02_0015FFD8; /* no foreign declaration */
 extern int FUN_L00_0025be00();
 extern s32 random_integer_below(s32) __asm__("func_00213260");
 extern s32 truncate_float_to_s32(f32) __asm__("func_001FA6D0");
-extern short D_L02_00161CB0 __attribute__((sda));
-extern short D_L02_00161CB4 __attribute__((sda));
-extern short D_L02_00161CB8 __attribute__((sda));
-extern short D_L02_00161CBC;
+extern float D_L02_00161CB0 __attribute__((sda));
+extern int D_L02_00161CB4 __attribute__((sda));
+extern float D_L02_00161CB8 __attribute__((sda));
+extern float D_L02_00161CBC;
 extern void FUN_L00_002502f0(void *, int, int, int);
 extern void FUN_L00_002730e0(void *, void *, int, int, int, int, float);
 extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
@@ -1407,13 +1407,13 @@ void FUN_L02_002e0450(char *m) {
                     int a;
                     if (D_L02_0015F5CC & 4)
                         s = -1.0f;
-                    normalize_vector_xyz(v, m + 0xD0, s * *(float *)&D_L02_00161CBC);
-                    normalize_vector_xyz(w, v, -2.0f / multiply_global_factor_ed64(*(float *)&D_L02_00161CB0));
+                    normalize_vector_xyz(v, m + 0xD0, s * D_L02_00161CBC);
+                    normalize_vector_xyz(w, v, -2.0f / multiply_global_factor_ed64(D_L02_00161CB0));
                     add_vector_xyz(v, v, m + 0x10);
-                    a = truncate_float_to_s32(multiply_global_factor_ed64(*(float *)&D_L02_00161CB0)) & 0xFF;
-                    FUN_L00_002730e0(v, w, *(int *)&D_L02_00161CB4, a,
+                    a = truncate_float_to_s32(multiply_global_factor_ed64(D_L02_00161CB0)) & 0xFF;
+                    FUN_L00_002730e0(v, w, D_L02_00161CB4, a,
                                      random_integer_below(0xFF) & 0xFF, 0,
-                                     *(float *)&D_L02_00161CB8);
+                                     D_L02_00161CB8);
                 }
             }
         }
@@ -1446,14 +1446,14 @@ typedef struct {
 } Level02MobyList;
 
 extern int level_game_mode __asm__("D_L02_0015F5C4");
-extern unsigned char D_0015EDB0;
+#include "rnc/gameplay/state/options.h"
 extern unsigned char D_L02_0017CA40[];
 void attach_manipulator(void *arg0, s32 arg1, void *arg2) __asm__("FUN_0020cb10");
 
 extern Level02MobyList talk_camera __asm__("D_L02_0016CE60");
 void FUN_L02_002e0cd8(char *moby) {
     int i;
-    if (level_game_mode == 2 && D_0015EDB0 != 0) {
+    if (level_game_mode == 2 && big_head_cheat_enabled != 0) {
         for (i = 0; i < talk_camera.count; i++) {
             char *e = talk_camera.mobys[i];
             if (*(short *)(e + 0xA6) == *(short *)(moby + 0xA6)) {
