@@ -479,12 +479,12 @@ void FUN_L00_002464a8(void) {
         y2 = points[5];
         x3 = points[6];
         y3 = points[7];
-        x_slope = (x2 - x3) / (x0 - x1);
-        y_slope = (y2 - y3) / (y0 - y1);
-        coefficients[1] = x_slope;
-        coefficients[3] = y_slope;
-        coefficients[0] = x2 - x_slope * x0;
-        coefficients[2] = y2 - y_slope * y0;
+        x3 = (x2 - x3) / (x0 - x1);
+        y3 = (y2 - y3) / (y0 - y1);
+        coefficients[1] = x3;
+        coefficients[3] = y3;
+        coefficients[0] = x2 - x3 * x0;
+        coefficients[2] = y2 - y3 * y0;
         points += 8;
         coefficients += 4;
     }
@@ -530,21 +530,24 @@ void FUN_L00_002464a8(void) {
         } else {
             FUN_L00_00248278(D_L00_001841F0_load.mask_data, D_L00_001841F0_load.first_data, D_L00_001841F0_load.second_data);
         }
+        x_slope = 256.0f;
+        y_slope = 15.5f;
         mask = D_L00_00184394;
         for (y = 0; y < 32; y++) {
             for (x = 0; x < 32; x++) {
-                if ((15.5f - (f32)x) * (15.5f - (f32)x) +
-                    (15.5f - (f32)y) * (15.5f - (f32)y) > 256.0f) {
+                if ((y_slope - (f32)x) * (y_slope - (f32)x) +
+                    (y_slope - (f32)y) * (y_slope - (f32)y) > x_slope) {
                     mask[x / 8 + y * 4] |= 1 << (x - (x / 8) * 8);
                 }
             }
         }
     } else {
+        destination = (s32 *)&D_L00_001841F0_load;
         D_L00_001841F0_load.first_data = 0;
-        *(s32 *)0x184218 = 0;
-        D_L00_001841F0_load.scratch_data = 0;
-        D_L00_001841F0_load.mask_data = 0;
-        D_L00_001841F0_load.second_data = 0;
+        destination[10] = 0;
+        destination[2] = 0;
+        destination[3] = 0;
+        destination[1] = 0;
     }
 }
 #endif
