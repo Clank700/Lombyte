@@ -5,10 +5,10 @@
 <rect width="800" height="1104" rx="10" fill="url(#card-face)"/>
 <defs><linearGradient id="progress-range" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3632"/><stop offset="1" stop-color="#d87620"/></linearGradient><linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#de812f" stop-opacity="0.10"/><stop offset="0.5" stop-color="#de812f" stop-opacity="0.02"/><stop offset="1" stop-color="#000000" stop-opacity="0.08"/></linearGradient><linearGradient id="drawer-face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#231a12"/><stop offset="1" stop-color="#17110c"/></linearGradient><radialGradient id="drawer-halo"><stop offset="0" stop-color="#0d1117" stop-opacity="0.6"/><stop offset="1" stop-color="#0d1117" stop-opacity="0"/></radialGradient></defs>
 <defs><radialGradient id="panel-glow"><stop offset="0" stop-color="#de812f" stop-opacity="0.28"/><stop offset="1" stop-color="#de812f" stop-opacity="0"/></radialGradient></defs>
-<polygon points="10,10 790,10 790,96 10,96" fill="url(#drawer-face)"><title>Executable and level overlays: 3,312,600 of 3,548,100 recoverable bytes are matching C (93.4%)</title></polygon>
+<polygon points="10,10 790,10 790,96 10,96" fill="url(#drawer-face)"><title>Executable and level overlays: 3,316,916 of 3,548,100 recoverable bytes are matching C (93.5%)</title></polygon>
 <clipPath id="drawer-clip"><polygon points="10,10 790,10 790,96 10,96"/></clipPath>
 <g clip-path="url(#drawer-clip)" opacity="0.24">
-<rect x="10.00" y="10.00" width="138.49" height="21.50" rx="1" fill="#b06625" stroke="#0d1117" stroke-width="0.6" shape-rendering="geometricPrecision"><title>SDK / Dma · pending · 45 functions · 11,136 B · C_EXACT 82.10% · C_FUZZY 88.16% · 35 matching C · 3 pending · 7 intentional asm</title></rect>
+<rect x="10.00" y="10.00" width="138.49" height="21.50" rx="1" fill="#b76924" stroke="#0d1117" stroke-width="0.6" shape-rendering="geometricPrecision"><title>SDK / Dma · pending · 45 functions · 11,136 B · C_EXACT 85.54% · C_FUZZY 91.59% · 36 matching C · 2 pending · 7 intentional asm</title></rect>
 <rect x="148.49" y="10.00" width="65.61" height="21.50" rx="1" fill="#bb6a23" stroke="#0d1117" stroke-width="0.6" shape-rendering="geometricPrecision"><title>SDK / Rpc · pending · 28 functions · 5,276 B · C_EXACT 87.38% · C_FUZZY 98.90% · 24 matching C · 1 pending · 3 intentional asm</title></rect>
 <rect x="214.10" y="10.00" width="62.98" height="21.50" rx="1" fill="#cf7221" stroke="#0d1117" stroke-width="0.6" shape-rendering="geometricPrecision"><title>SDK / Debug · pending · 30 functions · 5,064 B · C_EXACT 96.04% · C_FUZZY 100.00% · 27 matching C · 2 pending · 1 intentional asm</title></rect>
 <rect x="277.08" y="10.00" width="50.29" height="21.50" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.6" shape-rendering="geometricPrecision"><title>SDK / Storage / Memory Card · exact · 17 functions · 4,044 B · C_EXACT 100.00% · C_FUZZY 100.00% · 17 matching C · 0 pending · 0 intentional asm</title></rect>
@@ -144,26 +144,26 @@
 </g>
 <polygon points="10,10 790,10 790,96 10,96" fill="url(#sheen)" pointer-events="none"/>
 <g clip-path="url(#drawer-clip)" pointer-events="none"><ellipse cx="400.0" cy="53.0" rx="156.0" ry="51.6" fill="url(#drawer-halo)"/><ellipse cx="400.0" cy="57.0" rx="109.2" ry="60.2" fill="url(#panel-glow)"/></g>
-<text x="400.0" y="35" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5"><tspan font-size="12" font-weight="800" fill="#c3cbd8">42.8%</tspan> data in C<title>Data in C: 5,322,477 of 12,433,372 B, of which 4,579,905 B are zeros (zero-initialised level data).</title></text>
-<text x="400.0" y="67" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="30" font-weight="800" fill="#de812f">93.4%</text>
+<text x="400.0" y="35" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5"><tspan font-size="12" font-weight="800" fill="#c3cbd8">43.6%</tspan> data in C<title>Data in C: 5,418,137 of 12,433,372 B, of which 4,595,735 B are zeros (zero-initialised level data).</title></text>
+<text x="400.0" y="67" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="30" font-weight="800" fill="#de812f">93.5%</text>
 <text x="400.0" y="83" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">exe + overlays in C</text>
 <linearGradient id="legend-shade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0d1117" stop-opacity="0"/><stop offset="0.4" stop-color="#0d1117" stop-opacity="0.5"/><stop offset="1" stop-color="#0d1117" stop-opacity="0.5"/></linearGradient>
 <rect x="565" y="10" width="225" height="86" fill="url(#legend-shade)" clip-path="url(#drawer-clip)" pointer-events="none"/>
 <rect x="635" y="29.0" width="10" height="10" rx="2" fill="#de812f"></rect>
-<text x="650" y="38.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">matching C &#183; 3,312,600 B</text>
+<text x="650" y="38.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">matching C &#183; 3,316,916 B</text>
 <rect x="635" y="48.0" width="10" height="10" rx="2" fill="#c3cbd8"></rect>
 <text x="650" y="57.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">intentional asm &#183; 93,568 B</text>
 <rect x="635" y="67.0" width="10" height="10" rx="2" fill="url(#progress-range)"><title>Pending C: dark plate to copper shows C_EXACT coverage; bolt orange marks 100% exact.</title></rect>
-<text x="650" y="76.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">pending C &#183; 235,500 B</text>
+<text x="650" y="76.0" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" fill="#e8edf5">pending C &#183; 231,184 B</text>
 <text x="10" y="114" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#c3cbd8" fill-opacity="0.9">EXECUTABLE</text>
-<text x="10" y="184" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#c3cbd8" fill-opacity="0.9">LEVEL OVERLAYS &#183; 3,006,660 of 3,193,428 B matching C (94.2%)</text>
+<text x="10" y="184" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#c3cbd8" fill-opacity="0.9">LEVEL OVERLAYS &#183; 3,010,612 of 3,193,428 B matching C (94.3%)</text>
 <line x1="24" y1="120" x2="24" y2="136" stroke="#3a3632" stroke-width="2"/>
 <line x1="24" y1="190" x2="24" y2="1042" stroke="#3a3632" stroke-width="2"/>
 <path d="M 24 136 h 12" stroke="#3a3632" stroke-width="2" fill="none"/>
 <circle cx="24" cy="136" r="3.5" fill="#d87620" stroke="#0d1117" stroke-width="1"/>
-<text x="44" y="140" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="11"><tspan fill="#a6adc8"></tspan><tspan fill="#e8edf5" font-weight="700">BOOT ELF</tspan><tspan fill="#a6adc8"> &#183; Game executable, SCUS_971.99 &#183; C_FUZZY 98.3%</tspan></text>
-<text x="790" y="140" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" fill="#d87620">86.3%</text>
-<text x="790" y="156" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="8.5" fill="#a6adc8">1129/1424 units &#183; 448,240 B</text>
+<text x="44" y="140" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="11"><tspan fill="#a6adc8"></tspan><tspan fill="#e8edf5" font-weight="700">BOOT ELF</tspan><tspan fill="#a6adc8"> &#183; Game executable, SCUS_971.99 &#183; C_FUZZY 98.4%</tspan></text>
+<text x="790" y="140" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" fill="#d87620">86.4%</text>
+<text x="790" y="156" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="8.5" fill="#a6adc8">1130/1424 units &#183; 448,240 B</text>
 <rect x="44.00" y="148" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>Runtime / State: 15/15 units matching C, 312/312 B</title></rect>
 <rect x="45.35" y="148" width="73.50" height="10" rx="1" fill="#c16d23" stroke="#0d1117" stroke-width="0.4"><title>SDK / Library: 157/189 units matching C, 46,772/66,424 B</title></rect>
 <rect x="119.85" y="148" width="6.53" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>Runtime / Newlib: 6/6 units matching C, 5,900/5,900 B</title></rect>
@@ -180,7 +180,7 @@
 <rect x="145.15" y="148" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>SDK / Interrupts: 1/13 units matching C, 24/216 B</title></rect>
 <rect x="146.39" y="148" width="0.40" height="10" rx="1" fill="#c3cbd8" stroke="#0d1117" stroke-width="0.4"><title>SDK / Threads: 0/18 units matching C, 0/288 B</title></rect>
 <rect x="147.71" y="148" width="0.40" height="10" rx="1" fill="#c3cbd8" stroke="#0d1117" stroke-width="0.4"><title>SDK / Memory / Cache: 0/2 units matching C, 0/32 B</title></rect>
-<rect x="148.75" y="148" width="12.32" height="10" rx="1" fill="#b06625" stroke="#0d1117" stroke-width="0.4"><title>SDK / Dma: 35/45 units matching C, 8,696/11,136 B</title></rect>
+<rect x="148.75" y="148" width="12.32" height="10" rx="1" fill="#b76924" stroke="#0d1117" stroke-width="0.4"><title>SDK / Dma: 36/45 units matching C, 9,060/11,136 B</title></rect>
 <rect x="162.07" y="148" width="5.84" height="10" rx="1" fill="#bb6a23" stroke="#0d1117" stroke-width="0.4"><title>SDK / Rpc: 24/28 units matching C, 4,432/5,276 B</title></rect>
 <rect x="168.91" y="148" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>Runtime / Status: 4/4 units matching C, 32/32 B</title></rect>
 <rect x="169.94" y="148" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>Runtime / Objects: 5/5 units matching C, 72/72 B</title></rect>
@@ -300,8 +300,8 @@
 <path d="M 24 206 h 12" stroke="#3a3632" stroke-width="2" fill="none"/>
 <circle cx="24" cy="206" r="3.5" fill="#d87620" stroke="#0d1117" stroke-width="1"/>
 <text x="44" y="210" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="11"><tspan fill="#a6adc8"></tspan><tspan fill="#e8edf5" font-weight="700">Shared code</tspan><tspan fill="#a6adc8"> &#183; Functions present in two or more levels</tspan></text>
-<text x="790" y="210" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" fill="#d87620">88.1%</text>
-<text x="790" y="226" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="8.5" fill="#a6adc8">1501/1583 fn &#183; 1,130,492 B</text>
+<text x="790" y="210" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" fill="#d87620">88.5%</text>
+<text x="790" y="226" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="8.5" fill="#a6adc8">1506/1583 fn &#183; 1,130,492 B</text>
 <rect x="44.00" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/sdk/debug/001eb0b0.c: 2/2 functions matching C, 116/116 B</title></rect>
 <rect x="45.04" y="218" width="0.73" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/camera/init_camera_system.c: 9/9 functions matching C, 1,960/1,960 B</title></rect>
 <rect x="46.78" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/rendering/effects/001edf60.c: 1/1 functions matching C, 220/220 B</title></rect>
@@ -335,7 +335,7 @@
 <rect x="131.76" y="218" width="2.36" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/help/00220b80.c: 4/4 functions matching C, 6,312/6,312 B</title></rect>
 <rect x="135.13" y="218" width="11.75" height="10" rx="1" fill="#d17321" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/hero/hero_set_state.c: 15/16 functions matching C, 30,484/31,396 B</title></rect>
 <rect x="147.87" y="218" width="0.41" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/help/00222800.c: 1/1 functions matching C, 1,100/1,100 B</title></rect>
-<rect x="149.29" y="218" width="5.61" height="10" rx="1" fill="#c06c23" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/hero/air_accel.c: 20/22 functions matching C, 13,396/14,988 B</title></rect>
+<rect x="149.29" y="218" width="5.61" height="10" rx="1" fill="#ce7221" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/hero/air_accel.c: 21/22 functions matching C, 14,328/14,988 B</title></rect>
 <rect x="155.89" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/hero/00227778.c: 1/1 functions matching C, 564/564 B</title></rect>
 <rect x="157.10" y="218" width="0.82" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/help/00227f10.c: 2/2 functions matching C, 2,196/2,196 B</title></rect>
 <rect x="158.93" y="218" width="1.09" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/hero/hero_handle_jump_press.c: 5/5 functions matching C, 2,908/2,908 B</title></rect>
@@ -362,7 +362,7 @@
 <rect x="222.07" y="218" width="0.68" height="10" rx="1" fill="#3a3632" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/map/002484e0.c: 0/1 functions matching C, 0/1,808 B</title></rect>
 <rect x="223.75" y="218" width="0.40" height="10" rx="1" fill="#3a3632" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/text/00249738.c: 0/1 functions matching C, 0/908 B</title></rect>
 <rect x="225.09" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/menus/002497f8.c: 2/2 functions matching C, 496/496 B</title></rect>
-<rect x="226.27" y="218" width="0.40" height="10" rx="1" fill="#493c30" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/menus/00248d08.c: 1/2 functions matching C, 76/364 B</title></rect>
+<rect x="226.27" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/menus/00248d08.c: 2/2 functions matching C, 364/364 B</title></rect>
 <rect x="227.41" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/0024c7f0.c: 1/1 functions matching C, 36/36 B</title></rect>
 <rect x="228.42" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/rendering/view/0024e6f8.c: 1/1 functions matching C, 308/308 B</title></rect>
 <rect x="229.54" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/map/0024e7a8.c: 1/1 functions matching C, 140/140 B</title></rect>
@@ -404,7 +404,7 @@
 <rect x="293.43" y="218" width="0.42" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/00264e40.c: 3/3 functions matching C, 1,120/1,120 B</title></rect>
 <rect x="294.85" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/math/interpolation/002650a8.c: 1/1 functions matching C, 196/196 B</title></rect>
 <rect x="295.92" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/rendering/state/00265880.c: 1/1 functions matching C, 64/64 B</title></rect>
-<rect x="296.94" y="218" width="0.75" height="10" rx="1" fill="#724c2c" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/hud/002661a0.c: 3/4 functions matching C, 996/2,000 B</title></rect>
+<rect x="296.94" y="218" width="0.75" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/ui/hud/002661a0.c: 4/4 functions matching C, 2,000/2,000 B</title></rect>
 <rect x="298.69" y="218" width="0.49" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/audio/streaming/00266298.c: 4/4 functions matching C, 1,308/1,308 B</title></rect>
 <rect x="300.18" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/input/pad/pad_pressed_within.c: 3/3 functions matching C, 356/356 B</title></rect>
 <rect x="301.32" y="218" width="0.74" height="10" rx="1" fill="#69492d" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/rendering/effects/register_part_types.c: 3/4 functions matching C, 876/1,972 B</title></rect>
@@ -455,7 +455,7 @@
 <rect x="408.86" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/audio/voices/002a1968.c: 1/1 functions matching C, 32/32 B</title></rect>
 <rect x="409.87" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/audio/voices/002a1a90.c: 1/1 functions matching C, 116/116 B</title></rect>
 <rect x="410.92" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/space/002a2480.c: 1/1 functions matching C, 52/52 B</title></rect>
-<rect x="411.94" y="218" width="5.92" height="10" rx="1" fill="#8d5829" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/trackdrive_left.c: 17/19 functions matching C, 10,272/15,812 B</title></rect>
+<rect x="411.94" y="218" width="5.92" height="10" rx="1" fill="#9f5f26" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/trackdrive_left.c: 18/19 functions matching C, 11,740/15,812 B</title></rect>
 <rect x="418.85" y="218" width="8.96" height="10" rx="1" fill="#c66f22" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/camera_object.c: 29/30 functions matching C, 22,048/23,944 B</title></rect>
 <rect x="428.81" y="218" width="11.72" height="10" rx="1" fill="#c36d22" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/mine.c: 16/18 functions matching C, 28,432/31,328 B</title></rect>
 <rect x="441.53" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/vendor/002aea70.c: 1/1 functions matching C, 640/640 B</title></rect>
@@ -466,7 +466,7 @@
 <rect x="465.18" y="218" width="1.75" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/ammocrate.c: 6/6 functions matching C, 4,664/4,664 B</title></rect>
 <rect x="467.92" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/vendor/002b7ef0.c: 5/5 functions matching C, 932/932 B</title></rect>
 <rect x="469.27" y="218" width="11.76" height="10" rx="1" fill="#a05f26" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/novalis_elevator.c: 28/31 functions matching C, 23,480/31,432 B</title></rect>
-<rect x="482.03" y="218" width="10.21" height="10" rx="1" fill="#9b5d27" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/walloper.c: 27/31 functions matching C, 19,688/27,300 B</title></rect>
+<rect x="482.03" y="218" width="10.21" height="10" rx="1" fill="#9d5e27" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/walloper.c: 28/31 functions matching C, 19,948/27,300 B</title></rect>
 <rect x="493.25" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/rendering/effects/002bc210.c: 2/2 functions matching C, 560/560 B</title></rect>
 <rect x="494.46" y="218" width="12.20" height="10" rx="1" fill="#ae6525" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/trespasser.c: 26/27 functions matching C, 26,596/32,592 B</title></rect>
 <rect x="507.65" y="218" width="0.40" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/shared/gameplay/entities/002c31c0.c: 4/4 functions matching C, 812/812 B</title></rect>
@@ -792,6 +792,6 @@
 <rect x="623.53" y="1054" width="46.77" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/l18/gameplay/entities/deplanetizer_gun.c: 18/18 functions matching C, 12,096/12,096 B</title></rect>
 <rect x="671.30" y="1054" width="0.70" height="10" rx="1" fill="#de812f" stroke="#0d1117" stroke-width="0.4"><title>src/overlays/l18/gameplay/vendor/002fcbb0.c: 2/2 functions matching C, 180/180 B</title></rect>
 <line x1="10" y1="1082.0" x2="790" y2="1082.0" stroke="#3a3632" stroke-width="1" opacity="0.8"/>
-<text x="10" y="1096" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="9" fill="#a6adc8" opacity="0.85">executable 86.3% &#183; overlays 94.2% &#183; 3,312,600 of 3,641,668 B in C</text>
-<text x="790" y="1096" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="9" fill="#a6adc8" opacity="0.85">generated 2026-10-17 &#183; scripts/generate_treemap.py</text>
+<text x="10" y="1096" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="9" fill="#a6adc8" opacity="0.85">executable 86.4% &#183; overlays 94.3% &#183; 3,316,916 of 3,641,668 B in C</text>
+<text x="790" y="1096" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, &#x27;Noto Sans&#x27;, Helvetica, Arial, sans-serif" font-size="9" fill="#a6adc8" opacity="0.85">generated 2026-10-18 &#183; scripts/generate_treemap.py</text>
 </svg>
