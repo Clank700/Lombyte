@@ -207,7 +207,7 @@ f32 FUN_001f9b48_c(void *, V_cf58 *) __asm__("FUN_001f9b48");
 #include "rnc/overlay/path.h"
 void find_grind_rail(void) __asm__("FUN_L00_0020cf58");
 void find_grind_rail(void) {
-    V_cf58 v0, v1, v2;
+    V_cf58 v0, v1, third_proximity_point;
 
     s32 a, b, e;
     f32 c;
@@ -242,11 +242,11 @@ void find_grind_rail(void) {
             v1.y = 341.0f;
             v1.z = 48.0f;
             if (12.0f < FUN_001f9b48_c(&hero.motion.pos, &v1)) {
-                *(OvlQuad *)&v2 = 0;
-                v2.x = 308.0f;
-                v2.y = 104.0f;
-                v2.z = 69.0f;
-                if (12.0f < FUN_001f9b48_c(&hero.motion.pos, &v2))
+                *(OvlQuad *)&third_proximity_point = 0;
+                third_proximity_point.x = 308.0f;
+                third_proximity_point.y = 104.0f;
+                third_proximity_point.z = 69.0f;
+                if (12.0f < FUN_001f9b48_c(&hero.motion.pos, &third_proximity_point))
                     return;
             }
         }
@@ -567,8 +567,8 @@ char *FUN_L00_0020d8f8(float a, float b, float c, float d) {
     return best;
 }
 /* Maps 1, 2, 3 to 0x79, 0x77, 0x75; others to 0. */
-s32 FUN_L00_0020da10(s32 a0) {
-    switch (a0) {
+s32 FUN_L00_0020da10(s32 animation_selector) {
+    switch (animation_selector) {
     case 1:
         return 0x79;
     case 2:
@@ -948,7 +948,7 @@ extern void FUN_L00_002323b8_c(s32, s32, f32) __asm__("FUN_L00_002323b8");
 
 void FUN_L00_0020e4c8(void);
 void FUN_L00_0020e4c8(void) {
-    s32 t, v19, v20, v21, i;
+    s32 t, hero_animation_id, animation_step_divisor, slot_animation_id, i;
     u8 *o;
     struct Hero *P;
     t = FUN_L00_0020d498_c(0);
@@ -956,24 +956,24 @@ void FUN_L00_0020e4c8(void) {
         return;
     P = &hero;
     P->unk2298 = t;
-    v19 = D_L00_00179AC0_c[t].unk24;
-    v21 = D_L00_00179AC0_c[t].f28;
+    hero_animation_id = D_L00_00179AC0_c[t].unk24;
+    slot_animation_id = D_L00_00179AC0_c[t].f28;
     if ((s32)P->state.control_mode == 12)
-        v21 = D_L00_00179AC0_c[t].f2C;
+        slot_animation_id = D_L00_00179AC0_c[t].f2C;
     P->unk20A8 = 1;
     {
         s32 k = D_L00_00179AC0_c[t].f30;
         P->unk20AA = k;
     }
-    v20 = FUN_001f96f8_c(10);
+    animation_step_divisor = FUN_001f96f8_c(10);
     if (D_L00_00179AC0_c[t].f18 == 0)
-        v20 = FUN_001f96f8_c(11);
+        animation_step_divisor = FUN_001f96f8_c(11);
     if (P->state.control_mode == 0 && P->unk22C8 == 0) {
-        P->unk2294 = v19;
-        FUN_L00_002323b8_c(v19, 0, (f32)v20);
+        P->unk2294 = hero_animation_id;
+        FUN_L00_002323b8_c(hero_animation_id, 0, (f32)animation_step_divisor);
         return;
     }
-    if (v21 == -1)
+    if (slot_animation_id == -1)
         return;
     for (i = 0; i < 2 && (i != 1 || hero.unk20AB == 2); i++) {
         if (hero.unkD08[i] != 0) {
@@ -982,10 +982,10 @@ void FUN_L00_0020e4c8(void) {
         o = FUN_L00_0024f028((u8 *)hero.moby, D_L00_0015F6A0_gp[i]);
         hero.unkD08[i] = o;
         if (o != 0) {
-            hero.unk2294 = v21;
+            hero.unk2294 = slot_animation_id;
             hero.unkD14 = 0;
             *(f32 *)(o + 8) = 1.0f;
-            FUN_L00_0024f3e0((u8 *)hero.moby, o, hero.unk2294, 0, v20, 1);
+            FUN_L00_0024f3e0((u8 *)hero.moby, o, hero.unk2294, 0, animation_step_divisor, 1);
         }
     }
 }
@@ -3156,7 +3156,7 @@ extern CollisionHit HH __asm__("D_L00_00173E40") __attribute__((section(".data")
 #define HF(o) (*(f32 *)(D_L00_00173E40 + (o)))
 
 void FUN_L00_002127b8(void) {
-    V v0, v10, v20, v30, v40, v50, v60;
+    V collision_ray_end, ground_ray_start, v20, side_ray_start, v40, v50, v60;
     f32 f;
     s32 r;
     s32 i;
@@ -3187,8 +3187,8 @@ void FUN_L00_002127b8(void) {
     if (hero.state.control_mode == 2) {
         g = hero.unk234 * 2.9f;
     }
-    hero_get_collision_ray_endpoints((Vec4_002126b8 *)&v10, (Vec4_002126b8 *)&v0, k, g, -48.0f);
-    if (collision_line(&v10, &v0, 2, hero.moby, 0) == 0) {
+    hero_get_collision_ray_endpoints((Vec4_002126b8 *)&ground_ray_start, (Vec4_002126b8 *)&collision_ray_end, k, g, -48.0f);
+    if (collision_line(&ground_ray_start, &collision_ray_end, 2, hero.moby, 0) == 0) {
         goto tail;
     }
     r = coll_sound_class();
@@ -3202,7 +3202,7 @@ void FUN_L00_002127b8(void) {
         if (hero.motion.pos.f[2] < hero.water_surface_z && hero.unk2F8 <= 0) {
             hero.unk2F8 = 1;
         }
-        if (collision_line(&v10, &v0, 0x24, hero.moby, 0) == 0) {
+        if (collision_line(&ground_ray_start, &collision_ray_end, 0x24, hero.moby, 0) == 0) {
             goto d1;
         }
         r = coll_sound_class();
@@ -3213,15 +3213,15 @@ void FUN_L00_002127b8(void) {
     }
     if (hero.ground_type == 0xD) {
         hero.water_surface_z = D_L00_00173E68;
-        v10.f[2] = D_L00_00173E68 - 0.01f;
-        if (collision_line(&v10, &v0, 4, hero.moby, 0) == 0) {
+        ground_ray_start.f[2] = D_L00_00173E68 - 0.01f;
+        if (collision_line(&ground_ray_start, &collision_ray_end, 4, hero.moby, 0) == 0) {
             goto d1;
         }
     }
     if (hero.ground_type == 3) {
         hero.unk2F4 = D_L00_00173E68;
-        v10.f[2] = D_L00_00173E68 - 0.01f;
-        if (collision_line(&v10, &v0, 4, hero.moby, 0) == 0) {
+        ground_ray_start.f[2] = D_L00_00173E68 - 0.01f;
+        if (collision_line(&ground_ray_start, &collision_ray_end, 4, hero.moby, 0) == 0) {
             goto d1;
         }
     }
@@ -3313,9 +3313,9 @@ d1:
         if (i == 1) {
             a = -a;
         }
-        FUN_L00_002335c8(&v30, 0.2f, a, 0.45f);
+        FUN_L00_002335c8(&side_ray_start, 0.2f, a, 0.45f);
         FUN_L00_002335c8(&v40, 0.2f, a, -0.45f);
-        if (collision_line(&v30, &v0, 0x22, hero.moby, 0)) {
+        if (collision_line(&side_ray_start, &collision_ray_end, 0x22, hero.moby, 0)) {
             f = HH.point.f[2] - hero.ground_z.f;
             hero.unk2C0.f[i] = f;
             if (0.4f < FUN_001f99c0(f)) {
