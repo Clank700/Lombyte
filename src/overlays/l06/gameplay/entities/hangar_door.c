@@ -996,7 +996,6 @@ s32 FUN_L00_00203908(s32 a, s32 b);
 void jet_clear_persistent(int idx) __asm__("FUN_L00_002502a0");
 void FUN_L00_00263d40(int a, int b);
 void FUN_L06_00239528(void);
-void FUN_L06_002f5d78(char *moby);
 extern unsigned char D_0013E633_2F69D0[] __asm__("D_0013F350");
 extern char D_0013E650_2F69D0[] __asm__("D_0013E550");
 extern unsigned char D_0013D5DD_2F69D0[] __asm__("D_001413F4");
@@ -1184,110 +1183,117 @@ void FUN_L06_002f55a0(Moby *moby) {
         break;
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L06_002f5d78.s", FUN_L06_002f5d78);
-#else
-extern void transform_vector_by_basis(void *, void *, void *) __asm__("FUN_001f9cf8");
+/* Blarg drawbridge pieces: places and rotates the 20 + 10 chained segment mobys. */
+/* Ported from rac1-decomp (src/overlays/l06_blarg/vendor_002B5990.c: func_L06_002F71A8), where it is exact; names translated to the US level program. */
+
+typedef struct DrawbridgeVars {
+    char p0[0x60];
+    int i60;
+    int i64;
+    int i68;
+    float f6C;
+    Moby *a[20];
+    Moby *b[20];
+    Moby *c[10];
+    Moby *d[10];
+} DrawbridgeVars;
+
+extern char D_L06_00161D50[4] __attribute__((sda));
+extern char D_L06_00161D60[4] __attribute__((sda));
 extern float D_L06_00161D70 __attribute__((sda));
 extern float D_L06_00161D74 __attribute__((sda));
-extern float D_L06_00161D78_gp __asm__("D_L06_00161D78") __attribute__((sda));
-extern float D_L06_00161D7C_gp __asm__("D_L06_00161D7C") __attribute__((sda));
-extern float D_L06_00161D80_gp __asm__("D_L06_00161D80") __attribute__((sda));
-extern float D_L06_00161D50 __attribute__((sda));
-extern float D_L06_00161D60 __attribute__((sda));
+extern float D_L06_00161D78 __attribute__((sda));
+extern float D_L06_00161D7C __attribute__((sda));
+extern float D_L06_00161D80 __attribute__((sda));
+extern void fast_vec_normalize(void *, void *, float) __asm__("FUN_001f9bf8");
+extern void transform_vector_by_basis(void *, void *, void *) __asm__("func_001F9CF8");
 
-void FUN_L06_002f5d78(char *moby) {
-    char *data = *(char **)(moby + 0x78);
-    Vec4 result, first, second;
-    int i, offset;
-    float angle, other, upper, lower, base, threshold;
-    char **left, **right;
+void FUN_L06_002f5d78(Moby *moby)
+{
+    Vec_2F69D0 result, first, second;
+    DrawbridgeVars *data = (DrawbridgeVars *)moby->pvars;
+    int i, j;
+    float length, angle, left, min_length, right, limit;
 
-    for (i = 0, offset = 0; offset < 80;) {
-        float angle;
-        float length = D_L06_00161D78_gp - (float)i;
+    for (i = 0; i < 20; i++) {
+        length = D_L06_00161D78 - (float)i;
         if (length < 0.0f) length = 0.0f;
-        normalize_vector_xyz(&first, moby + 0xc0, length);
-        transform_vector_by_basis(&result, &D_L06_00161D50, moby + 0xc0);
-        add_vector_xyz(&result, &result, moby + 0x10);
+        fast_vec_normalize(&first, &moby->rot_row0, length);
+        transform_vector_by_basis(&result, (Vec_2F69D0 *)D_L06_00161D50, &moby->rot_row0);
+        add_vector_xyz(&result, &result, &moby->pos);
         add_vector_xyz(&result, &result, &first);
-        qcopy(*(char **)(data + 0x70 + offset) + 0x10, &result);
-        transform_vector_by_basis(&result, &D_L06_00161D60, moby + 0xc0);
-        add_vector_xyz(&result, &result, moby + 0x10);
+        qcopy(&data->a[i]->pos, &result);
+        transform_vector_by_basis(&result, (Vec_2F69D0 *)D_L06_00161D60, &moby->rot_row0);
+        add_vector_xyz(&result, &result, &moby->pos);
         add_vector_xyz(&result, &result, &first);
-        qcopy(*(char **)(data + 0xc0 + offset) + 0x10, &result);
-        angle = D_L06_00161D7C_gp * DEG_TO_RAD - (float)(i * 45) * DEG_TO_RAD;
-        if (1.5707964f < angle) angle = 1.5707964f;
+        qcopy(&data->b[i]->pos, &result);
+        angle = D_L06_00161D7C * 0.017453292f - (float)(i * 45) * 0.017453292f;
+        if (angle > 1.5707964f) angle = 1.5707964f;
         else if (angle < 0.0f) angle = 0.0f;
-        right = (char **)(data + 0xc0 + offset);
-        left = (char **)(data + 0x70 + offset);
-        i++;
-        offset += 4;
-        *(float *)(*left + 0x40) = -angle;
-        *(float *)(*right + 0x40) = angle;
-        FUN_L00_00250df8(*left);
-        FUN_L00_00250df8(*right);
+        data->a[i]->rot.x = -angle;
+        data->b[i]->rot.x = angle;
+        FUN_L00_00250df8(data->a[i]);
+        FUN_L00_00250df8(data->b[i]);
     }
-    {
-        int i, offset;
-        right = (char **)(data + 0x138);
-        left = (char **)(data + 0x110);
-        for (i = 0, offset = 0; i < 10; i++, offset = i + i, left++, right++) {
-            float length = D_L06_00161D78_gp - ((float)i + (float)i);
-            threshold = (float)(4 - i) * D_L06_00161D74 + D_L06_00161D70;
-            upper = length;
-            lower = length - 1.0f;
-            if (length < threshold) upper = threshold;
-            if (lower < threshold) lower = threshold;
-            normalize_vector_xyz(&first, moby + 0xc0, upper);
-            normalize_vector_xyz(&second, moby + 0xc0, lower);
-            transform_vector_by_basis(&result, &D_L06_00161D50, moby + 0xc0);
-            add_vector_xyz(&result, &result, moby + 0x10);
-            add_vector_xyz(&result, &result, &first);
-            qcopy(*left + 0x10, &result);
-            transform_vector_by_basis(&result, &D_L06_00161D60, moby + 0xc0);
-            add_vector_xyz(&result, &result, moby + 0x10);
-            add_vector_xyz(&result, &result, &second);
-            qcopy(*right + 0x10, &result);
-            angle = D_L06_00161D7C_gp * DEG_TO_RAD - (float)offset * 0.7853982f;
-            threshold = angle - (*(float *)&D_L06_00161DA0) * DEG_TO_RAD;
-            if (1.5707964f < angle) angle = 1.5707964f;
-            else if (angle < 0.0f) angle = 0.0f;
-            if (1.5707964f < threshold) threshold = 1.5707964f;
-            else if (threshold < 0.0f) threshold = 0.0f;
-            if (angle != 0.0f && threshold == 0.0f) allocate_voice_for_target_entry(1, 0, (int)*left);
-            upper = (D_L06_00161D7C_gp * DEG_TO_RAD - (float)(i + i) * 0.7853982f) - 0.7853982f;
-            threshold = upper - (*(float *)&D_L06_00161DA0) * DEG_TO_RAD;
-            if (1.5707964f < upper) upper = 1.5707964f;
-            else if (upper < 0.0f) upper = 0.0f;
-            if (1.5707964f < threshold) threshold = 1.5707964f;
-            else if (threshold < 0.0f) threshold = 0.0f;
-            if (upper != 0.0f && threshold == 0.0f) allocate_voice_for_target_entry(1, 0, (int)*right);
-            other = -angle;
-            angle = D_L06_00161D80_gp * DEG_TO_RAD - (float)(i + i) * 0.7853982f;
-            threshold = angle - (*(float *)&D_L06_00161DA4) * DEG_TO_RAD;
-            *(float *)(*left + 0x40) = other;
-            *(float *)(*right + 0x40) = upper;
-            if (1.5707964f < angle) angle = 1.5707964f;
-            else if (angle < 0.0f) angle = 0.0f;
-            if (1.5707964f < threshold) threshold = 1.5707964f;
-            else if (threshold < 0.0f) threshold = 0.0f;
-            if (angle != 0.0f && threshold == 0.0f) allocate_voice_for_target_entry(2, 0, (int)*left);
-            upper = (D_L06_00161D80_gp * DEG_TO_RAD - (float)(i + i) * 0.7853982f) - 0.7853982f;
-            threshold = angle - (*(float *)&D_L06_00161DA4) * DEG_TO_RAD;
-            if (1.5707964f < upper) upper = 1.5707964f;
-            else if (upper < 0.0f) upper = 0.0f;
-            if (1.5707964f < threshold) threshold = 1.5707964f;
-            else if (threshold < 0.0f) threshold = 0.0f;
-            if (upper != 0.0f && threshold == 0.0f) allocate_voice_for_target_entry(2, 0, (int)*right);
-            *(float *)(*left + 0x44) = -angle;
-            *(float *)(*right + 0x44) = -upper;
-            FUN_L00_00250df8(*left);
-            FUN_L00_00250df8(*right);
-        }
+
+    for (j = 0; j < 10; j++) {
+        min_length = D_L06_00161D70 + (float)(4 - j) * D_L06_00161D74;
+        length = D_L06_00161D78 - j * 2.0f;
+        right = length - 1.0f;
+        if (length < min_length) length = min_length;
+        if (right < min_length) right = min_length;
+        fast_vec_normalize(&first, &moby->rot_row0, length);
+        fast_vec_normalize(&second, &moby->rot_row0, right);
+        transform_vector_by_basis(&result, (Vec_2F69D0 *)D_L06_00161D50, &moby->rot_row0);
+        add_vector_xyz(&result, &result, &moby->pos);
+        add_vector_xyz(&result, &result, &first);
+        qcopy(&data->c[j]->pos, &result);
+        transform_vector_by_basis(&result, (Vec_2F69D0 *)D_L06_00161D60, &moby->rot_row0);
+        add_vector_xyz(&result, &result, &moby->pos);
+        add_vector_xyz(&result, &result, &second);
+        qcopy(&data->d[j]->pos, &result);
+
+        left = D_L06_00161D7C * 0.017453292f - (float)(j * 2) * 0.7853982f;
+        limit = left - D_L06_00161E30_2F69D0 * 0.017453292f;
+        if (left > 1.5707964f) left = 1.5707964f;
+        else if (left < 0.0f) left = 0.0f;
+        if (limit > 1.5707964f) limit = 1.5707964f;
+        else if (limit < 0.0f) limit = 0.0f;
+        if (left != 0.0f && limit == 0.0f) allocate_voice_for_target_entry(1, 0, (int)data->c[j]);
+
+        right = D_L06_00161D7C * 0.017453292f - (float)(j * 2) * 0.7853982f - 0.7853982f;
+        limit = right - D_L06_00161E30_2F69D0 * 0.017453292f;
+        if (right > 1.5707964f) right = 1.5707964f;
+        else if (right < 0.0f) right = 0.0f;
+        if (limit > 1.5707964f) limit = 1.5707964f;
+        else if (limit < 0.0f) limit = 0.0f;
+        if (right != 0.0f && limit == 0.0f) allocate_voice_for_target_entry(1, 0, (int)data->d[j]);
+
+        data->c[j]->rot.x = -left;
+        data->d[j]->rot.x = right;
+
+        left = D_L06_00161D80 * 0.017453292f - (float)(j * 2) * 0.7853982f;
+        limit = left - D_L06_00161E34_2F69D0 * 0.017453292f;
+        if (left > 1.5707964f) left = 1.5707964f;
+        else if (left < 0.0f) left = 0.0f;
+        if (limit > 1.5707964f) limit = 1.5707964f;
+        else if (limit < 0.0f) limit = 0.0f;
+        if (left != 0.0f && limit == 0.0f) allocate_voice_for_target_entry(2, 0, (int)data->c[j]);
+
+        right = D_L06_00161D80 * 0.017453292f - (float)(j * 2) * 0.7853982f - 0.7853982f;
+        limit = left - D_L06_00161E34_2F69D0 * 0.017453292f;
+        if (right > 1.5707964f) right = 1.5707964f;
+        else if (right < 0.0f) right = 0.0f;
+        if (limit > 1.5707964f) limit = 1.5707964f;
+        else if (limit < 0.0f) limit = 0.0f;
+        if (right != 0.0f && limit == 0.0f) allocate_voice_for_target_entry(2, 0, (int)data->d[j]);
+
+        data->c[j]->rot.y = -left;
+        data->d[j]->rot.y = -right;
+        FUN_L00_00250df8(data->c[j]);
+        FUN_L00_00250df8(data->d[j]);
     }
 }
-#endif
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L06_002f6470.s", FUN_L06_002f6470);
 #else

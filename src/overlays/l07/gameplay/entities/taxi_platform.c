@@ -966,51 +966,58 @@ void FUN_L07_0030af40(struct Moby *m) {
     if (t != 0)
         t->frames = t->length;
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L07_0030b000.s", FUN_L07_0030b000);
-#else
-extern char *D_L07_001B0530[] __asm__("D_L07_001B0530");
-extern char *FUN_L00_0025a420(void *, int, int);
-extern s32 FUN_00213928(struct Moby *, char *, f32 *, s32, s32 *, s32, s32, s32);
-extern void FUN_L01_0026e0e0(s32, s32);
-extern void clear_u64_value(void *) __asm__("FUN_001f99f8");
-extern void FUN_L00_0025e450_l07(f32, f32, f32, f32, f32, f32, f32, struct Moby *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32) __asm__("FUN_L00_0025e450");
-extern f32 fast_vec_dist(void *, void *) __asm__("FUN_001f9b48");
-extern s32 FUN_L00_002591d0(s32 *, s32, s32, s32);
-extern s32 FUN_L00_002592b8(s32 *, s32, s32, s32);
-extern void debug_print(char *, ...) __asm__("FUN_001e93b0");
-extern s32 FUN_L01_0028b510(f32, void *, void *);
+/* Ported from rac1-decomp (src/overlays/l07_umbris/vendor_002CE470.c: func_L07_0030C3E0), where it is exact; names translated to the US level program. */
+
+extern char *find_moby_hit(void *, int, int) __asm__("FUN_L00_0025a420");
+extern char D_L07_00211550[];
+extern char D_L07_00211580[];
+extern char D_L07_002115D0[];
+extern float fast_vec_dist(void *, void *);
+extern int debug_print() __asm__("FUN_001e93b0");
+extern int FUN_L00_002591d0(int *, int, int, int);
+extern int FUN_L00_002592b8(int *, int, int, int);
+extern int sample_path(void *path, void *pos, int *segment, float *distance, float step, int loop) __asm__("FUN_L00_0025d808");
+extern int FUN_L01_0028b510(void *, void *, float);
+extern int fun_00213928(void *, void *, void *, int, int *, float *, int, int);
+extern int fast_dec_timer(int *counter) __asm__("FUN_001f9740");
+extern void jet_animate(void *, float) __asm__("FUN_L00_00259fe8");
 extern void trooper_anim_update(void *, short *) __asm__("FUN_L00_0025d458");
-extern void trooper_anim_finish(struct Moby *, void *) __asm__("FUN_L00_0025d538");
-extern int sample_path(f32, void *, void *, void *, void *, s32) __asm__("FUN_L00_0025d808");
+extern void trooper_anim_finish(void *, void *) __asm__("FUN_L00_0025d538");
+extern void spawn_explosion(void *, void *, void *, float, float, int, int, int, float, float,
+                            float, float, int, float, int, int, int, int) __asm__("FUN_L00_0025e450");
+extern void FUN_L01_0026e0e0(int list, int state);
+extern void clear_u64_value(void *) __asm__("func_001F99F8");
+extern void mark_moby_for_removal(void *) __asm__("FUN_0020c828");
 extern void fast_vec_sub(void *, void *, void *) __asm__("FUN_001f9a28");
-extern void jet_animate(struct Moby *, f32) __asm__("FUN_L00_00259fe8");
-extern char D_L07_00211550[] __asm__("D_L07_00211550");
-extern char D_L07_00211580[] __asm__("D_L07_00211580");
-extern char D_L07_002115D0[] __asm__("D_L07_002115D0");
+
+/* Views of the crate and follower pvars: a typed field store keeps retail's load order. */
+typedef struct { char pad[0x74]; int group; int child_count; } CrateGroupView;
+typedef struct { char pad[0x90]; int segment; int next_segment; } FollowerSegmentView;
 
 void boltcrate_possibly_for_metal_detector_update(struct Moby *moby) __asm__("FUN_L07_0030b000");
 void boltcrate_possibly_for_metal_detector_update(struct Moby *moby) {
     char *data;
     char *path;
-    f32 *remaining;
-    s32 count;
-    s32 current;
-    s32 child;
-    s32 i;
-    s32 first;
-    s32 next;
-    f32 distance;
-    union { u128 q; f32 f[4]; } position;
+    float *remaining;
+    int count;
+    int current;
+    int child;
+    int i;
+    int first;
+    int next;
+    float distance;
+    float position[4];
+    char *limit;
+    int result;
 
     if (!moby) return;
     data = (char *)moby->pvars;
     if (!data) return;
-    remaining = (f32 *)(data + 0x20);
-    if (*(u8 *)(data + 0x94)) {
-        char *limit = (char *)FUN_L00_0025a420(moby, 0x230000, 0);
-        s32 result = FUN_00213928(moby, limit, remaining, 0, &count, 0, 0, 4);
-        switch ((u32)result) {
+    remaining = (float *)(data + 0x20);
+    if (*(unsigned char *)(data + 0x94)) {
+        limit = find_moby_hit(moby, 0x230000, 0);
+        result = fun_00213928(moby, limit, remaining, 0, &count, 0, 0, 4);
+        switch ((unsigned)result) {
         case 0:
         case 3:
         case 4:
@@ -1028,118 +1035,104 @@ void boltcrate_possibly_for_metal_detector_update(struct Moby *moby) {
             break;
         }
         if (count > 1) {
-            f32 step = *(f32 *)(limit + 0x2c);
+            float step = *(float *)(limit + 0x2c);
             if (*remaining <= step) {
                 *remaining = 0.0f;
-                FUN_L01_0026e0e0(*(s32 *)(data + 0x74), 3);
-                clear_u64_value(&position);
-                FUN_L00_0025e450_l07(0.0f, 0.0f, 4.0f, 2.0f, 9.0f, 1.0f, 15.0f,
-                                    moby, &position, 0, 10, 3, 16, -1, 1, 1, -1, 0);
-                delete_moby((struct Obj *)moby);
+                FUN_L01_0026e0e0(*(int *)(data + 0x74), 3);
+                clear_u64_value(position);
+                spawn_explosion(moby, position, (void *)0, 0.0f, 0.0f, 10, 3, 16, 4.0f, 2.0f, 9.0f, 1.0f, -1, 15.0f, 1, 1, -1, 0);
+                mark_moby_for_removal(moby);
                 return;
             }
             *remaining -= step;
-            *(u8 *)(data + 0x67) = 0xfa;
-            *(s16 *)(data + 0x26) = scale_game_frames(0x3c);
+            *(unsigned char *)(data + 0x67) = 0xfa;
+            *(short *)(data + 0x26) = scale_game_frames(0x3c);
             trooper_anim_update(moby, (short *)(data + 0x60));
         }
         moby->hit_slot = 0xff;
     }
     trooper_anim_finish(moby, data + 0x60);
-    if (*(s32 *)(data + 0x70) == -1) return;
-    path = D_L07_001B0530[*(s32 *)(data + 0x70)];
+    if (*(int *)(data + 0x70) == -1) return;
+    path = D_L07_001B0530[*(int *)(data + 0x70)];
     switch (moby->state) {
     case 0: {
-        s32 path_count;
+        int j;
+        int placed, follower;
         current = 0;
         next = 0;
-        qcopy(&position, path + 0x10);
-        path_count = *(s32 *)path;
-        {
-            s32 j = 0;
-            s32 k;
-            while (j < path_count) {
-                k = j + 1;
-                *(f32 *)(path + (j << 4) + 0x1c) =
-                    fast_vec_dist(path + 0x10 + j * 16,
-                                  path + 0x10 + (k % path_count) * 16);
-                j = k;
-                path_count = *(s32 *)path;
-            }
+        qcopy(position, path + 0x10);
+        for (j = 0; j < *(int *)path; j++) {
+            int offset = j * 16;
+            *(float *)(path + offset + 0x1c) =
+                fast_vec_dist(path + 0x10 + j * 16,
+                              path + 0x10 + ((j + 1) % *(int *)path) * 16);
         }
-        if (FUN_L00_002591d0(&current, *(s32 *)(data + 0x74), 1, 0)) {
-            debug_print(D_L07_00211550, *(s32 *)(data + 0x74));
+        if (FUN_L00_002591d0(&current, *(int *)(data + 0x74), 1, 0)) {
+            debug_print(D_L07_00211550, *(int *)(data + 0x74));
             return;
         }
-        first = FUN_L01_0028b510(0.0f, (char *)moby + 0x10, path);
-        *(s32 *)(data + 0x90) = first;
-        i = 0;
-        if (0 < *(s32 *)(data + 0x78)) do {
-            child = *(s32 *)(current + 0x78);
-            *(s32 *)(child + 0xa0) = (s32)moby;
-            qcopy((void *)(current + 0x10), &position);
-            qcopy((void *)(child + 0x80), &position);
-            qcopy((void *)(child + 0x70), &position);
-            *(s32 *)(child + 0x90) = first;
-            *(s32 *)(child + 0x94) = first + 1;
+        first = *(int *)(data + 0x90) = FUN_L01_0028b510(&moby->pos, path, 0.0f);
+        placed = 0;
+        if (0 < ((CrateGroupView *)data)->child_count) do {
+            follower = *(int *)(current + 0x78);
+            *(int *)(follower + 0xa0) = (int)moby;
+            qcopy((void *)(current + 0x10), position);
+            qcopy((void *)(follower + 0x80), position);
+            qcopy((void *)(follower + 0x70), position);
+            ((FollowerSegmentView *)follower)->segment = first;
+            ((FollowerSegmentView *)follower)->next_segment = first + 1;
             if (FUN_L00_002592b8(&current, current, 1, 0)) {
-                s32 child_count = *(s32 *)(data + 0x78);
-                s32 updated = i + 1;
-                if (i < child_count - 1)
-                    debug_print(D_L07_00211580, updated, *(s32 *)(data + 0x74));
-                else if (i == child_count - 1)
-                    debug_print(D_L07_002115D0, *(s32 *)(data + 0x74), child_count);
-                *(s32 *)(data + 0x78) = updated;
+                int child_count = *(int *)(data + 0x78);
+                if (placed < child_count - 1) {
+                    debug_print(D_L07_00211580, placed + 1, *(int *)(data + 0x74), child_count);
+                } else if (placed == child_count - 1) {
+                    debug_print(D_L07_002115D0, *(int *)(data + 0x74), child_count);
+                }
+                *(int *)(data + 0x78) = placed + 1;
                 break;
             }
-            sample_path(*(f32 *)(data + 0x80), path, &position, &first, &next, 1);
-            i++;
-        } while (i < *(s32 *)(data + 0x78));
-        if (!*(u8 *)(data + 0x94)) {
+            sample_path(path, position, &first, (float *)&next, *(float *)(data + 0x80), 1);
+            placed++;
+        } while (placed < *(int *)(data + 0x78));
+        if (!*(unsigned char *)(data + 0x94)) {
             moby->collision = 0;
             moby->flags &= 0xefff;
         }
-        if (!*(u8 *)(data + 0x95)) moby->flags |= 1;
+        if (!*(unsigned char *)(data + 0x95)) moby->flags |= 1;
         moby->state = 1;
         break;
     }
     case 1: {
-        s32 cursor;
-        s32 identifier = *(s32 *)(data + 0x74);
-        cursor = 0;
-        FUN_L00_002591d0(&cursor, identifier, 1, 0);
-        i = 0;
-        if (0 < *(s32 *)(data + 0x78)) do {
-            child = *(s32 *)(cursor + 0x78);
+        int cursor = 0;
+        FUN_L00_002591d0(&cursor, ((CrateGroupView *)data)->group, 1, 0);
+        for (i = 0; i < *(int *)(data + 0x78); i++) {
+            child = *(int *)(cursor + 0x78);
             {
-                f32 segment_distance = fast_vec_dist((char *)child + 0x80,
-                              path + 0x10 + *(s32 *)(child + 0x90) * 16);
-                f32 step = *(f32 *)(data + 0x7c) * frame_time;
+                float segment_distance = fast_vec_dist((char *)child + 0x80,
+                              path + 0x10 + *(int *)(child + 0x90) * 16);
+                float step = *(float *)(data + 0x7c) * frame_time;
                 distance = segment_distance;
-                sample_path(step, path,
-                         (char *)child + 0x80, (char *)child + 0x90, &distance, 1);
+                sample_path(path, (char *)child + 0x80, (int *)((char *)child + 0x90), &distance, step, 1);
             }
-            *(s32 *)(child + 0x94) = *(s32 *)(child + 0x90) + 1;
-            if (cursor == 0 || *(u8 *)(cursor + 0x20) == 0xfe ||
-                *(u8 *)(cursor + 0x20) == 0xfd) {
-                if (*(s32 *)(data + 0x84) != -1) {
+            *(int *)(child + 0x94) = *(int *)(child + 0x90) + 1;
+            if (cursor == 0 || *(unsigned char *)(cursor + 0x20) == 0xfe ||
+                *(unsigned char *)(cursor + 0x20) == 0xfd) {
+                if (*(int *)(data + 0x84) != -1) {
                     fast_vec_sub((char *)child + 0x60, (char *)child + 0x80,
                                   (char *)cursor + 0x10);
                     qcopy((void *)(cursor + 0x10), (void *)(child + 0x80));
                     if (fast_dec_timer((int *)(child + 0x98)) &&
-                        *(s32 *)(child + 0x90) == *(s32 *)(data + 0x90))
+                        *(int *)(child + 0x90) == *(int *)(data + 0x90))
                         FUN_L07_0030af40((struct Moby *)cursor);
                 }
             }
             FUN_L00_002592b8(&cursor, cursor, 1, 0);
-            i++;
-        } while (i < *(s32 *)(data + 0x78));
+        }
         break;
     }
     }
     jet_animate(moby, 1.5f);
 }
-#endif
 #include "qcopy.h"
 #include "rnc/gameplay/entities/moby.h"
 
@@ -1377,7 +1370,7 @@ extern int pool_splash() __asm__("FUN_L00_002a3ec8");
 extern int pool_init_tiles() __asm__("FUN_L01_002b7a48");
 extern int is_point_inside_clip_volume_c(void *arg0, int arg1) __asm__("func_00214720");
 extern int scale_game_frames_alt(int) __asm__("FUN_001f96f8");
-extern int fast_dec_timer(int *arg0) __asm__("FUN_001f9740");
+extern int fast_dec_timer(int *counter) __asm__("FUN_001f9740");
 extern s32 random_integer_below(s32) __asm__("func_00213260");
 extern unsigned short D_L07_00204680[];
 extern void approach_value(f32 *, f32, f32) __asm__("func_00213ED8");
@@ -2587,7 +2580,7 @@ extern int FUN_L00_00259740(void *, void *, int);
 extern int mine_fall(void *, void *) __asm__("FUN_L00_0025c698");
 extern int FUN_L07_0030ebc8_c(char *moby, char *data) __asm__("FUN_L07_0030ebc8");
 extern int is_point_inside_clip_volume_c2(void *arg0, int arg1) __asm__("func_00214720");
-extern int tick_countdown_32_alt(int *arg0) __asm__("FUN_001f9740");
+extern int tick_countdown_32_alt(int *counter) __asm__("FUN_001f9740");
 extern s32 rand(void);
 extern s32 truncate_float_to_s32_c(f32) __asm__("func_001FA6D0");
 extern unsigned char D_L07_00161B50_gp[1] __asm__("D_L07_00161B50") __attribute__((sda));
