@@ -2083,7 +2083,7 @@
     },
     {
       "name": "SoundOptionsMenu",
-      "unit": "assembly/textbin/ui/menus/audio/sound_options_menu",
+      "unit": "textbin/ui/menus/audio/sound_options_menu",
       "unit_size": "0x2d0",
       "match": "full",
       "address": "0x21cb30",
@@ -12266,7 +12266,7 @@
       },
       {
         "unit": "textbin/ui/menus/audio/sound_options_menu",
-        "source_path": "src/assembly/textbin/ui/menus/audio/sound_options_menu.c",
+        "source_path": "src/textbin/ui/menus/audio/sound_options_menu.c",
         "address": "0x0021cb30",
         "current_name": "FUN_0021cb30",
         "proposed_name": "sound_options_menu",
