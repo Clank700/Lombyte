@@ -1291,13 +1291,16 @@ void platform_update(Moby *moby) {
         PLATFORM_WAIT_TO_RESUME_OSCILLATION = 3,
         PLATFORM_OSCILLATE_BETWEEN_PATH_ENDPOINTS_FIXED_PITCH = 4,
         PLATFORM_WAIT_TO_RESUME_FIXED_PITCH_OSCILLATION = 5,
+        PLATFORM_ACCELERATE_UPWARD_UNTIL_NOT_VISIBLE = 6,
         PLATFORM_FOLLOW_WAYPOINTS = 7,
+        PLATFORM_FALL_AND_TUMBLE = 8,
         PLATFORM_TRACK_REFERENCED_MOBY_HEIGHT = 9
     };
     enum {
         PLATFORM_KIND_FOLLOW_WAYPOINTS = 0,
         PLATFORM_KIND_OSCILLATE_BETWEEN_PATH_ENDPOINTS = 1,
         PLATFORM_KIND_OSCILLATE_BETWEEN_PATH_ENDPOINTS_FIXED_PITCH = 2,
+        PLATFORM_KIND_DISABLE_DRAWING_AND_COLLISION = 3,
         PLATFORM_KIND_TRACK_REFERENCED_MOBY_HEIGHT = 4
     };
     float oldPos[4];
@@ -1357,7 +1360,7 @@ void platform_update(Moby *moby) {
             clear_u64_value_c2(data->vel);
             moby->state = 4;
             break;
-        case 3:
+        case PLATFORM_KIND_DISABLE_DRAWING_AND_COLLISION:
             moby->draw_dist = 0;
             moby->state = 1;
             (*(int *)&moby->collision) = 0;
@@ -1470,7 +1473,7 @@ void platform_update(Moby *moby) {
         qcopy(angles, (*(float (*)[4])&moby->rot));
         func_L12_002E4F18_2E51E8(moby, angles, (*(float (*)[4])&moby->pos), 0, 1);
         break;
-    case 6:
+    case PLATFORM_ACCELERATE_UPWARD_UNTIL_NOT_VISIBLE:
         if (vector_length_xyz_c2(data->vel) < D_0015ED6C * 6.0f) {
             data->vel[2] = data->vel[2] + D_0015ED70 * 6.0f;
         }
@@ -1479,7 +1482,7 @@ void platform_update(Moby *moby) {
             mark_moby_for_removal_c(moby);
         }
         break;
-    case 8:
+    case PLATFORM_FALL_AND_TUMBLE:
         add_vector_xyz_c3((*(float (*)[4])&moby->pos), (*(float (*)[4])&moby->pos), data->vel);
         if (FUN_L08_002025d0((*(float (*)[4])&moby->pos), 0x600, 0, moby, 0) && data->walk.path == 0) {
             FUN_L00_0025e450_c(moby, data->vel, 0, 2.0f, 0.0f, 10, 3, 16, 4.0f, 2.0f, 9.0f, -1, 1.0f, 15.0f, 1, 1, -1, 0);
@@ -3253,10 +3256,14 @@ void crane_arm_update(unsigned char *m) {
         CRANE_ARM_WAIT_ANIMATION_FLAG = 2
     };
     enum {
-        CRANE_ARM_ANIM_BASE = 0
+        CRANE_ARM_ANIM_BASE = 0,
+        CRANE_ARM_ANIM_DELAY_A = 1,
+        CRANE_ARM_ANIM_DELAY_B = 2
     };
     enum {
+        CRANE_ARM_ANIM_BASE_TO_DELAY_A = 3,
         CRANE_ARM_ANIM_RETURN_TO_BASE_A = 4,
+        CRANE_ARM_ANIM_BASE_TO_DELAY_B = 5,
         CRANE_ARM_ANIM_RETURN_TO_BASE_B = 6
     };
     float dist = vector_distance(m + 0x10, &hero.motion.pos);
@@ -3283,11 +3290,11 @@ void crane_arm_update(unsigned char *m) {
                         blend_moby_animation(m, 5, 0, 0);
                 }
                 break;
-            case 1:
+            case CRANE_ARM_ANIM_DELAY_A:
                 if (m[0x53] != 4)
                     blend_moby_animation(m, 4, 0, 0);
                 break;
-            case 2:
+            case CRANE_ARM_ANIM_DELAY_B:
                 if (m[0x53] != 6)
                     blend_moby_animation(m, 6, 0, 0);
                 break;
@@ -3298,7 +3305,7 @@ void crane_arm_update(unsigned char *m) {
     case CRANE_ARM_WAIT_ANIMATION_FLAG:
         if (m[0x70] & 2) {
             switch (m[0x52]) {
-            case 3:
+            case CRANE_ARM_ANIM_BASE_TO_DELAY_A:
                 if (m[0x53] != 1)
                     blend_moby_animation(m, 1, 0, 0);
                 break;
@@ -3307,7 +3314,7 @@ void crane_arm_update(unsigned char *m) {
                 if (m[0x53] != 0)
                     blend_moby_animation(m, 0, 0, 0);
                 break;
-            case 5:
+            case CRANE_ARM_ANIM_BASE_TO_DELAY_B:
                 if (m[0x53] != 2)
                     blend_moby_animation(m, 2, 0, 0);
                 break;
