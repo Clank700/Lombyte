@@ -3319,7 +3319,10 @@ typedef struct {
     u8 pad3F;
     s16 extra;  /* 40 */
     s16 flag42; /* 42 */
-    float f44, f48, pad4C, f50;
+    float f44, f48, f4C, f50;
+    int texture;      /* 54 */
+    int mesh_texture; /* 58 */
+    u8 mesh_alpha, mesh_red, mesh_green, mesh_blue; /* 5C..5F */
 } Q;
 typedef struct {
     V v0, v1, v2;
@@ -3479,191 +3482,162 @@ void particle_spawner_smoke_fire_update(P *p) {
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002d73e8.s", FUN_L00_002d73e8);
 #else
-typedef struct {
-    V points[4];
-    u32 colors[4];
-    float texcoords[8];
-    u64 texture[4];
-} __attribute__((aligned(16))) Quad_2d73e8;
+/* Ported from rac1-decomp (nonmatching/shared/func_L00_002D8898.c: func_L00_002D8898). */
+#include "rnc/rendering/geometry_quad.h"
 extern float D_L00_001D02E0[];
-extern float D_L00_001D15A0[]; /*nm*/
-extern float D_L00_001D31C0[]; /*nm*/
-extern float D_L00_001D4480[]; /*nm*/
-extern u8 D_L00_001D2D10[]; /*nm*/
-extern s16 D_L00_001D60A0[]; /*nm*/
-extern s16 D_L00_001D6A00[]; /*nm*/
-extern u8 D_L00_001E11A0_2d73e8[] __asm__("D_L00_001E11A0");
-extern float D_L00_001E11E0_2d73e8[] __asm__("D_L00_001E11E0");
-extern V D_L00_001E1200_2d73e8[] __asm__("D_L00_001E1200");
-extern V D_L00_001E12C0_2d73e8[] __asm__("D_L00_001E12C0");
-extern s32 D_L00_001E1380_2d73e8[][4] __asm__("D_L00_001E1380");
-extern float D_L00_001E13E0_2d73e8[][2] __asm__("D_L00_001E13E0");
-extern float D_L00_001E1440_2d73e8[][2] __asm__("D_L00_001E1440");
-#define D_L00_001DADA0_2d73e8 (D_L00_001D2860 + 0x8540)
-#define D_L00_001DADA8_2d73e8 (D_L00_001D2860 + 0x8548)
-#define D_L00_001DA788_2d73e8 (*(s16 *)(D_L00_001D2860 + 0x7F28))
-#define D_L00_001DAD98_2d73e8 (*(s32 *)(D_L00_001D2860 + 0x8538))
-#define D_L00_001DAD9C_2d73e8 (*(float *)(D_L00_001D2860 + 0x853C))
-extern float D_L00_00161374 __asm__("D_L00_00161374");
-extern float D_L00_00161384 __asm__("D_L00_00161384");
-extern float D_L00_0016138C __asm__("D_L00_0016138C");
-extern char camera_position[] __asm__("D_L00_00166DC0");
-u64 FUN_001f9298_2d73e8(s32) __asm__("FUN_L00_001f9298");
-void FUN_001ff2a8_2d73e8(void *, void *, void *) __asm__("FUN_001f9a28");
-void FUN_001ff500_2d73e8(float, void *, void *) __asm__("FUN_001f9bf8");
-void FUN_001ff3c0_2d73e8(void *, void *, void *) __asm__("FUN_001f9ad8");
-void FUN_001ff300_2d73e8(float, void *, void *) __asm__("FUN_001f9a68");
-void FUN_001ff6f8_2d73e8(void *, void *, void *) __asm__("FUN_001f9d20");
-void FUN_001fd228_2d73e8(void *, int, int) __asm__("FUN_001f7d30");
-void FUN_002a0ba8_2d73e8(int, int) __asm__("FUN_00233980");
-s32 FUN_001fef98_2d73e8(void *) __asm__("FUN_001f9770");
-float FUN_00200240_2d73e8(s32) __asm__("FUN_001fa6c0");
-s32 FUN_00200250_2d73e8(float) __asm__("FUN_001fa6d0");
-s32 FUN_00257b50_2d73e8(s32) __asm__("FUN_00213260");
-
-extern T *D_L00_001600EC_2d73e8 __asm__("D_L00_001600EC");
+extern float D_L00_001D15A0[];
+extern float D_L00_001D31C0[];
+extern float D_L00_001D4480[];
+extern s16 D_L00_001D60A0[];
+extern u8 D_L00_001D2D10[];
+extern s16 D_L00_001D6A00[];
+extern float D_L00_00161374;
+extern float D_L00_00161384;
+extern float D_L00_0016138C;
+extern unsigned short D_L00_00161388_gp __asm__("D_L00_00161388") __attribute__((sda));
+extern int D_L00_00161998 __attribute__((sda));
+extern float D_L00_0016199C __attribute__((sda));
+extern u8 D_L00_001619A0[4] __attribute__((sda));
+extern u8 D_L00_001619A8[8] __attribute__((sda));
+extern int D_L00_001E1380[][4];
+extern float D_L00_001E12C0[][4];
+extern float D_L00_001E1440[];
+extern float D_L00_001E1444[];
+extern float D_L00_001E11A0[][4];
+extern float D_L00_001E11E0[];
+extern float D_L00_001E1200[][4];
+extern float D_L00_001E13E0[];
+extern float D_L00_001E13E4[];
+extern void vu1_add_g_sregister(s32, s64) __asm__("FUN_00233980");
+extern void transform_vector(void *, void *, void *) __asm__("FUN_001f9d20");
+extern void fast_draw_quad_real(void *, int, int) __asm__("FUN_001f7d30");
 void FUN_L00_002d73e8(P *p) {
+    Vec4 position, up;
+    Vec4 facing[4], flipped[4];
+    struct GeometryQuad quad;
     Q *q = p->q;
-    T *t = &D_L00_001600EC_2d73e8[q->idx];
-    V position, zero_vector;
-    V positive_transform[4], negative_transform[4];
-    Quad_2d73e8 quad;
-    int i, j, row, point, index, alpha;
-    u8 *sprite_data = (u8 *)q;
-    u32 alpha_color = (u32)sprite_data[0x5c] << 24;
-    u32 base_color = (u32)sprite_data[0x5f] << 16 | (u32)sprite_data[0x5e] << 8 | sprite_data[0x5d];
-    int end = q->start + q->count + q->extra;
-    V *transform;
-    float x, y, f, speed;
-    float *phase;
-    float *source_texcoords;
-    s16 *timer;
-    V *points, *source;
-    float *texcoords, *texcoords_second;
-    u32 *colors;
-    s32 *indices;
+    T *volume;
+    int mesh_alpha, mesh_color, end;
+    Vec4 *transform;
+    int alpha, i, k, j, index, l;
+    float width, height, phase, one;
+    float *vertex;
 
+    mesh_alpha = q->mesh_alpha << 24;
+    mesh_color = q->mesh_blue << 16 | q->mesh_green << 8 | q->mesh_red;
+    volume = &D_L00_001600EC[q->idx];
+    end = q->start + q->count + q->extra;
     qcopy(&position, &p->pos);
-    position.w = 1.0f;
-    *(u128 *)&zero_vector = 0;
-    zero_vector.z = 1.0f;
-    FUN_001ff2a8_2d73e8(&positive_transform[0], &(*(V *)camera_position), &position);
-    FUN_001ff500_2d73e8(1.0f, &positive_transform[0], &positive_transform[0]);
-    FUN_001ff3c0_2d73e8(&positive_transform[1], &positive_transform[0], &zero_vector);
-    FUN_001ff500_2d73e8(1.0f, &positive_transform[1], &positive_transform[1]);
-    FUN_001ff3c0_2d73e8(&positive_transform[2], &positive_transform[1], &positive_transform[0]);
-    qcopy(&positive_transform[3], &position);
-    FUN_001ff300_2d73e8(-1.0f, &negative_transform[0], &positive_transform[0]);
-    FUN_001ff3c0_2d73e8(&negative_transform[1], &negative_transform[0], &zero_vector);
-    FUN_001ff500_2d73e8(1.0f, &negative_transform[1], &negative_transform[1]);
-    FUN_001ff3c0_2d73e8(&negative_transform[2], &negative_transform[1], &negative_transform[0]);
-    qcopy(&negative_transform[3], &positive_transform[3]);
-    quad.texture[1] = FUN_001f9298_2d73e8(*(s32 *)(sprite_data + 0x54) + 0x28);
-    quad.texture[2] = 0xff9000000260ULL;
-    quad.texture[3] = 0x8000000048ULL;
-    quad.texture[0] = 0;
-    FUN_002a0ba8_2d73e8(0x4a, 0);
-    FUN_002a0ba8_2d73e8(0x47, 0x51001);
-
+    up.q = 0;
+    position.f[3] = 1.0f;
+    up.f[2] = 1.0f;
+    fast_vec_sub(&facing[0], &D_L00_00166DC0, &position);
+    fast_vec_normalize(&facing[0], &facing[0], 1.0f);
+    fast_vec_cross(&facing[1], &facing[0], &up);
+    fast_vec_normalize(&facing[1], &facing[1], 1.0f);
+    fast_vec_cross(&facing[2], &facing[1], &facing[0]);
+    qcopy(&facing[3], &position);
+    /* Fakematch: the do-while(0) gives flipped's address s1 and facing's s2 as retail
+     * does (BYTES 29 -> 15). Still off: the mesh branch's primitive constant
+     * register (v0, retail v1) and the ring loop's s2/s3/s5 pointers; the
+     * latter come from the GCSE copy of facing's address at the end of block 0,
+     * which prefers s2. */
+    do {
+        fast_vec_scale(&flipped[0], &facing[0], -1.0f);
+        fast_vec_cross(&flipped[1], &flipped[0], &up);
+        fast_vec_normalize(&flipped[1], &flipped[1], 1.0f);
+        fast_vec_cross(&flipped[2], &flipped[1], &flipped[0]);
+        qcopy(&flipped[3], &facing[3]);
+    } while (0);
+    /* Fakematch: called as returning int (the draw above needs the s64 prototype) so
+     * the texture is sign-extended into the quad as retail does. */
+    quad.texture = ((int (*)(int))get_effect_texture)(q->texture + 0x28);
+    quad.texture_state = 0xFF9000000260L;
+    quad.primitive = 0x8000000048L;
+    quad.reserved.value = 0;
+    vu1_add_g_sregister(0x4A, 0);
+    vu1_add_g_sregister(0x47, 0x51001);
     for (i = q->start; i < end; i++) {
-        f = D_L00_001D31C0[i];
-        speed = D_L00_001D4480[i];
-        f -= frame_scale * speed;
-        transform = D_L00_001D2860[i] ? negative_transform : positive_transform;
-        D_L00_001D31C0[i] = f;
-        if (f <= -8.0f)
-            D_L00_001D31C0[i] = f + 8.0f;
-        FUN_001ff6f8_2d73e8(&transform[3], &D_L00_001CB7E0[i], t);
-        y = D_L00_001D15A0[i];
-        x = D_L00_001D02E0[i];
-        phase = &D_L00_001D31C0[i];
-        if (D_L00_001D2D10[i] != 0) {
-            quad.texture[3] = 0x8000000044ULL;
-            for (row = 2; row != 4; ++row) {
-                indices = D_L00_001E1380_2d73e8[row];
-                source_texcoords = D_L00_001E11E0_2d73e8;
-                for (point = 0, j = 3, points = quad.points, texcoords_second = quad.texcoords + 1, colors = quad.colors, texcoords = quad.texcoords; j >= 0; j--, point++, points++, texcoords += 2, texcoords_second += 2, colors++) {
-                    index = *indices++;
-                    source = &D_L00_001E12C0_2d73e8[index];
-                    points->x = source->x;
-                    f = source->y * x;
-                    speed = source->z * y;
-                    points->y = f;
-                    points->w = 1.0f;
-                    points->z = speed;
-                    FUN_001ff6f8_2d73e8(points, points, transform);
-                    *texcoords = D_L00_001E1440_2d73e8[index][1] + *phase;
-                    *texcoords_second = D_L00_001E1440_2d73e8[index][0];
-                    *colors = alpha_color * D_L00_001DADA8_2d73e8[index] | base_color;
+        phase = D_L00_001D31C0[i] - D_L00_001D4480[i] * frame_scale;
+        D_L00_001D31C0[i] = phase;
+        transform = D_L00_001D2860[i] ? flipped : facing;
+        if (phase <= -8.0f) {
+            D_L00_001D31C0[i] = phase + 8.0f;
+        }
+        transform_vector(&transform[3], &D_L00_001CB7E0[i], volume);
+        width = D_L00_001D02E0[i];
+        height = D_L00_001D15A0[i];
+        if (D_L00_001D2D10[i]) {
+            quad.primitive = 0x8000000044L;
+            one = 1.0f;
+            for (k = 2; k < 4; k++) {
+                for (j = 0; j < 4; j++) {
+                    index = D_L00_001E1380[k][j];
+                    vertex = D_L00_001E12C0[index];
+                    quad.positions[j].f[0] = vertex[0];
+                    quad.positions[j].f[1] = vertex[1] * width;
+                    quad.positions[j].f[2] = vertex[2] * height;
+                    quad.positions[j].f[3] = one;
+                    transform_vector(&quad.positions[j], &quad.positions[j], transform);
+                    quad.texture_coordinates[j][0] = D_L00_001E1444[index * 2] + D_L00_001D31C0[i];
+                    quad.texture_coordinates[j][1] = D_L00_001E1440[index * 2];
+                    quad.colors[j] = mesh_alpha * D_L00_001619A8[index] | mesh_color;
                 }
-                FUN_001fd228_2d73e8(&quad, 0, 0);
+                fast_draw_quad_real(&quad, 0, 0);
             }
         } else {
-            timer = &D_L00_001D5740[i];
-            if (*timer != 0) {
-                FUN_001fef98_2d73e8(timer);
-                f = (1.0f - FUN_00200240_2d73e8(*timer) * D_L00_00161384) * D_L00_001DAD9C_2d73e8;
-                alpha = FUN_00200250_2d73e8(f);
-            } else {
-                timer = &D_L00_001D60A0[i];
-                if (*timer != 0) {
-                    if (FUN_001fef98_2d73e8(timer)) {
-                        FUN_L00_002d7bf0(p, i);
-                        D_L00_001D2860[i] = FUN_00257b50_2d73e8(2);
-                        alpha = 0;
-                    } else {
-                        f = FUN_00200240_2d73e8(*timer) * D_L00_0016138C * D_L00_001DAD9C_2d73e8;
-                        alpha = FUN_00200250_2d73e8(f);
-                    }
+            if (D_L00_001D5740[i]) {
+                fast_dec_timer_s16(&D_L00_001D5740[i]);
+                alpha = truncate_float_to_s32((1.0f - convert_integer_to_float(D_L00_001D5740[i]) * D_L00_00161384) * D_L00_0016199C);
+            } else if (D_L00_001D60A0[i]) {
+                if (fast_dec_timer_s16(&D_L00_001D60A0[i])) {
+                    FUN_L00_002d7bf0(p, i);
+                    alpha = 0;
+                    D_L00_001D2860[i] = random_integer_below(2);
                 } else {
-                    if (FUN_001fef98_2d73e8(&D_L00_001D6A00[i]))
-                        *timer = D_L00_001DA788_2d73e8;
-                    alpha = D_L00_001DAD98_2d73e8;
+                    alpha = truncate_float_to_s32(convert_integer_to_float(D_L00_001D60A0[i]) * D_L00_0016138C * D_L00_0016199C);
                 }
+            } else {
+                if (fast_dec_timer_s16(&D_L00_001D6A00[i])) {
+                    D_L00_001D60A0[i] = D_L00_00161388_gp;
+                }
+                alpha = D_L00_00161998;
             }
-            quad.texture[3] = 0x8000000048ULL;
-            alpha = (u32)alpha << 24;
-            source_texcoords = D_L00_001E11E0_2d73e8;
-            for (point = 0, points = quad.points, texcoords_second = quad.texcoords + 1, colors = quad.colors, texcoords = quad.texcoords; point < 4; point++, points++, texcoords += 2, texcoords_second += 2, colors++) {
-                source = (V *)(D_L00_001E11A0_2d73e8 + point * 16);
-                points->x = source->x;
-                f = source->y * x;
-                points->y = f;
-                f = source->z * y;
-                points->w = 1.0f;
-                points->z = f;
-                f = source_texcoords[0] - *phase;
-                *texcoords_second = source_texcoords[1];
-                source_texcoords += 2;
-                *texcoords = f;
-                *colors = ((u32)alpha * D_L00_001DADA0_2d73e8[point]) | q->col;
-                FUN_001ff6f8_2d73e8(points, points, transform);
+            alpha <<= 24;
+            quad.primitive = 0x8000000048L;
+            one = 1.0f;
+            for (l = 0; l < 4; l++) {
+                quad.positions[l].f[0] = D_L00_001E11A0[l][0];
+                quad.positions[l].f[1] = D_L00_001E11A0[l][1] * width;
+                quad.positions[l].f[2] = D_L00_001E11A0[l][2] * height;
+                quad.positions[l].f[3] = one;
+                quad.texture_coordinates[l][0] = D_L00_001E11E0[l * 2] - D_L00_001D31C0[i];
+                quad.texture_coordinates[l][1] = D_L00_001E11E0[l * 2 + 1];
+                quad.colors[l] = alpha * D_L00_001619A0[l] | q->col;
+                transform_vector(&quad.positions[l], &quad.positions[l], transform);
             }
-            FUN_001fd228_2d73e8(&quad, 0, 0);
-
+            fast_draw_quad_real(&quad, 0, 0);
         }
     }
-    quad.texture[1] = FUN_001f9298_2d73e8(*(s32 *)(sprite_data + 0x58) + 0x28);
-    quad.texture[3] = 0x8000000044ULL;
-    qcopy(&positive_transform[3], (u8 *)t + 0x30);
-    positive_transform[3].z -= q->f50;
+    quad.texture = ((int (*)(int))get_effect_texture)(q->mesh_texture + 0x28);
+    quad.primitive = 0x8000000044L;
+    qcopy(&facing[3], volume->pos);
+    facing[3].f[2] -= q->f50;
     if (q->flag42 == 0) {
-        for (row = 0; row < 6; row++) {
-            indices = D_L00_001E1380_2d73e8[row];
-            source_texcoords = D_L00_001E11E0_2d73e8;
-            for (point = 0, points = quad.points, texcoords_second = quad.texcoords + 1, colors = quad.colors, texcoords = quad.texcoords; point < 4; point++, points++, texcoords += 2, texcoords_second += 2, colors++) {
-                index = *indices++;
-                source = &D_L00_001E1200_2d73e8[index];
-                points->x = source->x;
-                points->y = source->y * q->f48;
-                points->z = source->z * q->pad4C;
-                points->w = 1.0f;
-                FUN_001ff6f8_2d73e8(points, points, positive_transform);
-                *texcoords = D_L00_001E13E0_2d73e8[index][1] + D_L00_00161374;
-                *texcoords_second = D_L00_001E13E0_2d73e8[index][0];
-                *colors = (u32)D_L00_001DADA8_2d73e8[index] * 0xff000000 | base_color;
+        for (k = 0; k < 6; k++) {
+            for (j = 0; j < 4; j++) {
+                index = D_L00_001E1380[k][j];
+                vertex = D_L00_001E1200[index];
+                quad.positions[j].f[0] = vertex[0];
+                quad.positions[j].f[1] = vertex[1] * q->f48;
+                quad.positions[j].f[2] = vertex[2] * q->f4C;
+                quad.positions[j].f[3] = 1.0f;
+                transform_vector(&quad.positions[j], &quad.positions[j], facing);
+                quad.texture_coordinates[j][0] = D_L00_001E13E4[index * 2] + D_L00_00161374;
+                quad.texture_coordinates[j][1] = D_L00_001E13E0[index * 2];
+                quad.colors[j] = D_L00_001619A8[index] * 0xFF000000 | mesh_color;
             }
-            FUN_001fd228_2d73e8(&quad, 0, 0);
+            fast_draw_quad_real(&quad, 0, 0);
         }
     }
 }

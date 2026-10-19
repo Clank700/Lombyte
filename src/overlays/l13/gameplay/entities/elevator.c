@@ -2923,241 +2923,314 @@ void fighter_jet_update(Jet *m) {
     if ((unsigned int)(state-3)<2 || (unsigned char)state==8) FUN_L13_002b8590(m,(char*)d);
 }
 #ifdef NON_MATCHING
-#include "rnc/input/pad_state.h"
-extern float vendor_spring(float *, float *, float, float, float, float) __asm__("FUN_L00_0025b8c0");
-extern float FUN_L00_0025bc98(float *, float, float *, int, float, float, float);
-extern float FUN_L13_002ba088(int, int, float, float, float, float, float);
-extern float fast_vec_length(void *) __asm__("FUN_001f9af0");
-extern void euler_rotation_basis(void *, void *) __asm__("FUN_001fa030");
-extern void transform_vector_by_basis(void *, void *, void *) __asm__("FUN_001f9cf8");
-extern int coll_sphere(float, void *, int, void *) __asm__("FUN_L00_001f0d60");
-extern void update_view_context(void) __asm__("FUN_001f2d98");
-extern void enqueue_callback_list_1(void *, void *) __asm__("FUN_L13_00204dc8");
-extern float D_00141070_2b6140 __asm__("D_00141070") __attribute__((section(".data")));
-extern float D_00141074_2b6140 __asm__("D_00141074") __attribute__((section(".data")));
+#include "eetypes.h"
+/* Flies the player's fighter: throttle and stick input, steering toward the path, camera, and collision response. */
+/* Ported from rac1-decomp (src/overlays/l13_gemlik/vendor_002B2020.c: func_L13_002BB3E8), where it is exact; names translated to the US level program. */
+typedef float FlightVec[4] __attribute__((aligned(16)));
+typedef struct {
+    char pad00[0x10];
+    FlightVec pos;
+    unsigned char state;
+    char pad21[0x13];
+    unsigned short flags;
+    char pad36[0xA];
+    float rot_x;
+    float rot_y;
+    float rot_z;
+    char pad4C[0x70];
+    unsigned char unkBC;
+} FlightMoby;
+typedef struct {
+    char pad00[0x10];
+    FlightVec direction;
+    float camera_roll, camera_pitch, camera_yaw, pad2C;
+    float roll, pitch, yaw, pad3C;
+    char pad40[0x20];
+    unsigned char camera_mode;
+    unsigned char gun_side;
+    short death_timer;
+    float speed;
+    short launch_frames;
+    short gun_index;
+    float steer_x;
+    float steer_y;
+    char pad74[0x1C];
+    float steer_x_velocity, steer_y_velocity, roll_velocity, pad9C;
+    float camera_roll_velocity, camera_pitch_velocity, camera_yaw_velocity, padAC;
+    float fov, camera_offset_x, camera_offset_y, camera_offset_z;
+    float fov_velocity, speed_fraction, camera_offset_x_velocity, camera_offset_y_velocity;
+    float camera_offset_z_velocity, padD4, padD8;
+    int hit_cooldown;
+    char padE0[0x2C];
+    int boost_sound;
+    int target_path;
+} FlightData;
+extern char *D_L13_001600EC_gp __asm__("D_L13_001600EC") __attribute__((section(".sdata")));
+extern f32 frame_scale_gp __asm__("D_0015ED60") __attribute__((section(".sdata")));
+extern f32 frame_scale_sq_gp __asm__("D_0015ED64") __attribute__((section(".sdata")));
+extern f32 frame_time_gp __asm__("D_0015ED6C") __attribute__((section(".sdata")));
 extern u64 D_L13_00161430 __attribute__((sda));
 extern char *D_L13_00167100 __attribute__((section(".data")));
 extern char D_L13_00174140[];
 extern char D_L13_001F4450[];
-#define F(p,o) (*(float *)((char *)(p)+(o)))
+extern float fast_vec_length(void *) __asm__("FUN_001f9af0");
+extern float vendor_spring(float *, float *, float, float, float, float) __asm__("FUN_L00_0025b8c0");
+extern float spring_angle(char *, char *, int, float, float, float, float) __asm__("FUN_L00_0025bc98");
+extern float FUN_L13_002ba088(int, int, float, float, float, float, float);
+extern void enqueue_callback_list_1(void *, void *) __asm__("FUN_001f4600");
+extern void transform_vector_by_basis(void *, void *, void *) __asm__("FUN_001f9cf8");
+extern void update_view_context(void) __asm__("FUN_001f2d98");
+extern void euler_rotation_basis(void *, void *) __asm__("FUN_001fa030");
 
-/* Flight motion, steering, camera and collision response for the mounted fighter. */
-static inline float turn_angle(float distance, JetData *d, int axis, float angle, float limit) {
-    return FUN_L13_002ba088(1, 5, distance, d->angles[axis], angle, 50.0f, limit);
-}
+void FUN_L13_002ba178(void *moby_arg, void *data_arg) {
+    FlightMoby *moby = moby_arg;
+    FlightData *data = data_arg;
+    FlightVec old_pos;
+    FlightVec impulse;
+    FlightVec velocity;
+    FlightVec cross;
+    FlightVec vertical;
+    FlightVec camera_angles;
+    FlightVec target;
+    FlightVec offset;
+    float steer_x;
+    float steer_y;
+    float steer_rate_x;
+    float steer_rate_y;
+    float pitch_limit;
+    float yaw_limit;
+    float distance;
+    float height, height_again;
+    float half_fov, tan_half_fov;
+    float speed_fraction;
+    char *pad_state;
+    char *player;
+    char *voice;
+    char *hit;
+    int voice_index;
+    int hit_class;
 
-void FUN_L13_002ba178(void *moby, void *obj) {
-    Jet *m = moby;
-    JetData *d = obj;
-    JetVec old_position;
-    JetVec impulse;
-    JetVec velocity;
-    JetVec cross;
-    JetVec vertical;
-    JetVec rotation;
-    JetVec target;
-    JetVec offset;
-    JetVec offsets[2];
-    JetVec camera_position;
-    JetVec camera_rotation;
-    JetVec matrix[3];
-    float pitch_limit, yaw_limit;
-    float distance, angle, height, speed_fraction;
-    float x, y;
-    struct JetInputAxes { char pad0[0x1D20]; float x, y; };
-    struct JetCollision { char pad0[0x18]; char *hit; char pad1C[0x14]; JetVec position, normal, cross, vertical; };
-    int id;
-    short cls;
     *(u128 *)velocity = 0;
     *(u128 *)vertical = 0;
     vertical[2] = 1.0f;
-    velocity[2] = frame_time * 8.0f;
-    m->flags &= 0xFEFF;
+    velocity[2] = frame_time_gp * 8.0f;
+    moby->flags &= 0xFEFF;
     *(u128 *)impulse = *(u128 *)velocity;
-    if (B(m,0xBC) == 0) {
-      if (d->missile_index > scale_game_frames(120)) {
-        if (((struct PadState *)D_0013C940)->raw_pressed & 0x40) {
-            id = d->weapon_sound;
-            if (id != -1) {
-                unsigned char *audio = D_0013E550 + id*0x70;
-                if (*(Jet **)(audio+0x88)==m && audio[0x74])
-                    release_voice_slot(id);
+    if (moby->unkBC == 0) {
+        if (data->launch_frames > scale_game_frames(120)) {
+            pad_state = (char *)D_0013A4E0 + 0x2460;
+            if (*(int *)(pad_state + 0x1B4) & 0x40) {
+                voice_index = data->boost_sound;
+                if (voice_index != -1) {
+                    voice = (char *)D_0013E533 + 0x1D + voice_index * 0x70;
+                    if (*(char **)(voice + 0x88) == (char *)moby && *(unsigned char *)(voice + 0x74) != 0) {
+                        release_voice_slot(voice_index);
+                    }
+                }
+                data->boost_sound = -1;
+                data->boost_sound = allocate_voice_for_target_entry(1, 4, (int)moby);
+            } else if (*(int *)(pad_state + 0x1B8) & 0x40) {
+                voice_index = data->boost_sound;
+                if (voice_index != -1) {
+                    voice = (char *)D_0013E533 + 0x1D + voice_index * 0x70;
+                    if (*(char **)(voice + 0x88) == (char *)moby && *(unsigned char *)(voice + 0x74) != 0) {
+                        release_voice_slot(voice_index);
+                    }
+                }
+                data->boost_sound = -1;
             }
-            d->weapon_sound = -1;
-            d->weapon_sound = allocate_voice_for_target_entry(1,4,(int)m);
-        } else if (((struct PadState *)D_0013C940)->raw_released & 0x40) {
-            id = d->weapon_sound;
-            if (id != -1) {
-                unsigned char *audio = D_0013E550 + id*0x70;
-                if (*(Jet **)(audio+0x88)==m && audio[0x74])
-                    release_voice_slot(id);
+            pad_state = (char *)D_0013A4E0 + 0x2460;
+            if (*(int *)(pad_state + 0x1B0) & 0x40) {
+                float boosted = data->speed + frame_scale_gp * 0.035f;
+                float max_speed = frame_time_gp * 30.0f;
+                data->speed = boosted;
+                if (max_speed < boosted) {
+                    data->speed = max_speed;
+                }
+            } else {
+                float cruise_speed = frame_time_gp * 24.0f;
+                float step = frame_scale_gp * 0.025f;
+                float speed = data->speed;
+                if (speed < cruise_speed - step) {
+                    data->speed = speed + step;
+                } else if (cruise_speed < speed) {
+                    data->speed = speed + (cruise_speed - speed) * (frame_scale_gp * 0.1f);
+                } else {
+                    data->speed = cruise_speed;
+                }
             }
-            d->weapon_sound = -1;
-        }
-        if (((struct PadState *)D_0013C940)->raw_held&0x40) {
-            d->speed += frame_scale*0.035f;
-            if (frame_time*30.0f < d->speed) d->speed = frame_time*30.0f;
         } else {
-            float speed = frame_time*24.0f;
-            float step = frame_scale*0.025f;
-            if (d->speed < speed-step) d->speed += step;
-            else if (speed < d->speed) d->speed += (speed-d->speed)*(frame_scale*0.1f);
-            else d->speed = speed;
+            data->launch_frames += 1;
+            data->speed += frame_scale_gp * 0.003f;
         }
     } else {
-        float step = frame_scale*0.003f;
-        d->missile_index++;
-        d->speed += step;
+        data->speed = 0.0001f;
     }
-    } else {
-        d->speed = 0.0001f;
-    }
-    if (d->missile_index > scale_game_frames(5)) {
-        float x, y, turn_rate, pitch_rate;
-        turn_rate = frame_scale*0.1f;
-        pitch_rate = frame_scale*0.25f;
-        x = ((struct JetInputAxes *)D_0013F350)->x;
-        y = ((struct JetInputAxes *)D_0013F350)->y;
-        if (W(D_0013A4E0,0x2600)&0x200) {
-            float divisor = frame_scale*0.012271847f;
-            float multiplier = frame_scale*0.015707964f;
-            turn_rate = pitch_rate = frame_scale*0.08f;
-            x /= divisor;
-            y /= divisor;
-            x *= multiplier;
-            y *= multiplier;
+
+    if (data->launch_frames > scale_game_frames(5)) {
+        char *player = (char *)D_0013E533 + 0xE1D;
+        steer_rate_x = frame_scale_gp * 0.1f;
+        steer_rate_y = frame_scale_gp * 0.25f;
+        steer_x = *(float *)(player + 0x1D20);
+        steer_y = *(float *)(player + 0x1D24);
+        if (*(int *)(D_0013A4E0 + 0x2600) & 0x200) {
+            steer_x = steer_x / (frame_scale_gp * 0.012271847f);
+            steer_x = steer_x * (frame_scale_gp * 0.015707964f);
+            steer_y = steer_y / (frame_scale_gp * 0.012271847f);
+            steer_y = steer_y * (frame_scale_gp * 0.015707964f);
+            steer_rate_x = frame_scale_gp * 0.08f;
+            steer_rate_y = frame_scale_gp * 0.08f;
         }
-        vendor_spring(&F(d,0x6C),&F(d,0x90),x,frame_scale_sq*0.03f,frame_scale_sq,turn_rate);
-        vendor_spring(&F(d,0x70),&F(d,0x94),y,frame_scale_sq*0.03f,frame_scale_sq,pitch_rate);
-        FUN_L00_0025bc98(&d->angles[0],F(d,0x6C),&F(d,0x98),0,frame_scale_sq*0.05f,frame_scale_sq,frame_scale);
-        d->angles[1] = fast_subtract_rotations(d->angles[1],F(d,0x70)*(frame_scale*0.012271847f));
-        d->angles[2] = fast_subtract_rotations(d->angles[2],F(d,0x6C)*(frame_scale*0.012271847f));
-        if (d->angles[1] > 1.3962634f) d->angles[1] = 1.3962634f;
-        else if (d->angles[1] < -1.3962634f) d->angles[1] = -1.3962634f;
-        if (m->rotation[1] > 1.3962634f) m->rotation[1] = 1.3962634f;
-        else if (m->rotation[1] < -1.3962634f) m->rotation[1] = -1.3962634f;
+        vendor_spring(&data->steer_x, &data->steer_x_velocity, steer_x, frame_scale_sq_gp * 0.03f, frame_scale_sq_gp, steer_rate_x);
+        vendor_spring(&data->steer_y, &data->steer_y_velocity, steer_y, frame_scale_sq_gp * 0.03f, frame_scale_sq_gp, steer_rate_y);
+        spring_angle((char *)&data->roll, (char *)&data->roll_velocity, 0, data->steer_x, frame_scale_sq_gp * 0.05f, frame_scale_sq_gp, frame_scale_gp);
+        data->pitch = fast_subtract_rotations(data->pitch, data->steer_y * (frame_scale_gp * 0.012271847f));
+        data->yaw = fast_subtract_rotations(data->yaw, data->steer_x * (frame_scale_gp * 0.012271847f));
+        if (data->pitch > 1.3962634f) {
+            data->pitch = 1.3962634f;
+        } else if (data->pitch < -1.3962634f) {
+            data->pitch = -1.3962634f;
+        }
+        if (moby->rot_y > 1.3962634f) {
+            moby->rot_y = 1.3962634f;
+        } else if (moby->rot_y < -1.3962634f) {
+            moby->rot_y = -1.3962634f;
+        }
+    }
+
+    pitch_limit = 310.0f;
+    yaw_limit = 500.0f;
+    if (data->target_path != -1) {
+        int path_offset = data->target_path << 7;
+        char *paths = D_L13_001600EC_gp;
+        qcopy(target, ((char (*)[128])paths)[data->target_path] + 0x30);
+        pitch_limit = fast_vec_length(paths + path_offset + 0x20);
+        add_vector_xyz(offset, (data->target_path << 7) + D_L13_001600EC_gp, (data->target_path << 7) + D_L13_001600EC_gp + 0x10);
+        yaw_limit = fast_vec_length(offset);
+    } else {
+        qcopy(target, &D_L13_00161430);
+    }
+
+    distance = vector_distance(moby->pos, &D_L13_00161430);
+    data->yaw = FUN_L13_002ba088(1, 5, distance, data->yaw, fast_arc_tan(target[0] - moby->pos[0], target[1] - moby->pos[1]), 50.0f, yaw_limit);
+    moby->rot_z = FUN_L13_002ba088(1, 5, distance, moby->rot_z, fast_arc_tan(target[0] - moby->pos[0], target[1] - moby->pos[1]), 50.0f, yaw_limit);
+    height = absolute_float(target[2] - moby->pos[2]);
+    data->pitch = FUN_L13_002ba088(1, 5, height, data->pitch, -fast_arc_tan(vector_distance(moby->pos, target), target[2] - moby->pos[2]), 50.0f, pitch_limit);
+    height_again = absolute_float(target[2] - moby->pos[2]);
+    moby->rot_y = FUN_L13_002ba088(1, 5, height_again, moby->rot_y, -fast_arc_tan(vector_distance(moby->pos, target), target[2] - moby->pos[2]), 50.0f, pitch_limit);
+    build_spherical_offset(velocity, data->speed, data->yaw, -data->pitch);
+    fast_vec_normalize(data->direction, velocity, 1.0f);
+    qcopy(old_pos, moby->pos);
+    if (moby->unkBC == 0) {
+        add_vector_xyz(moby->pos, moby->pos, velocity);
     }
     {
-    float pitch_limit, yaw_limit, distance, angle, height;
-    pitch_limit = 310.0f; yaw_limit = 500.0f;
-    id = W(d,0x110);
-    if (id != -1) {
-        qcopy_nc(target,D_L13_001600EC[id].position);
-        pitch_limit = fast_vec_length((char *)&D_L13_001600EC[id]+0x20);
-        add_vector_xyz(offset,&D_L13_001600EC[W(d,0x110)],(char *)&D_L13_001600EC[W(d,0x110)]+0x10);
-        yaw_limit = fast_vec_length(offset);
-    } else qcopy(target,&D_L13_00161430);
-    distance = vector_distance(m->position,&D_L13_00161430);
-    angle = angle_atan2(target[0]-m->position[0],target[1]-m->position[1]);
-    d->angles[2] = turn_angle(distance, d, 2, angle, yaw_limit);
-    angle = angle_atan2(target[0]-m->position[0],target[1]-m->position[1]);
-    m->rotation[2] = FUN_L13_002ba088(1,5,distance,m->rotation[2],angle,50.0f,yaw_limit);
-    height = absolute_float(target[2]-m->position[2]);
-    distance = vector_distance(m->position,target);
-    angle = angle_atan2(distance,target[2]-m->position[2]);
-    d->angles[1] = FUN_L13_002ba088(1,5,height,d->angles[1],-angle,50.0f,pitch_limit);
-    height = absolute_float(target[2]-m->position[2]);
-    distance = vector_distance(m->position,target);
-    angle = angle_atan2(distance,target[2]-m->position[2]);
-    m->rotation[1] = FUN_L13_002ba088(1,5,height,m->rotation[1],-angle,50.0f,pitch_limit);
+        float min_speed = frame_time_gp * 24.0f;
+        float excess = data->speed - min_speed;
+        float range = frame_time_gp * 30.0f - min_speed;
+        if (excess < 0.0f) {
+            speed_fraction = 0.0f / range;
+        } else {
+            speed_fraction = excess / range;
+        }
     }
-    build_spherical_offset(velocity,d->speed,d->angles[2],-d->angles[1]);
-    normalize_vector_xyz(d->pad10,velocity,1.0f);
-    qcopy(old_position,m->position);
-    if (!B(m,0xBC)) add_vector_xyz(m->position,m->position,velocity);
-    height = d->speed-frame_time*24.0f;
-    distance = frame_time*30.0f-frame_time*24.0f;
-    if (height < 0.0f) speed_fraction = 0.0f/distance;
-    else speed_fraction = height/distance;
-    /* The Z component is replaced below before the offset is copied. */
-    ((u64 *)camera_position)[1] = 0;
-    *(u128 *)camera_rotation = 0;
-    camera_position[0] = ((-15.0f-F(d,0x70))-speed_fraction*4.0f)*0.25f;
-    camera_position[1] = F(d,0x6C)*-3.0f*0.25f;
-    camera_position[2] = (F(d,0x70)+F(d,0x70)+4.0f)*0.25f;
-    camera_rotation[0] = -1.275f;
-    camera_rotation[2] = 0.65f;
-    F(d,0xC4) = speed_fraction;
-    *(u128 *)offsets[0] = *(u128 *)camera_position;
-    *(u128 *)offsets[1] = *(u128 *)camera_rotation;
-    if (m->state == 2) {
-        F(d,0xB4)=offsets[d->animation_frame][0];
-        F(d,0xB8)=offsets[d->animation_frame][1];
-        F(d,0xBC)=offsets[d->animation_frame][2];
-    } else {
-        vendor_spring(&F(d,0xB4),&F(d,0xC8),offsets[d->animation_frame][0],frame_scale_sq*0.15f,frame_scale_sq*0.8f,frame_scale);
-        vendor_spring(&F(d,0xB8),&F(d,0xCC),offsets[d->animation_frame][1],frame_scale_sq*0.15f,frame_scale_sq*0.8f,frame_scale);
-        vendor_spring(&F(d,0xBC),&F(d,0xD0),offsets[d->animation_frame][2],frame_scale_sq*0.15f,frame_scale_sq*0.8f,frame_scale);
+    {
+        FlightVec camera_offsets[2];
+        FlightVec camera_pos;
+        FlightVec camera_rot;
+        float basis[12];
+        /* Near miss (diff 7, sched1 order of the camera_rot stores): the volatile accesses below
+         * are draft-only scheduling experiments, not believed original. */
+        *(u128 *)camera_pos = 0;
+        camera_pos[1] = *(volatile float *)&data->steer_x * -3.0f * 0.25f;
+        camera_pos[0] = (-15.0f - data->steer_y - speed_fraction * 4.0f) * 0.25f;
+        *(volatile u128 *)camera_rot = 0;
+        ((volatile float *)camera_pos)[2] = (4.0f + data->steer_y * 2.0f) * 0.25f;
+        ((volatile float *)camera_rot)[0] = -1.275f;
+        camera_rot[2] = 0.65f;
+        *(volatile float *)&data->speed_fraction = speed_fraction;
+        *(u128 *)camera_offsets[0] = *(u128 *)camera_pos;
+        *(u128 *)camera_offsets[1] = *(u128 *)camera_rot;
+        if (moby->state == 2) {
+            data->camera_offset_x = camera_offsets[data->camera_mode][0];
+            data->camera_offset_y = camera_offsets[data->camera_mode][1];
+            data->camera_offset_z = camera_offsets[data->camera_mode][2];
+        } else {
+            vendor_spring(&data->camera_offset_x, &data->camera_offset_x_velocity, camera_offsets[data->camera_mode][0], frame_scale_sq_gp * 0.15f, frame_scale_sq_gp * 0.8f, frame_scale_gp);
+            vendor_spring(&data->camera_offset_y, &data->camera_offset_y_velocity, camera_offsets[data->camera_mode][1], frame_scale_sq_gp * 0.15f, frame_scale_sq_gp * 0.8f, frame_scale_gp);
+            vendor_spring(&data->camera_offset_z, &data->camera_offset_z_velocity, camera_offsets[data->camera_mode][2], frame_scale_sq_gp * 0.15f, frame_scale_sq_gp * 0.8f, frame_scale_gp);
+        }
+        offset[0] = data->camera_offset_x;
+        offset[1] = data->camera_offset_y;
+        offset[2] = data->camera_offset_z;
+        offset[3] = 0.0f;
+        euler_rotation_basis(basis, (char *)&data->roll);
+        transform_vector_by_basis(target, offset, basis);
+        add_vector_xyz(camera_pos, moby->pos, target);
+        FUN_L00_002ea9d8(camera_pos);
+        camera_rot[0] = fast_add_rotations(data->roll * 0.5f, data->steer_x * 0.03125f);
+        camera_rot[1] = fast_subtract_rotations(fast_add_rotations(data->pitch, 0.09817477f), data->steer_y * (frame_scale_gp * 0.012271847f));
+        camera_rot[2] = data->yaw;
+        if (moby->state == 2) {
+            qcopy(&data->camera_roll, camera_rot);
+        } else {
+            spring_angle((char *)&data->camera_roll, (char *)&data->camera_roll_velocity, 0, camera_rot[0], frame_scale_sq_gp * 0.15f, frame_scale_sq_gp * 0.8f, frame_scale_gp);
+            spring_angle((char *)&data->camera_pitch, (char *)&data->camera_pitch_velocity, 0, camera_rot[1], frame_scale_sq_gp * 0.15f, frame_scale_sq_gp * 0.8f, frame_scale_gp);
+            spring_angle((char *)&data->camera_yaw, (char *)&data->camera_yaw_velocity, 0, camera_rot[2], frame_scale_sq_gp * 0.15f, frame_scale_sq_gp * 0.8f, frame_scale_gp);
+        }
+        camera_angles[0] = data->camera_roll;
+        camera_angles[2] = data->camera_yaw;
+        camera_angles[1] = data->camera_pitch;
+        FUN_L00_002eaa30(camera_angles);
+        if (*(short *)(D_L13_00167100 + 0x86) != 5) {
+            stub_printf(D_L13_001F4450);
+            jet_mount(camera_pos, camera_angles, 0, 0, 0);
+        }
     }
-    offset[0]=F(d,0xB4); offset[1]=F(d,0xB8); offset[2]=F(d,0xBC); offset[3]=0;
-    euler_rotation_basis(matrix,d->angles);
-    transform_vector_by_basis(target,offset,matrix);
-    add_vector_xyz(camera_position,m->position,target);
-    FUN_L00_002ea9d8(camera_position);
-    camera_rotation[0]=fast_add_rotations(d->angles[0]*0.5f,F(d,0x6C)*0.03125f);
-    angle=fast_add_rotations(d->angles[1],0.09817477f);
-    camera_rotation[1]=fast_subtract_rotations(angle,F(d,0x70)*(frame_scale*0.012271847f));
-    camera_rotation[2]=d->angles[2];
-    if (m->state==2) qcopy(d->previous_rotation,camera_rotation);
-    else {
-        FUN_L00_0025bc98(&d->previous_rotation[0],camera_rotation[0],&F(d,0xA0),0,frame_scale_sq*0.15f,frame_scale_sq*0.8f,frame_scale);
-        FUN_L00_0025bc98(&d->previous_rotation[1],camera_rotation[1],&F(d,0xA4),0,frame_scale_sq*0.15f,frame_scale_sq*0.8f,frame_scale);
-        FUN_L00_0025bc98(&d->previous_rotation[2],camera_rotation[2],&F(d,0xA8),0,frame_scale_sq*0.15f,frame_scale_sq*0.8f,frame_scale);
-    }
-    rotation[0]=d->previous_rotation[0]; rotation[2]=d->previous_rotation[2]; rotation[1]=d->previous_rotation[1];
-    FUN_L00_002eaa30(rotation);
-    if (H(D_L13_00167100,0x86)!=5) {
-        stub_printf(D_L13_001F4450);
-        jet_mount(camera_position,rotation,0,0,0);
-    }
-    vendor_spring(&F(d,0xB0),&F(d,0xC0),speed_fraction*0.34906578f+1.134464f,0.05f,1.0f,1.0f);
-    angle=F(d,0xB0)*0.5f;
-    y=fast_sin(angle);
-    y=y/fast_cos(angle);
-    D_L13_0016CDF0=y;
+    vendor_spring(&data->fov, &data->fov_velocity, 1.134464f + (1.4835298f - 1.134464f) * speed_fraction, 0.05f, 1.0f, 1.0f);
+    half_fov = data->fov * 0.5f;
+    tan_half_fov = fast_sin(half_fov) / fast_cos(half_fov);
+    D_L13_0016CDF0 = tan_half_fov;
     update_view_context();
-    m->rotation[0]=fast_add_rotations(d->angles[0],F(d,0x6C)*0.5f);
-    m->rotation[1]=fast_add_rotations(d->angles[1],-F(d,0x70)*0.5f);
-    m->rotation[2]=fast_add_rotations(d->angles[2],-F(d,0x6C)*0.0f);
-    if (coll_sphere(1.2f,m->position,0,m)) {
-        char *hit=((struct JetCollision *)D_L13_00174140)->hit;
-        if (!hit || ((cls=H(hit,0xA6))!=0 && cls!=0x192 && cls!=0x4C2 && cls!=0x4C3 && cls!=0x52 && cls!=0x53)) {
-            qcopy(m->position,((struct JetCollision *)D_L13_00174140)->position);
-            jet_reflect_vector(velocity,velocity,((struct JetCollision *)D_L13_00174140)->normal);
-            angle=fast_subtract_rotations(angle_atan2(velocity[0],velocity[1]),d->angles[2]);
-            d->angles[2]=fast_add_rotations(d->angles[2],angle*(frame_scale*0.1f));
-            angle=angle_atan2(jet_length_xy(velocity),velocity[2]);
-            angle=fast_subtract_rotations(-angle,d->angles[1]);
-            d->angles[1]=fast_add_rotations(d->angles[1],angle*(frame_scale*0.1f));
-            d->speed*=0.7f;
-            if (((struct JetCollision *)D_L13_00174140)->hit) {
-              if (!d->timer) {
-                ((JetPlayer *)D_0013F350)->health-=5.0f;
-                if (((JetPlayer *)D_0013F350)->health<0.0f) {
-                    subtract_vector_xyz(cross,((struct JetCollision *)D_L13_00174140)->cross,((struct JetCollision *)D_L13_00174140)->vertical);
-                    normalize_vector_xyz(cross,cross,1.0f);
-                    jet_reflect_vector(impulse,velocity,((struct JetCollision *)D_L13_00174140)->normal);
-                    normalize_vector_xyz(impulse,impulse,frame_time+frame_time);
-                    normalize_vector_xyz(vertical,((struct JetCollision *)D_L13_00174140)->normal,1.0f);
-                    jet_explosion(m,impulse,0,8.0f,100.0f,30,10,24,16.0f,8.0f,9.0f,6,1.0f,50.0f,1,1,-1,0);
-                    d->death_timer=scale_game_frames(240); m->state=6;
+    moby->rot_x = fast_add_rotations(data->roll, data->steer_x * 0.5f);
+    moby->rot_y = fast_add_rotations(data->pitch, -data->steer_y * 0.5f);
+    moby->rot_z = fast_add_rotations(data->yaw, -data->steer_x * 0.0f);
+    if (coll_sphere(1.2f, moby->pos, 0, moby)) {
+        hit = D_L13_00174140;
+        if (*(char **)(hit + 0x18) == 0 || (hit_class = *(short *)(*(char **)(hit + 0x18) + 0xA6), hit_class != 0 && hit_class != 0x192 && hit_class != 0x4C2 && hit_class != 0x4C3 && hit_class != 0x52 && hit_class != 0x53)) {
+            qcopy(moby->pos, hit + 0x30);
+            jet_reflect_vector(velocity, velocity, hit + 0x40);
+            data->yaw = fast_add_rotations(data->yaw, fast_subtract_rotations(fast_arc_tan(velocity[0], velocity[1]), data->yaw) * (frame_scale_gp * 0.1f));
+            data->pitch = fast_add_rotations(data->pitch, fast_subtract_rotations(-fast_arc_tan(vector_length_xy(velocity), velocity[2]), data->pitch) * (frame_scale_gp * 0.1f));
+            data->speed = data->speed * 0.7f;
+            if (*(char **)(hit + 0x18) != 0) {
+                if (data->hit_cooldown == 0) {
+                    player = (char *)D_0013E533 + 0xE1D;
+                    *(float *)(player + 0x15FC) = *(float *)(player + 0x15FC) - 5.0f;
+                    if (*(float *)(player + 0x15FC) < 0.0f) {
+                        subtract_vector_xyz(cross, hit + 0x50, hit + 0x60);
+                        fast_vec_normalize(cross, cross, 1.0f);
+                        jet_reflect_vector(impulse, velocity, hit + 0x40);
+                        fast_vec_normalize(impulse, impulse, frame_time_gp + frame_time_gp);
+                        fast_vec_normalize(vertical, hit + 0x40, 1.0f);
+                        jet_explosion(moby, impulse, 0, 8.0f, 100.0f, 0x1E, 0xA, 0x18, 16.0f, 8.0f, 9.0f, 6, 1.0f, 50.0f, 1, 1, -1, 0);
+                        data->death_timer = scale_game_frames(240);
+                        moby->state = 6;
+                    }
+                    data->hit_cooldown = scale_game_frames(10);
                 }
-                d->timer=scale_game_frames(10);
-              }
             } else {
-                ((JetPlayer *)D_0013F350)->health=0.0f;
-                jet_explosion(m,impulse,0,8.0f,100.0f,30,10,24,16.0f,8.0f,9.0f,6,1.0f,50.0f,1,1,-1,0);
-                m->flags|=0x41;
-                d->death_timer=scale_game_frames(240); m->state=6;
-
+                *(float *)(D_0013E533 + 0x2419) = 0.0f;
+                jet_explosion(moby, impulse, 0, 8.0f, 100.0f, 0x1E, 0xA, 0x18, 16.0f, 8.0f, 9.0f, 6, 1.0f, 50.0f, 1, 1, -1, 0);
+                moby->flags |= 0x41;
+                data->death_timer = scale_game_frames(240);
+                moby->state = 6;
             }
         }
     }
-    enqueue_callback_list_1(FUN_L13_002b97f8,m);
-    FUN_L13_002b9f58((struct Moby *)m,(char *)d);
-    x=fast_add_rotations(d->previous_rotation[2],-F(d,0x6C)/7.0f);
-    y=fast_add_rotations(d->previous_rotation[1],-(F(d,0x70)/7.0f)-0.1f);
-    FUN_L13_002b9df8((struct Moby *)m,(char *)d,x,-y);
+    enqueue_callback_list_1(FUN_L13_002b97f8, moby);
+    FUN_L13_002b9f58((struct Moby *)moby, (char *)data);
+    FUN_L13_002b9df8((struct Moby *)moby, (char *)data, fast_add_rotations(data->camera_yaw, -data->steer_x / 7.0f),
+                     -fast_add_rotations(data->camera_pitch, -(data->steer_y / 7.0f) - 0.1f));
 }
-#undef F
 #endif

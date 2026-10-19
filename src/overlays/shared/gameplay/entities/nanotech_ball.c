@@ -212,9 +212,9 @@ typedef struct {
     float x, y, z, w_002d8418;
 } __attribute__((aligned(16))) Vec4_002d8418;
 extern char g_debug_camera[] __asm__("D_L00_00166DC0");
-void fast_vec_sub(Vec4_002d8418 *, void *, void *) __asm__("FUN_001f9a28");
+void fast_vec_sub(void *, void *, void *) __asm__("FUN_001f9a28");
 float FUN_002132a8_002d8418(float, float) __asm__("FUN_002132a8");
-void fast_vec_scale(Vec4_002d8418 *, void *, float) __asm__("FUN_001f9a68");
+void fast_vec_scale(void *, void *, float) __asm__("FUN_001f9a68");
 float FUN_00213308_002d8418(void) __asm__("FUN_00213308");
 void FUN_00214890_002d8418(Vec4_002d8418 *, Vec4_002d8418 *, Vec4_002d8418 *,
                            float) __asm__("FUN_00214890");
@@ -404,8 +404,8 @@ typedef struct Ext_2D9EA0 {
 } Ext_2D9EA0;
 
 typedef struct D_2D9EA0 {
-    float f0;
-    float f4;
+    float bob_offset;
+    float bob_phase;
     short h8;
     short hA;
     struct Moby *owner;
@@ -422,8 +422,6 @@ typedef struct D_2D9EA0 {
 } D_2D9EA0;
 
 extern Moby *D_L00_0015F63C;
-extern V_2D9EA0 D_L00_001E3CA0_c[] __asm__("D_L00_001E3CA0");
-extern char D_0013F350_c2[] __asm__("D_0013F350");
 extern char D_L00_00166DC0[];
 extern f32 convert_integer_to_float(s32) __asm__("func_001FA6C0");
 extern f32 distance_xyz(void *, void *) __asm__("func_001F9B48");
@@ -475,7 +473,7 @@ void FUN_L00_002d81b8_c(unsigned char *m) __asm__("FUN_L00_002d81b8");
 void FUN_L00_002d8418_c(char *p) __asm__("FUN_L00_002d8418");
 void FUN_L00_002d8850_c(unsigned char *p, float *out, int i) __asm__("FUN_L00_002d8850");
 void FUN_L00_002d8908_c(void) __asm__("FUN_L00_002d8908");
-void FUN_L00_002d9810(u8 *m);
+void FUN_L00_002d9810(Moby *moby);
 extern V_2D9EA0 D_L00_001E4070_2D9EA0[] __asm__("D_L00_001E3D20");
 extern float D_L00_001E17F0_2D9EA0[] __asm__("D_L00_001E14A0");
 extern float func_002140F8_2D9EA0(float, float) __asm__("FUN_002132a8");
@@ -498,7 +496,6 @@ extern int func_L00_00258BC8_2D9EA0(int, int) __asm__("FUN_L00_00257b90");
 extern void func_L00_002D9DB8_2D9EA0(void) __asm__("FUN_L00_002d8908");
 extern int func_L00_00200290_2D9EA0(void *, float) __asm__("FUN_001fa728");
 extern void func_001F49B0_2D9EA0(void (*)(void), int) __asm__("FUN_001f4600");
-extern void func_L00_002DACC0_2D9EA0(void) __asm__("FUN_L00_002d9810");
 extern float func_001F9D48_2D9EA0(void *, void *) __asm__("FUN_001f9b80");
 extern void func_L00_002D9D00_2D9EA0(void *, void *, int) __asm__("FUN_L00_002d8850");
 extern Part_2D9EA0 *func_L00_002745A8_2D9EA0(void *, int, int) __asm__("FUN_L00_00273708");
@@ -536,10 +533,10 @@ void nanotech_ball_update(Moby *moby) {
         qcopy(&moby->pos, &owner->pos);
         qcopy(&moby->rot, &owner->rot);
         qcopy(&data->pos, &moby->pos);
-        *(int *)&data->f0 = 0;
+        *(int *)&data->bob_offset = 0;
         data->h8 = 0;
         data->pos.z += 0.5f;
-        data->f4 = func_002140F8_2D9EA0(data->f0, 3.1415927f);
+        data->bob_phase = func_002140F8_2D9EA0(data->bob_offset, 3.1415927f);
         data->h56 = 0;
         data->hA = 0;
         for (i = 0; i < 4; i++) data->f60[i] = (float)func_002140B0_2D9EA0(0xFF);
@@ -550,27 +547,27 @@ void nanotech_ball_update(Moby *moby) {
             D_L00_0015F63C = moby;
             moby->update_dist = 0xFF;
             data->f7C = 0;
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[0], &moby->rot_row0, D_L00_00161A14_gp);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[0], &moby->rot_row0, D_L00_00161A14_gp);
             qcopy(&D_L00_001E4070_2D9EA0[0], &moby->rot_row2);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[1], &moby->rot_row1, D_L00_00161A14_gp);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[1], &moby->rot_row1, D_L00_00161A14_gp);
             qcopy(&D_L00_001E4070_2D9EA0[1], &moby->rot_row0);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[2], &moby->rot_row2, D_L00_00161A14_gp);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[2], &moby->rot_row2, D_L00_00161A14_gp);
             qcopy(&D_L00_001E4070_2D9EA0[2], &moby->rot_row1);
-            func_001F9BD8_2D9EA0(&D_L00_001E3CA0_c[3], &moby->rot_row0, &moby->rot_row2);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[3], &D_L00_001E3CA0_c[3], D_L00_00161A14_gp);
-            fast_vec_cross(&D_L00_001E4070_2D9EA0[3], &D_L00_001E3CA0_c[3], &moby->rot_row1);
-            func_001F9BD8_2D9EA0(&D_L00_001E3CA0_c[4], &moby->rot_row0, &moby->rot_row1);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[4], &D_L00_001E3CA0_c[4], D_L00_00161A14_gp);
-            fast_vec_cross(&D_L00_001E4070_2D9EA0[4], &D_L00_001E3CA0_c[4], &moby->rot_row2);
-            func_001F9BF0_2D9EA0(&D_L00_001E3CA0_c[5], &moby->rot_row1, &moby->rot_row2);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[5], &D_L00_001E3CA0_c[5], D_L00_00161A14_gp);
-            fast_vec_cross(&D_L00_001E4070_2D9EA0[5], &D_L00_001E3CA0_c[5], &moby->rot_row0);
-            func_001F9BF0_2D9EA0(&D_L00_001E3CA0_c[6], &moby->rot_row0, &moby->rot_row2);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[6], &D_L00_001E3CA0_c[6], D_L00_00161A14_gp);
-            fast_vec_cross(&D_L00_001E4070_2D9EA0[6], &D_L00_001E3CA0_c[6], &moby->rot_row1);
-            func_001F9BF0_2D9EA0(&D_L00_001E3CA0_c[7], &moby->rot_row0, &moby->rot_row1);
-            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0_c[7], &D_L00_001E3CA0_c[7], D_L00_00161A14_gp);
-            fast_vec_cross(&D_L00_001E4070_2D9EA0[7], &D_L00_001E3CA0_c[7], &moby->rot_row2);
+            func_001F9BD8_2D9EA0(&D_L00_001E3CA0[3], &moby->rot_row0, &moby->rot_row2);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[3], &D_L00_001E3CA0[3], D_L00_00161A14_gp);
+            fast_vec_cross(&D_L00_001E4070_2D9EA0[3], &D_L00_001E3CA0[3], &moby->rot_row1);
+            func_001F9BD8_2D9EA0(&D_L00_001E3CA0[4], &moby->rot_row0, &moby->rot_row1);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[4], &D_L00_001E3CA0[4], D_L00_00161A14_gp);
+            fast_vec_cross(&D_L00_001E4070_2D9EA0[4], &D_L00_001E3CA0[4], &moby->rot_row2);
+            func_001F9BF0_2D9EA0(&D_L00_001E3CA0[5], &moby->rot_row1, &moby->rot_row2);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[5], &D_L00_001E3CA0[5], D_L00_00161A14_gp);
+            fast_vec_cross(&D_L00_001E4070_2D9EA0[5], &D_L00_001E3CA0[5], &moby->rot_row0);
+            func_001F9BF0_2D9EA0(&D_L00_001E3CA0[6], &moby->rot_row0, &moby->rot_row2);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[6], &D_L00_001E3CA0[6], D_L00_00161A14_gp);
+            fast_vec_cross(&D_L00_001E4070_2D9EA0[6], &D_L00_001E3CA0[6], &moby->rot_row1);
+            func_001F9BF0_2D9EA0(&D_L00_001E3CA0[7], &moby->rot_row0, &moby->rot_row1);
+            func_L00_001FF4B0_2D9EA0(&D_L00_001E3CA0[7], &D_L00_001E3CA0[7], D_L00_00161A14_gp);
+            fast_vec_cross(&D_L00_001E4070_2D9EA0[7], &D_L00_001E3CA0[7], &moby->rot_row2);
         }
         {
             float yaw = func_002140F8_2D9EA0(0.0f, 6.2831855f);
@@ -603,21 +600,21 @@ void nanotech_ball_update(Moby *moby) {
             }
         }
         {
-            Hero *hero = (Hero *)D_0013F350_c2;
+            Hero *player = &hero;
             int max_hp = hero_max_health;
-            if (hero->vehicle_mode == 1) max_hp = 4;
-            if (moby->state != 1 && D_L00_0015F63C != 0 && ((D_2D9EA0 *)D_L00_0015F63C->pvars) != 0 && hero->health.hp != 0
-                && (hero->health.hp + ((D_2D9EA0 *)D_L00_0015F63C->pvars)->f7C < max_hp || (D_0015EDB6 != 0 && hero->invulnerable_frames == 0))
-                && func_001F9D10_2D9EA0(&moby->pos, &hero->motion.pos) < 10.0f
+            if (player->vehicle_mode == 1) max_hp = 4;
+            if (moby->state != 1 && D_L00_0015F63C != 0 && ((D_2D9EA0 *)D_L00_0015F63C->pvars) != 0 && player->health.hp != 0
+                && (player->health.hp + ((D_2D9EA0 *)D_L00_0015F63C->pvars)->f7C < max_hp || (D_0015EDB6 != 0 && player->invulnerable_frames == 0))
+                && func_001F9D10_2D9EA0(&moby->pos, &player->motion.pos) < 10.0f
                 && func_L00_002D9E30_2D9EA0(moby)) {
                 int i;
                 moby->state = 3;
                 ((D_2D9EA0 *)D_L00_0015F63C->pvars)->f7C++;
-                if (D_0015EDB6 != 0) hero->invulnerable_frames = func_001F9850_2D9EA0(0x258);
+                if (D_0015EDB6 != 0) player->invulnerable_frames = func_001F9850_2D9EA0(0x258);
                 data->h54 = func_001F9850_2D9EA0(D_L00_00161A3C);
-                func_001F9C30_2D9EA0(&collection_target_or_end_tangent, &hero->gravity_dir, -D_L00_00161A54);
-                func_001F9BD8_2D9EA0(&collection_target_or_end_tangent, &hero->motion.pos, &collection_target_or_end_tangent);
-                func_001F9C30_2D9EA0(&slot_rotation_basis_or_cull_position_or_start_tangent, &hero->gravity_dir, -D_L00_00161A50);
+                func_001F9C30_2D9EA0(&collection_target_or_end_tangent, &player->gravity_dir, -D_L00_00161A54);
+                func_001F9BD8_2D9EA0(&collection_target_or_end_tangent, &player->motion.pos, &collection_target_or_end_tangent);
+                func_001F9C30_2D9EA0(&slot_rotation_basis_or_cull_position_or_start_tangent, &player->gravity_dir, -D_L00_00161A50);
                 func_001F9BF0_2D9EA0(&v20, &collection_target_or_end_tangent, &moby->pos);
                 v20.z -= 0.5f;
                 fast_vec_cross(&cross_product_or_particle_midpoint, &v20, &slot_rotation_basis_or_cull_position_or_start_tangent);
@@ -648,8 +645,8 @@ void nanotech_ball_update(Moby *moby) {
                 }
             }
         }
-        data->f0 = D_L00_00161A10_gp * func_001F9FA8_2D9EA0(data->f4);
-        data->f4 = func_001FA748_2D9EA0(data->f4, D_L00_00161A0C);
+        data->bob_offset = D_L00_00161A10_gp * func_001F9FA8_2D9EA0(data->bob_phase);
+        data->bob_phase = func_001FA748_2D9EA0(data->bob_phase, D_L00_00161A0C);
         if (D_L00_0015F63C == moby) func_L00_002D9DB8_2D9EA0();
         qcopy(&slot_rotation_basis_or_cull_position_or_start_tangent, &moby->pos);
         slot_rotation_basis_or_cull_position_or_start_tangent.z += 0.5f;
@@ -657,7 +654,7 @@ void nanotech_ball_update(Moby *moby) {
         if (func_L00_00200290_2D9EA0(&slot_rotation_basis_or_cull_position_or_start_tangent, 64.0f) >= 0) {
             int i;
             int lifetime;
-            func_001F49B0_2D9EA0(func_L00_002DACC0_2D9EA0, (int)moby);
+            func_001F49B0_2D9EA0((void (*)(void))FUN_L00_002d9810, (int)moby);
             if (10.0f < func_001F9D48_2D9EA0(&moby->pos, D_L00_00166DC0)) lifetime = func_001F9850_2D9EA0(5);
             else lifetime = func_001F9850_2D9EA0(40);
             for (i = 0; i < 8; i++) {
@@ -701,10 +698,10 @@ void nanotech_ball_update(Moby *moby) {
             if (func_L00_002D99C0_2D9EA0(moby) != 0 && func_002140B0_2D9EA0(5) == 0) func_L00_002D98C8_2D9EA0(moby);
         }
         {
-            Hero *hero = (Hero *)D_0013F350_c2;
+            Hero *player = &hero;
             int max_hp = hero_max_health;
-            if (hero->vehicle_mode == 1) max_hp = 4;
-            if (hero->health.hp == max_hp && hero->invulnerable_frames != 0 && D_0015EDB6 != 0) {
+            if (player->vehicle_mode == 1) max_hp = 4;
+            if (player->health.hp == max_hp && player->invulnerable_frames != 0 && D_0015EDB6 != 0) {
                 int duration = func_001F9850_2D9EA0(D_L00_00161A40);
                 if (data->h54 < duration) {
                     int i;
@@ -734,12 +731,12 @@ void nanotech_ball_update(Moby *moby) {
                 ext = (Ext_2D9EA0 *)(part + 1);
                 if (func_001F9938_2D9EA0(&ext->h1E)) {
                     if (data->h56 == 0) {
-                        Hero *hero = (Hero *)D_0013F350_c2;
+                        Hero *player = &hero;
                         int max_hp = hero_max_health;
-                        if (hero->vehicle_mode == 1) max_hp = 4;
-                        if (hero->health.hp != 0) {
-                            int new_hp = hero->health.hp + 1;
-                            hero->health.hp = (max_hp < new_hp) ? max_hp : new_hp;
+                        if (player->vehicle_mode == 1) max_hp = 4;
+                        if (player->health.hp != 0) {
+                            int new_hp = player->health.hp + 1;
+                            player->health.hp = (max_hp < new_hp) ? max_hp : new_hp;
                         }
                         {
                             D_2D9EA0 *leader_data = (D_2D9EA0 *)D_L00_0015F63C->pvars;
@@ -802,151 +799,140 @@ void nanotech_ball_update(Moby *moby) {
         break;
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002d9810.s", FUN_L00_002d9810);
-#else
+/* Ported from rac1-decomp (nonmatching/shared/func_L00_002DACC0.c: func_L00_002DACC0), a near miss there; names translated to the US level program. */
 typedef struct {
     u128 points[4];
     u32 colors[4];
     float texcoords[8];
     u64 texture[4];
-} __attribute__((aligned(16))) Quad_002d9810;
-extern float D_L00_00161A10_gp __asm__("D_L00_00161A10") __attribute__((sda));
-extern int D_L00_00161B10_002d9810 __asm__("D_L00_00161B10") __attribute__((section(".data")));
-extern int D_L00_00161AD0_002d9810 __asm__("D_L00_00161AD0") __attribute__((sda));
-extern u32 D_L00_00161AE0_002d9810 __asm__("D_L00_00161AE0") __attribute__((sda));
-extern int D_L00_00161AC0_002d9810 __asm__("D_L00_00161AC0") __attribute__((sda));
-extern int D_L00_00161AC4_002d9810 __asm__("D_L00_00161AC4") __attribute__((sda));
-extern int D_L00_00161AC8_002d9810 __asm__("D_L00_00161AC8") __attribute__((sda));
-extern int D_L00_00161ACC_002d9810 __asm__("D_L00_00161ACC") __attribute__((sda));
-extern int D_L00_00161AD4_002d9810 __asm__("D_L00_00161AD4") __attribute__((sda));
-extern u32 D_L00_00161AD8_002d9810 __asm__("D_L00_00161AD8") __attribute__((sda));
-extern float D_L00_00161ADC_002d9810 __asm__("D_L00_00161ADC") __attribute__((sda));
-extern int D_L00_00161AE4_002d9810 __asm__("D_L00_00161AE4") __attribute__((sda));
-extern float D_L00_00161AE8_002d9810 __asm__("D_L00_00161AE8") __attribute__((sda));
-extern float D_L00_00161AEC_002d9810 __asm__("D_L00_00161AEC") __attribute__((sda));
-extern char D_L00_00161AF0_002d9810[] __asm__("D_L00_00161AF0") __attribute__((section(".data")));
-extern char g_debug_camera[] __asm__("D_L00_00166DC0");
-extern char D_L00_001E14C0_002d9810[] __asm__("D_L00_001E14C0");
-extern char D_L00_001E3DA0_002d9810[] __asm__("D_L00_001E3DA0");
-extern char D_L00_001E2FF0_002d9810[] __asm__("D_L00_001E2FF0");
-extern char D_L00_001E26E0_002d9810[] __asm__("D_L00_001E26E0");
-extern char D_L00_001E3A80_002d9810[] __asm__("D_L00_001E3A80");
-extern char D_L00_001E3480_002d9810[] __asm__("D_L00_001E3480");
-extern char D_L00_001E3B80_002d9810[] __asm__("D_L00_001E3B80");
-extern char D_L00_001E3C80_002d9810[] __asm__("D_L00_001E3C80");
-u64 FUN_001f44b8_002d9810(int) __asm__("FUN_001f44b8");
-void FUN_00233980_002d9810(int, u64) __asm__("FUN_00233980");
-void FUN_001f9a10_002d9810(void *, void *, void *) __asm__("FUN_001f9a10");
-void FUN_001f9a28_002d9810(void *, void *, void *) __asm__("FUN_001f9a28");
-void FUN_001f9bf8_002d9810(float, void *, void *) __asm__("FUN_001f9bf8");
-void FUN_001f9ad8_002d9810(void *, void *, void *) __asm__("FUN_001f9ad8");
-void FUN_001f76a0_002d9810(void) __asm__("FUN_001f76a0");
-void FUN_001f9d20_002d9810(void *, void *, void *) __asm__("FUN_001f9d20");
-void FUN_L00_001fde98_002d9810(int, void *, void *, void *, int) __asm__("FUN_L00_001fde98");
-int FUN_001fa6d0_002d9810(float) __asm__("FUN_001fa6d0");
-void FUN_001f9a68_002d9810(float, void *, void *) __asm__("FUN_001f9a68");
-void FUN_001f7d30_002d9810(void *, void *, int) __asm__("FUN_001f7d30");
-void FUN_001f9c48_002d9810(float, void *, void *) __asm__("FUN_001f9c48");
-float FUN_L00_00200260_002d9810(float, float) __asm__("FUN_L00_00200260");
+} __attribute__((aligned(16))) GeometryQuad;
+extern int D_L00_00161B10_macro __asm__("D_L00_00161B10") __attribute__((section(".sdata")));
+extern int D_L00_00161AC0_gp __asm__("D_L00_00161AC0") __attribute__((sda));
+extern int D_L00_00161AC4_gp __asm__("D_L00_00161AC4") __attribute__((sda));
+extern int D_L00_00161AC8_gp __asm__("D_L00_00161AC8") __attribute__((sda));
+extern int D_L00_00161ACC_gp __asm__("D_L00_00161ACC") __attribute__((sda));
+extern int D_L00_00161AD0_gp __asm__("D_L00_00161AD0") __attribute__((sda));
+extern int D_L00_00161AD4_gp __asm__("D_L00_00161AD4") __attribute__((sda));
+extern u32 D_L00_00161AD8_gp __asm__("D_L00_00161AD8") __attribute__((sda));
+extern float D_L00_00161ADC_gp __asm__("D_L00_00161ADC") __attribute__((sda));
+extern u32 D_L00_00161AE0_gp __asm__("D_L00_00161AE0") __attribute__((sda));
+extern int D_L00_00161AE4_gp __asm__("D_L00_00161AE4") __attribute__((sda));
+extern float D_L00_00161AE8_gp __asm__("D_L00_00161AE8") __attribute__((sda));
+extern float D_L00_00161AEC_gp __asm__("D_L00_00161AEC") __attribute__((sda));
+extern char D_L00_00161AF0_macro[] __asm__("D_L00_00161AF0") __attribute__((section(".sdata")));
+extern char D_L00_001E14C0[];
+extern char D_L00_001E26E0[];
+extern char D_L00_001E2FF0[];
+extern char D_L00_001E3480[];
+extern char D_L00_001E3A80[];
+extern char D_L00_001E3B80[];
+extern char D_L00_001E3C80[];
+extern char D_L00_001E3DA0[];
+extern s64 get_effect_texture(s32) __asm__("func_001F44B8");
+extern void vu1_add_g_sregister(s32, u64) __asm__("func_00233980");
+void fast_vec_add(void *, void *, void *) __asm__("FUN_001f9a10");
+void fast_vec_normalize(void *, void *, f32) __asm__("FUN_001f9bf8");
+void font_queue_vu_state(void) __asm__("FUN_001f76a0");
+extern void transform_vector(void *, void *, void *) __asm__("func_001F9D20");
+void FUN_L00_001fde98(int, void *, void *, void *, int);
+s32 truncate_float_to_s32(f32) __asm__("FUN_001fa6d0");
+extern void draw_geometry_quad(void *, void *, int) __asm__("FUN_001f7d30");
+extern void set_vector_length_xy(void *, void *, f32) __asm__("FUN_001f9c48");
+float FUN_L00_00200260(float, float);
 
-void FUN_L00_002d9810(u8 *m) {
-    Quad_002d9810 quad;
-    float shifted[4] __attribute__((aligned(16)));
-    float cross[4] __attribute__((aligned(16)));
-    float normal[4] __attribute__((aligned(16)));
-    float position[4] __attribute__((aligned(16)));
-    float projection[4] __attribute__((aligned(16)));
-    float rotated[4] __attribute__((aligned(16)));
-    float transformed[4] __attribute__((aligned(16)));
-    float *data = *(float **)(m + 0x78);
-    char *shape;
-    float ratio = data[0] / D_L00_00161A10_gp;
+void FUN_L00_002d9810(Moby *moby) {
+    GeometryQuad quad;
+    float basis[4] __attribute__((aligned(16)));
+    float *forward;
+    float side[4] __attribute__((aligned(16)));
+    float up[4] __attribute__((aligned(16)));
+    float center[4] __attribute__((aligned(16)));
+    float view_dir[4] __attribute__((aligned(16)));
+    float to_camera[4] __attribute__((aligned(16)));
+    float vertex[4] __attribute__((aligned(16)));
+    D_2D9EA0 *vars = (D_2D9EA0 *)moby->pvars;
+    Moby *owner;
+    float pulse = vars->bob_offset / D_L00_00161A10_gp;
     int i, j, color;
-    unsigned short *indices;
-    char *source;
-    char *destination = D_L00_001E3DA0_002d9810;
-    char *pointB, *pointA;
+    short *indices;
+    short *row;
+    short *rows;
+    char *corner;
+    char *outer, *inner;
     float *u, *v;
-    float *uBase, *vBase;
-    float *shiftedVector = shifted;
+    float *v_base, *u_base;
 
-    quad.texture[1] = FUN_001f44b8_002d9810(D_L00_00161AD4_002d9810);
+    quad.texture[1] = get_effect_texture(D_L00_00161AD4_gp);
     quad.texture[2] = 0xff9000000260ULL;
-    quad.texture[3] = (u64)D_L00_00161AC0_002d9810 |
-                      ((u64)D_L00_00161AC4_002d9810 << 2) |
-                      ((u64)D_L00_00161AC8_002d9810 << 4) |
-                      ((u64)D_L00_00161ACC_002d9810 << 6) |
-                      ((u64)D_L00_00161AD0_002d9810 << 32);
+    quad.texture[3] = (u64)D_L00_00161AC0_gp |
+                      ((u64)D_L00_00161AC4_gp << 2) |
+                      ((u64)D_L00_00161AC8_gp << 4) |
+                      ((u64)D_L00_00161ACC_gp << 6) |
+                      ((u64)D_L00_00161AD0_gp << 32);
     quad.texture[0] = 0;
-    FUN_00233980_002d9810(0x47, 0x53001);
-    ((float *)&position)[0] = *(float *)(m + 0x10);
-    ((float *)&position)[1] = *(float *)(m + 0x14);
-    ((float *)&position)[2] = *(float *)(m + 0x18) + 0.5f;
-    ((float *)&position)[2] += data[0];
-    ((float *)&position)[3] = 1.0f;
-    FUN_001f9a10_002d9810(&position, &position, D_L00_00161AF0_002d9810);
-    FUN_001f9a28_002d9810(&rotated, g_debug_camera, &position);
-    FUN_001f9bf8_002d9810(1.0f, shiftedVector, &rotated);
-    shape = *(char **)((char *)data + 0xc);
-    FUN_001f9ad8_002d9810(&cross, shiftedVector, shape + 0xe0);
-    FUN_001f9bf8_002d9810(1.0f, &cross, &cross);
-    FUN_001f9ad8_002d9810(&normal, &cross, shiftedVector);
-    quad.colors[3] = D_L00_00161AD8_002d9810;
-    quad.colors[2] = D_L00_00161AD8_002d9810;
-    quad.colors[1] = D_L00_00161AD8_002d9810;
-    quad.colors[0] = D_L00_00161AD8_002d9810;
-    FUN_00233980_002d9810(6, FUN_001f44b8_002d9810(D_L00_00161AD4_002d9810));
-    FUN_00233980_002d9810(0x42, 0x8000000044ULL);
-    FUN_00233980_002d9810(8, 0);
-    FUN_00233980_002d9810(0x14, 0xff9000000260ULL);
-    FUN_00233980_002d9810(0x4a, 0);
-    FUN_001f76a0_002d9810();
-    j = 0x121;
-    source = D_L00_001E14C0_002d9810;
-    do {
-        FUN_001f9d20_002d9810(&transformed, source, shiftedVector);
-        source += 16;
-        j--;
+    vu1_add_g_sregister(0x47, 0x53001);
+    forward = basis;
+    center[0] = moby->pos.x;
+    center[1] = moby->pos.y;
+    center[2] = moby->pos.z + 0.5f;
+    center[2] += vars->bob_offset;
+    center[3] = 1.0f;
+    fast_vec_add(&center, &center, D_L00_00161AF0_macro);
+    fast_vec_sub(&to_camera, g_debug_camera, &center);
+    fast_vec_normalize(forward, &to_camera, 1.0f);
+    owner = vars->owner;
+    fast_vec_cross(&side, forward, &owner->rot_row2);
+    fast_vec_normalize(&side, &side, 1.0f);
+    fast_vec_cross(&up, &side, forward);
+    quad.colors[3] = D_L00_00161AD8_gp;
+    quad.colors[2] = D_L00_00161AD8_gp;
+    quad.colors[1] = D_L00_00161AD8_gp;
+    quad.colors[0] = D_L00_00161AD8_gp;
+    vu1_add_g_sregister(6, get_effect_texture(D_L00_00161AD4_gp));
+    vu1_add_g_sregister(0x42, 0x8000000044ULL);
+    vu1_add_g_sregister(8, 0);
+    vu1_add_g_sregister(0x14, 0xff9000000260ULL);
+    vu1_add_g_sregister(0x4a, 0);
+    font_queue_vu_state();
+    for (j = 0; j < 0x122; j++) {
+        transform_vector(&vertex, D_L00_001E14C0 + j * 16, basis);
         {
-            float x = transformed[0], y = transformed[1], z = transformed[2];
-            ((float *)destination)[0] = x;
-            ((float *)destination)[1] = y;
-            ((float *)destination)[2] = z;
+            float x = vertex[0], y = vertex[1], z = vertex[2];
+            ((Vec3 *)D_L00_001E3DA0)[j].x = x;
+            ((Vec3 *)D_L00_001E3DA0)[j].y = y;
+            ((Vec3 *)D_L00_001E3DA0)[j].z = z;
         }
-        destination += 12;
-    } while (j >= 0);
-    FUN_L00_001fde98_002d9810(0x94, D_L00_001E3DA0_002d9810,
-                                D_L00_001E2FF0_002d9810, D_L00_001E26E0_002d9810, 1);
-    FUN_L00_001fde98_002d9810(0x6d, D_L00_001E3DA0_002d9810 + 0x6d8,
-                                D_L00_001E2FF0_002d9810 + 0x248,
-                                D_L00_001E26E0_002d9810 + 0x490, 1);
-    FUN_L00_001fde98_002d9810(0x24, D_L00_001E3DA0_002d9810 + 0xbe8,
-                                D_L00_001E2FF0_002d9810 + 0x3f8,
-                                D_L00_001E26E0_002d9810 + 0x7f0, 1);
-    quad.texture[1] = FUN_001f44b8_002d9810(0xb);
+    }
+    FUN_L00_001fde98(0x94, D_L00_001E3DA0,
+                                D_L00_001E2FF0, D_L00_001E26E0, 1);
+    FUN_L00_001fde98(0x6d, D_L00_001E3DA0 + 0x6d8,
+                                D_L00_001E2FF0 + 0x248,
+                                D_L00_001E26E0 + 0x490, 1);
+    FUN_L00_001fde98(0x24, D_L00_001E3DA0 + 0xbe8,
+                                D_L00_001E2FF0 + 0x3f8,
+                                D_L00_001E26E0 + 0x7f0, 1);
+    quad.texture[1] = get_effect_texture(0xb);
     quad.texture[3] = 0x8000000048ULL;
-    color = FUN_001fa6d0_002d9810(ratio * 64.0f + 128.0f);
-    color = ((u32)(D_L00_00161B10_002d9810 + color) << 24) | D_L00_00161AE0_002d9810;
+    color = truncate_float_to_s32(pulse * 64.0f + 128.0f);
+    color = ((u32)(color + D_L00_00161B10_macro) << 24) | D_L00_00161AE0_gp;
     quad.colors[3] = 0;
     quad.colors[2] = 0;
     quad.colors[1] = color;
     quad.colors[0] = color;
     for (i = 0; i < 32; i++) {
-        indices = (short *)(D_L00_001E3A80_002d9810 + i * 8);
+        indices = (short *)(D_L00_001E3A80 + i * 8);
         j = 0;
-        pointA = (char *)quad.points;
-        pointB = (char *)quad.points;
+        inner = (char *)quad.points;
+        outer = (char *)quad.points;
         for (; j < 4; j++) {
             short index = *indices;
             if (j >= 2)
-                FUN_001f9a68_002d9810(D_L00_00161ADC_002d9810 * D_L00_00161AEC_002d9810,
-                                        pointB, D_L00_001E3480_002d9810 + index * 16);
+                fast_vec_scale(outer, D_L00_001E3480 + index * 16,
+                             D_L00_00161ADC_gp * D_L00_00161AEC_gp);
             else
-                FUN_001f9a68_002d9810(D_L00_00161ADC_002d9810, pointA,
-                                        D_L00_001E3480_002d9810 + index * 16);
-            pointA += 16;
-            pointB += 16;
+                fast_vec_scale(inner, D_L00_001E3480 + index * 16, D_L00_00161ADC_gp);
+            inner += 16;
+            outer += 16;
             indices++;
         }
         quad.texcoords[0] = 0.5f;
@@ -957,49 +943,49 @@ void FUN_L00_002d9810(u8 *m) {
         quad.texcoords[5] = 1.0f;
         quad.texcoords[6] = 0.5f;
         quad.texcoords[7] = 1.0f;
-        FUN_001f7d30_002d9810(&quad, shiftedVector, 0);
+        draw_geometry_quad(&quad, basis, 0);
     }
-    if (FUN_L00_002d8128(m)) {
-        quad.texture[1] = FUN_001f44b8_002d9810(D_L00_00161AE4_002d9810);
+    if (FUN_L00_002d8128((u8 *)moby)) {
+        quad.texture[1] = get_effect_texture(D_L00_00161AE4_gp);
         quad.colors[3] = 0x107f7f7f;
         quad.colors[2] = 0x107f7f7f;
         quad.colors[1] = 0x107f7f7f;
         quad.colors[0] = 0x107f7f7f;
         quad.texture[3] = 0x8000000044ULL;
         {
-            char *shape = *(char **)((char *)data + 0xc);
-            qcopy(shiftedVector, shape + 0xc0);
-            qcopy(&cross, shape + 0xd0);
-            qcopy(&normal, shape + 0xe0);
+            Moby *owner = vars->owner;
+            qcopy(basis, &owner->rot_row0);
+            qcopy(&side, &owner->rot_row1);
+            qcopy(&up, &owner->rot_row2);
         }
-        uBase = &quad.texcoords[1];
-        vBase = &quad.texcoords[0];
-        ((float *)&position)[2] = *(float *)(m + 0x18);
+        center[2] = moby->pos.z;
+        v_base = &quad.texcoords[0];
+        u_base = &quad.texcoords[1];
+        rows = (short *)D_L00_001E3C80;
         for (i = 0; i < 4; i++) {
-            v = vBase;
-            u = uBase;
-            indices = (short *)(D_L00_001E3C80_002d9810 + i * 8);
-            source = (char *)quad.points;
+            u = u_base;
+            v = v_base;
+            row = (short *)(i * 8 + (u32)rows);
+            corner = (char *)quad.points;
             for (j = 3; j >= 0; j--) {
-                FUN_001f9d20_002d9810(source, D_L00_001E3B80_002d9810 + (*indices++) * 16,
-                                       shiftedVector);
-                FUN_001f9a28_002d9810(projection, source, g_debug_camera);
-                source += 16;
-                projection[1] = projection[2];
-                FUN_001f9c48_002d9810(D_L00_00161AE8_002d9810, projection, projection);
-                *v = projection[0] * 0.5f + 0.5f;
-                *v = FUN_L00_00200260_002d9810(*v, 8.0f);
+                transform_vector(corner, D_L00_001E3B80 + (*row++) * 16,
+                                       basis);
+                fast_vec_sub(view_dir, corner, g_debug_camera);
+                corner += 16;
+                view_dir[1] = view_dir[2];
+                set_vector_length_xy(view_dir, view_dir, D_L00_00161AE8_gp);
+                *v = view_dir[0] * 0.5f + 0.5f;
+                *v = FUN_L00_00200260(*v, 8.0f);
                 v += 2;
-                *u = projection[1] * 0.5f + 0.5f;
-                *u = FUN_L00_00200260_002d9810(*u, 8.0f);
+                *u = view_dir[1] * 0.5f + 0.5f;
+                *u = FUN_L00_00200260(*u, 8.0f);
                 u += 2;
             }
-            FUN_001f7d30_002d9810(&quad, 0, 0);
+            draw_geometry_quad(&quad, 0, 0);
         }
     }
-    FUN_00233980_002d9810(0x47, 0x5360b);
+    vu1_add_g_sregister(0x47, 0x5360b);
 }
-#endif
 int collision_line(Vec4 *, Vec4 *, int, int, int) __asm__("FUN_001efa68");
 /* True when coll_line_fix returns 0 for the moby and (*(char * *)&D_001413D0_lui) positions, both raised by 0.5. */
 int FUN_L00_002d8980(char *a) {
@@ -2282,7 +2268,6 @@ extern f32 vector_length_xy(void *) __asm__("FUN_001f9b20");
 extern f32 vector_length_xyz_c(void *) __asm__("FUN_001f9af0");
 extern int D_0013E529_c __asm__("D_0013E529");
 extern int D_001403FC; /* no foreign declaration */
-extern int set_vector_length_xy() __asm__("FUN_001f9c48");
 extern int multiply_quaternions() __asm__("FUN_001fa3c0");
 extern int quaternion_nlerp() __asm__("FUN_001fa400");
 extern int quaternion_to_matrix() __asm__("FUN_001fa4f8");
@@ -2807,22 +2792,22 @@ void FUN_L00_002ddcb8(char *a, char *b) {
     if (D_L00_00161B40 == 0) return;
     D_L00_00161B84 = 1.7f;
     D_L00_00161B40 = 0;
-    st = (*(Hero *)D_0013F350_c2).state.current;
-    if ((st == 0x1E || st == 1) && ((*(Hero *)D_0013F350_c2).moby->flags & 1)) {
+    st = hero.state.current;
+    if ((st == 0x1E || st == 1) && (hero.moby->flags & 1)) {
         qcopy((char *)s, D_L00_00166FD0);
         qcopy((char *)s + 0x10, D_L00_00166FD0 + 0x10);
         qcopy((char *)s + 0x20, D_L00_00166FD0 + 0x20);
         v = (char *)s + 0x20;
     } else {
-        if ((*(Hero *)D_0013F350_c2).unk22C8 == 1) {
+        if (hero.unk22C8 == 1) {
             fast_vec_scale_c2(s, a + 0xD0, -1.0f);
             qcopy((char *)s + 0x10, a + 0xC0);
             qcopy((char *)s + 0x20, a + 0xE0);
             v = (char *)s + 0x20;
         } else {
-            qcopy((char *)s, &(*(Hero *)D_0013F350_c2).basis[0]);
-            qcopy((char *)s + 0x10, &(*(Hero *)D_0013F350_c2).basis[1]);
-            qcopy((char *)s + 0x20, &(*(Hero *)D_0013F350_c2).basis[2]);
+            qcopy((char *)s, &hero.basis[0]);
+            qcopy((char *)s + 0x10, &hero.basis[1]);
+            qcopy((char *)s + 0x20, &hero.basis[2]);
             v = (char *)s + 0x20;
         }
     }

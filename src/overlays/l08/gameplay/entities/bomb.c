@@ -469,222 +469,263 @@ void FUN_L08_002d23f0(char *moby) {
     }
     jet_animate(moby, 0.2f);
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L08_002d42d8.s", FUN_L08_002d42d8);
-#else
-extern int D_L08_001B0CB0[];
-extern s32 D_001413D0[];
-extern char D_0013D388[] __attribute__((section(".data")));
-extern unsigned short D_00141C38 __attribute__((section(".data")));
-extern unsigned char D_0013D4CB __attribute__((section(".data")));
-extern float D_0015ED6C;
-extern float D_L08_001618A8 __attribute__((sda));
-extern float D_L08_001618CC __attribute__((sda));
-extern float D_L08_001618D0 __attribute__((sda));
-extern struct Moby *create_moby(int) __asm__("FUN_0020c4f8");
-extern void attach_manipulator(void *, int, void *) __asm__("FUN_0020cb10");
-extern void blend_moby_animation(void *, int, int, int) __asm__("FUN_00212f90");
-extern float moby_animation_frame(void *) __asm__("FUN_0020c9e0");
-extern int moby_animation_crossed_frame(void *, float) __asm__("FUN_00214cc8");
-extern int FUN_L00_0024f7c8();
-extern void update_entity_matrix(void *, void *, void *, void *) __asm__("FUN_L00_00260738");
-extern void FUN_L00_00203908(int, int);
-extern int truncate_float_to_s32(float) __asm__("FUN_001fa6d0");
-extern float vector_distance(void *, void *) __asm__("FUN_001f9b80");
-extern float fast_cos(float) __asm__("FUN_001f9dc8");
-void FUN_L08_002d4ca0(struct Moby *moby);
-void FUN_L08_002d55c8(struct Moby *moby, int path_id);
-void FUN_L08_002d5950(char *moby, int joint, int count);
-void FUN_L08_002d5d08_u(struct Moby *moby) __asm__("FUN_L08_002d5d08");
-void FUN_L08_002d6450(struct Moby *moby);
-char *FUN_L08_002dc8a0(char *src, char *pos, char *vec);
+/* Bomber tank (class 253) update: spawns its two parts, then a state machine for driving, firing and the group's debris. */
+/* Ported from rac1-decomp (src/overlays/l08_batalia/vendor_002B9438.c: func_L08_002D55E0), where it is exact; names translated to the US level program. */
 
-void bomber_tank_update(struct Moby *moby) __asm__("FUN_L08_002d42d8");
-void bomber_tank_update(struct Moby *moby) {
-    float old_position[4], old_rotation[4], velocity[4], joint_pos[4];
-    char *data = (char *)moby->pvars;
-    void *position = &moby->pos;
-    struct Moby *target;
-    struct Moby *other;
-    long state;
-    float angle, speed, frame;
-    qcopy(old_position, position);
-    qcopy(old_rotation, &moby->rot);
-    if (*(unsigned char *)(data + 0x2e) == 2) {
-        if (*(void **)(data + 0x160)) mark_moby_for_removal(*(void **)(data + 0x160));
-        if (*(void **)(data + 0x164)) mark_moby_for_removal(*(void **)(data + 0x164));
+extern char *FUN_L08_002dc8a0(char *src, char *pos, char *vec);
+extern char D_0013D388[] __attribute__((section(".data")));
+extern s32 D_001413D0[];
+extern const float D_L08_001618CC __attribute__((sda));
+extern float fast_cos(float) __asm__("FUN_001f9dc8");
+extern float D_L08_001618A8 __attribute__((sda));
+extern float D_L08_001618D0 __attribute__((sda));
+extern int D_L08_001B0CB0[];
+extern int help_request(int, int) __asm__("FUN_L00_00203908");
+extern unsigned char D_0013D3B6 __attribute__((section(".data")));
+extern unsigned char D_0013D4CB __attribute__((section(".data")));
+extern struct Moby *create_moby(s32) __asm__("FUN_0020c4f8");
+extern void FUN_L00_00260738(void *, void *, void *, void *);
+void FUN_L08_002d5950(char *moby, int joint, int count);
+s32 is_value_within_interpolated_window(void *anim, f32 value) __asm__("FUN_00214cc8");
+extern void attach_manipulator(void *, s32, void *) __asm__("FUN_0020cb10");
+extern unsigned short D_00141C38 __attribute__((section(".data")));
+extern void blend_moby_animation(void *, s32, s32, s32) __asm__("FUN_00212f90");
+extern s32 truncate_float_to_s32(f32) __asm__("FUN_001fa6d0");
+extern float compute_interpolated_record_value(void *) __asm__("FUN_0020c9e0");
+extern void moby_point_position(void *, int, void *) __asm__("FUN_L00_0024f7c8");
+void FUN_L08_002d4ca0(Moby *moby);
+void FUN_L08_002d55c8(struct Moby *moby, int path_id);
+void FUN_L08_002d5d08(char *moby);
+void FUN_L08_002d6450(struct Moby *moby);
+
+typedef struct {
+    u8 pad0[0x20];
+    f32 health;           /* 0x20 */
+    u8 pad24[4];
+    u8 unk28;
+    u8 unk29;
+    u8 unk2A;
+    u8 pad2B[3];
+    u8 unk2E;             /* 0x2E: 2 removes the tank and its parts */
+    u8 pad2F;
+    f32 unk30;
+    u8 pad34[0xA];
+    u16 flags;            /* 0x3E */
+    u64 unk40;
+    u8 pad48[0x10];
+    u8 unk58;
+    u8 pad59;
+    u8 unk5A;
+    u8 pad5B[5];
+    u8 unk60[0x90];
+    Moby *target;         /* 0xF0 */
+    s32 mode;             /* 0xF4 */
+    u8 padF8[8];
+    u8 manipulator[0x40]; /* 0x100 */
+    s32 trigger_moby;     /* 0x140: index of the moby whose pvars float reaching 1.0 releases the tank */
+    s32 unk144;
+    u8 pad148[4];
+    s32 start_point;      /* 0x14C: D_L08_001B0CB0 index */
+    s32 path;             /* 0x150: D_L08_001B0CB0 index */
+    u8 pad154[0xC];
+    Moby *part_a;         /* 0x160 */
+    Moby *part_b;         /* 0x164 */
+    u8 pad168[4];
+    f32 unk16C;
+    f32 yaw;              /* 0x170: added to rot.z for shots */
+    u8 pad174[4];
+    f32 pitch;            /* 0x178 */
+} BomberTankVars;
+
+void FUN_L08_002d42d8(Moby *moby) {
+    float old_pos[4];
+    float old_rot[4];
+    float velocity[4];
+    float muzzle[4];
+    BomberTankVars *vars = (BomberTankVars *)moby->pvars;
+    Moby *target;
+    /* Fakematch: hidden zero for the case 12 test below. */
+    int never = 0;
+
+    qcopy(old_pos, &moby->pos);
+    qcopy(old_rot, &moby->rot);
+    if (vars->unk2E == 2) {
+        if (vars->part_a != 0) mark_moby_for_removal(vars->part_a);
+        if (vars->part_b != 0) mark_moby_for_removal(vars->part_b);
         mark_moby_for_removal(moby);
         return;
     }
     FUN_L08_002d4ca0(moby);
-    target = *(struct Moby **)(data + 0xf0);
-    state = moby->state;
-    if (state == 11) goto state11;
-    if (state < 12) {
-        if (state == 3) goto state3;
-        if (state < 4) {
-            if (state == 0) goto state0;
-        } else if (state == 6) goto state6;
-    } else {
-        if (state == 14) goto state14;
-        if (state < 15) goto finish;
-        if (state != 99) goto finish;
-        goto state99;
-    }
-    goto finish;
-    state0:
-        if (*(struct Moby **)(data + 0x160) == 0) {
-            (*(struct Moby **)(data + 0x160) = create_moby(0x14b))->update_dist = 0x40;
-            (*(struct Moby **)(data + 0x160))->draw_dist = 0x40;
-            (*(struct Moby **)(data + 0x160))->visible = 1;
-            (*(struct Moby **)(data + 0x160))->spawn_frame = (*(struct Moby **)D_001413D0)->spawn_frame;
-            (*(struct Moby **)(data + 0x160))->flags = 0x4000;
-            other = *(struct Moby **)(data + 0x160);
-            qcopy(&other->pos, position);
-            other->collision = 0;
-            blend_moby_animation(*(void **)(data + 0x160), 0, 0, 0);
-            FUN_L00_00250df8(*(void **)(data + 0x160));
+    target = vars->target;
+    switch (moby->state) {
+    case 0:
+        if (vars->part_a == 0) {
+            Moby *part;
+            vars->part_a = create_moby(0x14B);
+            vars->part_a->update_dist = 0x40;
+            vars->part_a->draw_dist = 0x40;
+            vars->part_a->visible = 1;
+            vars->part_a->spawn_frame = (*(Moby **)(D_001413D0))->spawn_frame;
+            vars->part_a->flags = 0x4000;
+            part = vars->part_a;
+            qcopy(&part->pos, &moby->pos);
+            part->collision = 0;
+            blend_moby_animation(vars->part_a, 0, 0, 0);
+            FUN_L00_00250df8(vars->part_a);
         }
-        if (*(struct Moby **)(data + 0x164) == 0) {
-            (*(struct Moby **)(data + 0x164) = create_moby(0x14b))->update_dist = 0x40;
-            (*(struct Moby **)(data + 0x164))->draw_dist = 0x40;
-            (*(struct Moby **)(data + 0x164))->visible = 1;
-            (*(struct Moby **)(data + 0x164))->spawn_frame = (*(struct Moby **)D_001413D0)->spawn_frame;
-            (*(struct Moby **)(data + 0x164))->flags = 0xc000;
-            other = *(struct Moby **)(data + 0x164);
-            qcopy(&other->pos, position);
-            other->collision = 0;
-            blend_moby_animation(*(void **)(data + 0x164), 0, 0, 0);
-            FUN_L00_00250df8(*(void **)(data + 0x164));
+        if (vars->part_b == 0) {
+            Moby *part;
+            vars->part_b = create_moby(0x14B);
+            vars->part_b->update_dist = 0x40;
+            vars->part_b->draw_dist = 0x40;
+            vars->part_b->visible = 1;
+            vars->part_b->spawn_frame = (*(Moby **)(D_001413D0))->spawn_frame;
+            vars->part_b->flags = 0xC000;
+            part = vars->part_b;
+            qcopy(&part->pos, &moby->pos);
+            part->collision = 0;
+            blend_moby_animation(vars->part_b, 0, 0, 0);
+            FUN_L00_00250df8(vars->part_b);
         }
-        attach_manipulator(moby, 0, data + 0x100);
+        attach_manipulator(moby, 0, vars->manipulator);
         moby->flags |= 0x1000;
-        *(float *)(data + 0x16c) = D_0015ED6C + D_0015ED6C;
-        if (*(int *)(data + 0x140) > 0) {
+        vars->unk16C = frame_time + frame_time;
+        if (vars->trigger_moby > 0) {
             moby->state = 11;
-            moby->flags = (moby->flags & 0xefff) | 0x41;
-            (*(struct Moby **)(data + 0x160))->flags |= 0x41;
-            (*(struct Moby **)(data + 0x164))->flags |= 0x41;
+            moby->flags = (moby->flags & 0xEFFF) | 0x41;
+            vars->part_a->flags |= 0x41;
+            vars->part_b->flags |= 0x41;
             moby->collision = 0;
-            (*(struct Moby **)(data + 0x160))->collision = 0;
-            (*(struct Moby **)(data + 0x164))->collision = 0;
+            vars->part_a->collision = 0;
+            vars->part_b->collision = 0;
             if (moby->prev_seq != 0) blend_moby_animation(moby, 0, 0, 0);
-        } else if (*(int *)(data + 0x144) > 0) {
-            if (((unsigned char *)D_0013D388)[0x2e] == 0) {
+        } else if (vars->unk144 > 0) {
+            if (D_0013D3B6 == 0) {
                 moby->state = 14;
                 moby->flags |= 0x41;
-            (*(struct Moby **)(data + 0x160))->flags |= 0x41;
-            (*(struct Moby **)(data + 0x164))->flags |= 0x41;
-            moby->collision = 0;
-            (*(struct Moby **)(data + 0x160))->collision = 0;
-            (*(struct Moby **)(data + 0x164))->collision = 0;
-            if (moby->prev_seq != 0) blend_moby_animation(moby, 0, 0, 0);
+                vars->part_a->flags |= 0x41;
+                vars->part_b->flags |= 0x41;
+                moby->collision = 0;
+                vars->part_a->collision = 0;
+                vars->part_b->collision = 0;
+                if (moby->prev_seq != 0) blend_moby_animation(moby, 0, 0, 0);
             } else {
                 FUN_L08_002d6450(moby);
-            qcopy(&moby->pos, (char *)D_L08_001B0CB0[*(int *)(data + 0x150)] + 0x10);
-            moby->state = 6;
-            if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, 0);
+                qcopy(&moby->pos, (char *)D_L08_001B0CB0[vars->path] + 0x10);
+                moby->state = 6;
+                if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, 0);
             }
         } else {
-            qcopy(&moby->pos, (char *)D_L08_001B0CB0[*(int *)(data + 0x150)] + 0x10);
+            qcopy(&moby->pos, (char *)D_L08_001B0CB0[vars->path] + 0x10);
             moby->state = 6;
             if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, 0);
         }
- initialize:
-        clear_u64_value(data + 0x40);
-        *(unsigned short *)(data + 0x28) = 3;
-        *(float *)(data + 0x30) = 3.0f;
-        data[0x2a] = 12;
-        data[0x2e] = 1;
-        *(float *)(data + 0x20) = 9.0f;
-        *(unsigned short *)(data + 0x3e) |= 2;
-        clear_u64_value(data + 0x40);
-        *(float *)(data + 0x178) = 0;
-        speed = D_L08_001618CC;
-        angle = moby->rot.z;
-        *(float *)(data + 0x170) = angle;
-        data[0x58] = truncate_float_to_s32(speed);
-        data[0x5a] = truncate_float_to_s32(D_L08_001618D0 * 8.0f);
-        goto finish;
-    state6:
-        FUN_L08_002d55c8(moby, *(int *)(data + 0x150));
-        if (*(int *)(data + 0xf4) == 2) goto finish;
-        if (!(vector_distance(&moby->pos, &target->pos) < 20.0f)) goto finish;
-        if (D_00141C38 == 0 && D_0013D4CB == 0) FUN_L00_00203908(0x1f44, 0x5a);
-        moby->state = 3;
-        if (moby->prev_seq != 2) blend_moby_animation(moby, 2, 0, scale_game_frames(10));
-        goto finish;
-    state3:
-        FUN_L08_002d55c8(moby, *(int *)(data + 0x150));
-        if (*(int *)(data + 0xf4) == 2 || vector_distance(&moby->pos, &target->pos) > 22.0f) {
+        clear_u64_value(&vars->unk40);
+        vars->unk29 = 0;
+        vars->unk28 = 3;
+        vars->unk30 = 3.0f;
+        vars->health = 9.0f;
+        vars->unk2A = 12;
+        vars->unk2E = 1;
+        vars->flags |= 2;
+        clear_u64_value(&vars->unk40);
+        vars->pitch = 0.0f;
+        vars->yaw = moby->rot.z;
+        vars->unk58 = truncate_float_to_s32(D_L08_001618CC);
+        vars->unk5A = truncate_float_to_s32(D_L08_001618D0 * 8.0f);
+        break;
+    case 6:
+        FUN_L08_002d55c8(moby, vars->path);
+        if (vars->mode != 2 && vector_distance(&moby->pos, &target->pos) < 20.0f) {
+            if (D_00141C38 == 0 && D_0013D4CB == 0) {
+                help_request(0x1F44, 0x5A);
+            }
+            moby->state = 3;
+            if (moby->prev_seq != 2) blend_moby_animation(moby, 2, 0, scale_game_frames(10));
+        }
+        break;
+    case 3:
+        FUN_L08_002d55c8(moby, vars->path);
+        if (vars->mode == 2 || vector_distance(&moby->pos, &target->pos) > 22.0f) {
             moby->state = 6;
             if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, scale_game_frames(10));
         }
-        if (moby_animation_crossed_frame(moby, 4.0f) || moby_animation_crossed_frame(moby, 10.0f)) {
-            frame = moby_animation_frame(moby);
-            if (frame == 4.0f) FUN_L00_0024f7c8(moby, 1, joint_pos);
-            else FUN_L00_0024f7c8(moby, 2, joint_pos);
-            frame = D_L08_001618A8;
-            frame *= D_0015ED6C;
-            angle = fast_cos(fast_add_rotations(*(float *)(data + 0x170), moby->rot.z));
-            angle *= (fast_cos(*(float *)(data + 0x178)) * frame);
-            velocity[0] = angle;
-            angle = fast_sin(fast_add_rotations(*(float *)(data + 0x170), moby->rot.z));
-            angle *= (fast_cos(*(float *)(data + 0x178)) * frame);
+        if (is_value_within_interpolated_window((char *)moby, 4.0f) != 0 || is_value_within_interpolated_window((char *)moby, 10.0f) != 0) {
+            float shot_speed;
+            char *shot;
+            if (compute_interpolated_record_value(moby) == 4.0f) {
+                moby_point_position(moby, 1, muzzle);
+            } else {
+                moby_point_position(moby, 2, muzzle);
+            }
+            shot_speed = D_L08_001618A8 * frame_time;
+            velocity[0] = fast_cos(fast_add_rotations(vars->yaw, moby->rot.z)) * (fast_cos(vars->pitch) * shot_speed);
+            velocity[1] = fast_sin(fast_add_rotations(vars->yaw, moby->rot.z)) * (fast_cos(vars->pitch) * shot_speed);
             velocity[2] = 0.0f;
-            velocity[1] = angle;
-            velocity[2] = -fast_sin(*(float *)(data + 0x178)) * frame;
-            {
-                struct Moby *other = (struct Moby *)FUN_L08_002dc8a0((char *)moby, (char *)joint_pos, (char *)velocity);
-                if (other) other->state = 1;
+            velocity[2] = -fast_sin(vars->pitch) * shot_speed;
+            shot = FUN_L08_002dc8a0((char *)moby, (char *)muzzle, (char *)velocity);
+            if (shot != 0) shot[0x20] = 1;
+        }
+        break;
+    case 11:
+        if (*(float *)((Moby *)D_L08_0015FFD8 + vars->trigger_moby)->pvars == 1.0f) {
+            qcopy(&moby->pos, (char *)D_L08_001B0CB0[vars->start_point] + 0x10);
+            qcopy(&vars->part_a->pos, &moby->pos);
+            qcopy(&vars->part_b->pos, &moby->pos);
+            moby->flags &= 0xFFBE;
+            vars->part_a->flags &= 0xFFBE;
+            vars->part_b->flags &= 0xFFBE;
+            moby->collision = moby->pclass->collision;
+            vars->part_a->collision = vars->part_a->pclass->collision;
+            vars->part_b->collision = vars->part_b->pclass->collision;
+            moby->flags |= 0x1000;
+            if (vars->mode != 2) {
+                moby->state = 6;
+                if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, scale_game_frames(10));
             }
         }
-        goto finish;
-    state11:
-        if (**(float **)(D_L08_0015FFD8 + *(int *)(data + 0x140) * 0x100 + 0x78) != 1.0f) goto finish;
-        qcopy(&moby->pos, (char *)D_L08_001B0CB0[*(int *)(data + 0x14c)] + 0x10);
-        qcopy(&(*(struct Moby **)(data + 0x160))->pos, &moby->pos);
-        qcopy(&(*(struct Moby **)(data + 0x164))->pos, &moby->pos);
-        moby->flags &= 0xffbe;
-        (*(struct Moby **)(data + 0x160))->flags &= 0xffbe;
-        (*(struct Moby **)(data + 0x164))->flags &= 0xffbe;
-        goto restore_collision;
-    state14:
-        if (*(int *)(data + 0xf4) == 2) goto finish;
-        FUN_L08_002d5d08_u(moby);
-        target = (struct Moby *)D_0013D388;
-        if (((unsigned char *)target)[0x2e] != 0) allocate_voice_for_target_entry(6, 0, moby);
-        ((unsigned char *)target)[0x2e] = 1;
- restore_parts:
-        qcopy(&(*(struct Moby **)(data + 0x160))->pos, &moby->pos);
-        qcopy(&(*(struct Moby **)(data + 0x164))->pos, &moby->pos);
-        moby->flags &= 0xffbe;
-        (*(struct Moby **)(data + 0x160))->flags &= 0xffbe;
-        (*(struct Moby **)(data + 0x164))->flags &= 0xffbe;
- restore_collision:
-        moby->collision = moby->pclass->collision;
-        other = *(struct Moby **)(data + 0x160);
-        other->collision = other->pclass->collision;
-        other = *(struct Moby **)(data + 0x164);
-        other->collision = other->pclass->collision;
-        moby->flags |= 0x1000;
-        if (*(int *)(data + 0xf4) == 2) goto finish;
-        moby->state = 6;
-        if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, scale_game_frames(10));
-        goto finish;
-    state99:
-        FUN_L08_002d55c8(moby, *(int *)(data + 0x150));
-        frame = moby_animation_frame(moby);
-        if ((59.0f <= frame && frame <= 60.0f) || (119.0f <= frame && frame <= 120.0f))
+        break;
+    case 14:
+        if (vars->mode != 2) {
+            unsigned char *event_flags;
+            FUN_L08_002d5d08((char *)moby);
+            event_flags = (unsigned char *)D_0013D388;
+            if (event_flags[0x2E] != 0) allocate_voice_for_target_entry(6, 0, moby);
+            event_flags[0x2E] = 1;
+            qcopy(&vars->part_a->pos, &moby->pos);
+            qcopy(&vars->part_b->pos, &moby->pos);
+            moby->flags &= 0xFFBE;
+            vars->part_a->flags &= 0xFFBE;
+            vars->part_b->flags &= 0xFFBE;
+            moby->collision = moby->pclass->collision;
+            vars->part_a->collision = vars->part_a->pclass->collision;
+            vars->part_b->collision = vars->part_b->pclass->collision;
+            moby->flags |= 0x1000;
+            if (vars->mode != 2) {
+                moby->state = 6;
+                if (moby->prev_seq != 1) blend_moby_animation(moby, 1, 0, scale_game_frames(10));
+            }
+        }
+        break;
+    case 12:
+        /* Fakematch: a never-true test keeps case 12 a block of its own until gcse, which then puts the default path's copies where retail has them. */
+        if (never) vars->unk2E = 0;
+        break;
+    case 99: {
+        float frame;
+        FUN_L08_002d55c8(moby, vars->path);
+        frame = compute_interpolated_record_value(moby);
+        if ((59.0f <= frame && frame <= 60.0f) || (119.0f <= frame && frame <= 120.0f)) {
             FUN_L08_002d5950((char *)moby, 4, 10);
-        else if ((29.0f <= frame && frame <= 30.0f) || (89.0f <= frame && frame <= 90.0f))
+        } else if ((29.0f <= frame && frame <= 30.0f) || (89.0f <= frame && frame <= 90.0f)) {
             FUN_L08_002d5950((char *)moby, 5, 10);
-        goto finish;
-finish:
-    subtract_vector_xyz(velocity, &moby->pos, old_position);
-    update_entity_matrix(data + 0x60, velocity, &moby->rot, old_rotation);
+        }
+        break;
+    }
+    }
+    subtract_vector_xyz(velocity, &moby->pos, old_pos);
+    FUN_L00_00260738(vars->unk60, velocity, &moby->rot, old_rot);
 }
-#endif
 /* Per-frame update of a batalia turret moby: damage, its death state and its two helper parts. */
 /* Ported from rac1-decomp (src/overlays/l08_batalia/vendor_002B9438.c: func_L08_002D5FA8), where it is exact; names translated to the US level program. */
 
