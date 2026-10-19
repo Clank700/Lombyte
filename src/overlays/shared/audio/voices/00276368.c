@@ -14,20 +14,20 @@ INCLUDE_ASM("config/us/overlays/asm/FUN_L00_00276368.s", FUN_L00_00276368);
 #else
 #include "qcopy.h"
 typedef unsigned int u128_init __attribute__((mode(TI), aligned(16)));
-extern struct Own D_L00_001B71F0;
-extern s32 D_L00_00173E04;
-extern s32 D_L00_00173E08;
+extern struct Own D_L00_001B71F0 __attribute__((section(".sdata")));
+extern s32 D_L00_00173E04 __attribute__((sda));
+extern s32 D_L00_00173E08 __attribute__((sda));
 extern int D_L00_00173E40_lui[] __asm__("D_L00_00173E40") __attribute__((section(".data")));
 extern void *D_L00_00197300[];
 extern s32 D_L00_0015F3F8_gp __asm__("D_L00_0015F3F8") __attribute__((sda));
-extern s32 frame_size __asm__("D_0013E504");
+extern s32 frame_size __asm__("D_0013E504") __attribute__((section(".data")));
 extern s32 D_L00_001611CC;
 #define D_L00_00184414 (*(s32 *)(D_L00_001841F0_init + 0x224))
 extern s32 D_L00_001B9E90_init[] __asm__("D_L00_001B9E90");
 extern s32 D_L00_00180260[];
 extern s32 D_L00_001B9D30[];
 extern s32 D_L00_00141660_init[] __asm__("D_00141660");
-extern void *D_L00_001B9DE0;
+extern void *D_L00_001B9DE0 __attribute__((sda));
 extern s32 draw_buffer_address __asm__("D_0015EE84");
 extern s32 D_L00_0015EE78 __asm__("D_0015EE78");
 extern s32 D_L00_0015EED8 __asm__("D_0015EED8");
@@ -36,7 +36,7 @@ extern void FUN_L00_001ff300(void *, void *, f32) __asm__("FUN_001f9a68");
 extern void FUN_L00_001f7980(void) __asm__("FUN_001f2d98");
 extern void FUN_L00_00276128(void);
 extern void FUN_L00_001f6e48(void) __asm__("FUN_001f2260");
-extern void FUN_L00_00122298(s32) __asm__("FUN_00122298");
+extern int FUN_L00_00122298(s32) __asm__("FUN_00122298");
 extern void FUN_L00_00283908(s32);
 extern void FUN_L00_002468b8(void) __asm__("FUN_L00_002468b8");
 extern void FUN_L00_00234fd0(s32) __asm__("FUN_L00_00234fd0");
@@ -52,7 +52,7 @@ extern u8 D_L00_001B86C8[];
 extern u8 D_L00_001B2588[];
 extern u8 D_L00_00180250[];
 extern u8 D_L00_00160280_init[] __asm__("D_L00_00160280") __attribute__((sda));
-extern u8 D_L00_00160290_init[] __asm__("D_L00_00160290") __attribute__((sda));
+extern u8 D_L00_00160290_init[] __asm__("D_L00_00160290") __attribute__((section(".sdata")));
 extern f32 D_L00_00166DC0_init[] __asm__("D_L00_00166DC0");
 
 extern u8 D_L00_001841F0_init[] __asm__("D_L00_001841F0");
@@ -102,8 +102,8 @@ void FUN_L00_00276368(void) {
         D_L00_001B9CF0.unk8 = (struct Own *)D_L00_001B6088;
         special = 1;
     } else if (D_L00_001B9CF0.state == 0x21) {
-        D_L00_001B9CF0.unk124 = 1;
         D_L00_001B9CF0.unk8 = &D_L00_001B71F0;
+        D_L00_001B9CF0.unk124 = 1;
         D_L00_001B9CF0.state = 0x22;
     } else if (D_L00_001B9CF0.state == 0x23) {
         D_L00_001B9CF0.unk8 = (struct Own *)D_L00_001B6B38;
@@ -179,10 +179,10 @@ void FUN_L00_00276368(void) {
     FUN_L00_002a0f18(D_L00_001B9D00, draw_buffer_address, frame_size << 11);
     D_L00_001B9D08 = D_L00_0015EE78;
     if (D_L00_001B9CF0.state == 11 || D_L00_001B9CF0.state == 15) {
-        s32 i;
+        short i;
         s32 *handle;
-        D_L00_00184434 = D_L00_0015EE78 + 0x40000;
         D_L00_00184430 = D_L00_0015EE78;
+        D_L00_00184434 = D_L00_0015EE78 + 0x40000;
         D_L00_0015EE78 = D_L00_00184434 + 0x400;
         handle = D_L00_00184438;
         i = 3;
@@ -192,7 +192,7 @@ void FUN_L00_00276368(void) {
             D_L00_0015EE78 += 0x4000;
         } while (i >= 0);
     } else {
-        s32 i;
+        unsigned int i;
         s32 *handle;
         D_L00_00184430 = 0;
         D_L00_00184434 = 0;
@@ -208,7 +208,7 @@ void FUN_L00_00276368(void) {
     D_L00_001B9DBC = table[12];
     table[12] += 28;
     {
-        s32 i;
+        short i;
         s32 *handle = D_L00_001B9D20;
         s32 *source = D_L00_00141660_init;
         i = 3;
@@ -225,8 +225,8 @@ void FUN_L00_00276368(void) {
             *handle = (s32)obj;
             if (obj != 0) {
                 *(u16 *)((u8 *)obj + 0x34) &= 0xfffd;
-                *(void **)((u8 *)*handle + 0x74) = (void *)0x002df638;
                 *(f32 *)((u8 *)*handle + 0x10) = source[80];
+                *(void **)((u8 *)*handle + 0x74) = (void *)0x002df638;
                 *(f32 *)((u8 *)*handle + 0x14) = source[81];
                 *(f32 *)((u8 *)*handle + 0x18) = source[82];
                 *(s32 *)((u8 *)*handle + 0x40) = 0;
@@ -657,7 +657,7 @@ typedef struct VoiceRenderEntry {
     s32 height;
 } VoiceRenderEntry;
 
-extern s32 frame_size __asm__("D_0013E504");
+extern s32 frame_size __asm__("D_0013E504") __attribute__((section(".data")));
 extern s32 draw_buffer_address __asm__("D_0015EE84");
 extern s32 D_L00_001B9E90_init[] __asm__("D_L00_001B9E90");
 extern s32 D_L00_001B23C0[] __asm__("D_L00_001B23C0");
@@ -770,8 +770,8 @@ void FUN_L00_002772c0(s32 param_1) {
             object = (VoiceRenderObject *)D_L00_001B9E90_init[i];
             right = object->image[20];
             bottom = object->image[21];
-            texture_width = object->image[22];
             texture_height = object->image[23];
+            texture_width = object->image[22];
             width_shift = 7;
             if (texture_width > 0x80) {
                 for (width_shift = 8; (1 << width_shift) < texture_width; width_shift++) {}
@@ -801,8 +801,8 @@ void FUN_L00_002772c0(s32 param_1) {
                 out_right = texture_width;
                 out_bottom = texture_height;
             } else {
-                out_right = width;
                 out_bottom = height;
+                out_right = width;
                 if ((flags & 8) != 0) {
                     out_left = (width - texture_width) / 2;
                     out_top = (height - texture_height) / 2;

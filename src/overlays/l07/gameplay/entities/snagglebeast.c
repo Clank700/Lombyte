@@ -1909,7 +1909,7 @@ extern void fast_vec_cross(void *, void *, void *) __asm__("FUN_001f9ad8");
 extern void lerp_vector(void *, void *, void *, float) __asm__("FUN_001f9a40");
 extern float fast_arc_sin(float) __asm__("FUN_001f9df8");
 extern float rope_spring_turn(void *, float, float, float, float, float) __asm__("FUN_L00_001eb328");
-extern void interpolate_vector(void *, void *, void *, float) __asm__("FUN_L00_0025b6b8");
+extern int interpolate_vector(void *, void *, void *, float) __asm__("FUN_L00_0025b6b8");
 extern void release_particle(void *) __asm__("FUN_L00_00267a08");
 extern char *FUN_L00_0026d000(void *, int, void *, int, float, float, float, float);
 extern int D_L07_00161B84_gp __asm__("D_L07_00161B84") __attribute__((sda));
@@ -1954,7 +1954,7 @@ float FUN_L07_00317e60(void *moby, void *anchor) {
     float lifetime;
     int i, j, segment, column, next_column;
     int created, extras;
-    char *particle;
+    unsigned char *particle;
     char *slot;
     char *ring;
     void *point;
@@ -2153,8 +2153,8 @@ float FUN_L07_00317e60(void *moby, void *anchor) {
                     release_particle(*(char * *)((char *)D_L07_0020C840_c + 20 + i * 24));
                     *(char * *)((char *)D_L07_0020C840_c + 20 + i * 24) = 0;
                 } else {
-                    *(float *)((char *)D_L07_0020C840_c + 4 + i * 24) -= length;
                     segment = *(short *)((char *)D_L07_0020C840_c + 0 + i * 24);
+                    *(float *)((char *)D_L07_0020C840_c + 4 + i * 24) -= length;
                     subtract_vector_xyz(&delta, D_L07_0020DAF0_c[segment], D_L07_0020DB00_c[segment]);
                     length = vector_length_xyz(&delta);
                 }

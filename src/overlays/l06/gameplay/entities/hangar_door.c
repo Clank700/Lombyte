@@ -1323,7 +1323,6 @@ extern char D_0013E5C4[];
 extern char D_0013E5D8[];
 extern int D_L06_0015FFD8_d __asm__("D_L06_0015FFD8");
 extern int D_L06_0015EEA4;
-extern int D_L06_0015ED84;
 extern float D_0015ED6C __attribute__((section(".sdata")));
 extern float D_L06_001DAFD0[];
 extern float D_L06_001DB060[];
@@ -1392,8 +1391,8 @@ void FUN_L06_002f6470(char *moby) {
         D_L06_00161E48 = 23;
         D_L06_00161E4C = 34;
         D_L06_00161E40[0] = 0;
-        D_L06_00161E54 = j;
         D_L06_00161E50 = i;
+        D_L06_00161E54 = j;
         *(int *)(data + 0x10) = -1;
         moby[0x20] = 1;
         *(unsigned short *)(moby + 0x34) |= 0x4000;
@@ -1492,16 +1491,11 @@ void FUN_L06_002f6470(char *moby) {
             *(int *)(data + 0x10) = -1;
             allocate_voice_for_target_entry_2f6470(1, 0, (int)moby);
             if (all_same && D_00141968[43].count < 0xFFFF) D_00141968[43].count++;
-            frame = scale_game_frames_2f6470(D_L06_0015EEA4);
-            color = current_level_index;
-            frame /= 600;
+            frame = scale_game_frames_2f6470(D_L06_0015EEA4) / 600;
             if (frame > D_00141968[43].best) {
-                /* Retail stores best before reading the replacement level index. */
-                *(volatile unsigned short *)&D_00141968[43].best = scale_game_frames_2f6470(D_L06_0015EEA4) / 600;
-                color = *(volatile int *)&D_L06_0015ED84;
+                D_00141968[43].best = scale_game_frames_2f6470(D_L06_0015EEA4) / 600;
             }
-            frame = 1 << color;
-            D_00141968[43].flags |= frame | 0x80000000;
+            D_00141968[43].flags = D_00141968[43].flags | (1 << current_level_index) | 0x80000000;
         }
         return;
     case 2: {
@@ -2947,7 +2941,7 @@ extern int D_L06_001413D0 __attribute__((section(".data")));
 extern float D_L06_00161F0C __attribute__((sda));
 int D_L06_00161F10 = 0x80808080;
 int D_L06_00161F14 = 0x80804080;
-extern char *D_L06_001600EC ;
+extern char *D_L06_001600EC;
 extern int *D_L06_001B0C30[];
 
 /* Updates the object's health, hit response, recovery timer and path motion. */

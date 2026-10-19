@@ -2290,7 +2290,7 @@ scan:
             /* Retail reads both pvars pointers and unk30 before writing the entity. */
             char *other_data = *(char * volatile *)(other + 0x78);
             unsigned char unk30 = *(volatile unsigned char *)(self + 0x30);
-            char *self_data = *(char * volatile *)(self + 0x78);
+            char *self_data = *(char **)(self + 0x78);
             other[0x30] = unk30;
             *(unsigned short *)(other + 0x32) = *(unsigned short *)(self + 0x32);
             {
@@ -2784,8 +2784,8 @@ INCLUDE_ASM("config/us/overlays/asm/FUN_L01_002f5168.s", FUN_L01_002f5168);
 #else
 extern float FUN_00222150_2f5168(short) __asm__("FUN_001fa6c0");
 extern int FUN_L01_00275690(float, char *);
-extern void FUN_L00_0026e150_2f5168(void *, int, int, int) __asm__("FUN_L00_002591d0");
-extern void FUN_L00_0026e238_2f5168(void *, char *, int, int) __asm__("FUN_L00_002592b8");
+extern int FUN_L00_0026e150_2f5168(void *, int, int, int) __asm__("FUN_L00_002591d0");
+extern int FUN_L00_0026e238_2f5168(void *, char *, int, int) __asm__("FUN_L00_002592b8");
 extern short FUN_00220e30_2f5168(int) __asm__("FUN_001f96f8");
 extern int FUN_00220ea8_2f5168(void *) __asm__("FUN_001f9770");
 extern float FUN_00221360_2f5168(void *, void *) __asm__("FUN_001f9b48");
@@ -2885,8 +2885,8 @@ void gunship_follow_path(char *moby) {
             if (!valid) {
                 FUN_L00_0026e150_2f5168(iterator, B2(moby, 0x21), 0, 0);
                 while (*(char **)iterator != 0) {
-                    child_data = *(char **)(*(char **)iterator + 0x78);
                     B2(*(char **)iterator, 0x20) = 3;
+                    child_data = *(char **)(*(char **)iterator + 0x78);
                     H2(child_data, 0x11c) = FUN_00220e30_2f5168(5);
                     FUN_L00_0026e238_2f5168(iterator, *(char **)iterator, 0, 0);
                 }
@@ -2973,8 +2973,8 @@ reset_timer:
         FUN_L01_0028bb90(path_state, B2(data, 0x120) & 0x20, moby, F2(data, 0xf4), F2(data, 0xf8));
         if ((B2(data, 0x120) & 0x1e) && !(B2(data, 0x120) & 1)) {
             i = 0;
-            node = (char *)point;
             link = (int *)(data + 0x140);
+            node = (char *)point;
             for (; i < 4; ++i, node += 0x10, ++link) {
                 if ((B2(data, 0x120) & (2 << i)) && *link != -1) {
                     child = (*(int *)&D_L01_0015FFD8) + (*link << 8);

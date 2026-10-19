@@ -98,16 +98,16 @@ extern int D_001413D0;
 extern int D_0013F64C;
 extern short D_0013F65E;
 extern char *D_L15_0015FFD8;
-extern char *moby_array __asm__("D_L15_0015FFD8") __attribute__((sda));
+extern char *moby_array __asm__("D_L15_0015FFD8");
 extern char *D_L15_001600EC;
-extern char *D_L15_001600EC_gp __asm__("D_L15_001600EC") __attribute__((sda));
+extern char *D_L15_001600EC_gp __asm__("D_L15_001600EC");
 extern float D_L15_00161BC8 __attribute__((sda));
 extern float D_L15_00161BCC __attribute__((sda));
 extern float D_L15_00161BD0 __attribute__((sda));
-extern unsigned char D_L15_0015F444, D_L15_0015F445, D_L15_0015F446;
-extern float D_L15_0015F448, D_L15_0015F44C, D_L15_0015F450, D_L15_0015F454 __attribute__((section(".data")));
-extern float D_L15_0015F448_gp __asm__("D_L15_0015F448") __attribute__((sda));
-extern float D_L15_0015F454_gp __asm__("D_L15_0015F454") __attribute__((sda));
+extern unsigned char D_L15_0015F444, D_L15_0015F445, D_L15_0015F446 __attribute__((section(".data")));
+extern float D_L15_0015F448, D_L15_0015F44C, D_L15_0015F450, D_L15_0015F454;
+extern float D_L15_0015F448_gp __asm__("D_L15_0015F448");
+extern float D_L15_0015F454_gp __asm__("D_L15_0015F454");
 extern int current_level_index __asm__("D_0015ED84") __attribute__((sda));
 extern unsigned char D_L15_001BB024[], D_L15_001BBC84[];
 extern unsigned int D_0014C190[], D_L15_001BAAD0[];
@@ -147,9 +147,9 @@ void FUN_L15_002d6810(unsigned char *moby) {
                 if (*p != -1) {
                     other = (char *)(*p * 0x100 + (int)moby_array);
                     if (*(short *)(other + 0xa6) == 0x33e) {
-                        D_L15_001BB024[*(short *)(other + 0xb2)] = 0;
                         D_L15_001BBC84[*(short *)(moby_array + *p * 0x100 + 0xb2)] = 0;
                         id = *(unsigned short *)(moby_array + *p * 0x100 + 0xb2);
+                        D_L15_001BB024[*(short *)(other + 0xb2)] = 0;
                         bits = D_0014C190 + ((int)(id << 16) >> 21) + current_level_index * 64;
                         *bits &= ~(1u << (id & 31));
                         id = *(unsigned short *)(moby_array + *p * 0x100 + 0xb2);
@@ -195,8 +195,7 @@ next_path:      i -= 8; p += 8;
             } while (i >= 0);
             if (best) {
                 count = 8;
-                if (*best == -1) count = 0;
-                else { for (index = 1; index < 8; index++) { if (best[index] == -1) { count = index; break; } } }
+                if (*best != -1) { for (index = 1; index < 8; index++) { if (best[index] == -1) { count = index; break; } } } else count = 0;
                 if (count > 1) {
                     index = random_int_between(0, count - 2);
                     *(u128 *)((char *)data + 0xf0) = *(u128 *)(D_L15_001600EC + best[index] * 0x80 + 0x30);

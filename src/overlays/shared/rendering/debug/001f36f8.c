@@ -451,7 +451,7 @@ extern s32 D_L00_0015F5C4 NOT_SDA;
 extern s32 D_L00_0015F600 MACRO_ADDR;
 extern s32 D_L00_0015F614 MACRO_ADDR;
 extern u8 mission_state_lui[] __asm__("D_L00_0015FC88") NOT_SDA;
-extern s32 D_L00_0015FFF0 MACRO_ADDR;
+extern s32 D_L00_0015FFF0 MACRO_ADDR __attribute__((sda));
 extern s32 D_L00_0016017C NOT_SDA;
 extern float D_L00_001604A4_macro __asm__("D_L00_001604A4") MACRO_ADDR;
 extern float D_L00_00160F80_macro __asm__("D_L00_00160F80") MACRO_ADDR;
@@ -472,7 +472,7 @@ extern u8 item_defs[] __asm__("D_L00_00179AC0") NOT_SDA;
 extern s32 weapon_ammo_counts[] __asm__("D_0013D428");
 extern int D_0013E520[];
 #include "rnc/gameplay/state/game_globals.h"
-extern const char D_L00_0015EFE0[] __attribute__((sda));
+extern const char D_L00_0015EFE0[];
 extern const char D_L00_0015EFF0[];
 extern const char D_L00_0015EFF8[];
 extern const char D_L00_001E7938[];
@@ -480,7 +480,7 @@ extern const char D_L00_001E7958[];
 extern const char D_L00_001E7970[];
 extern const char D_L00_001E7990[];
 extern u8 D_L00_0015EFD0[] __attribute__((sda));
-extern void sound_update(void) __asm__("FUN_0022ca50");
+extern int sound_update(void) __asm__("FUN_0022ca50");
 extern void set_background_color(s32, s32, s32) __asm__("FUN_001fb280");
 extern void subtract_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a28");
 extern f32 vector_length_xy(void *) __asm__("FUN_001f9b20");
@@ -507,7 +507,7 @@ void FUN_L00_001f4598(void) {
     u8 *level;
     f32 *capture_positions;
     u8 *player_setting;
-    u8 byte_value;
+    int byte_value;
     f32 dimension, scale, angle;
     s32 file, file_size;
     DebugRowCounts row_counts;
@@ -727,10 +727,10 @@ void FUN_L00_001f4598(void) {
                     }
                 }
             }
-            if (g_debug_menu.scene_index < 0) {
-                g_debug_menu.unknown_a4 = 0;
-            } else {
+            if (g_debug_menu.scene_index >= 0) {
                 g_debug_menu.unknown_a4 = 2;
+            } else {
+                g_debug_menu.unknown_a4 = 0;
             }
             break;
         case 10:
@@ -915,7 +915,7 @@ void FUN_L00_001f4598(void) {
             b32 enabled = FALSE;
             s32 index = 0;
             f64 formatted_x, formatted_y, formatted_z;
-            if (0 < D_L00_0015F614) {
+            if (index < D_L00_0015F614) {
                 f32 *capture_positions = D_L00_00173E20;
                 do {
                     if (((((*capture_positions < D_L00_00166C80.camera.position[0] + 0.5f) &&

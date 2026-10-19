@@ -727,7 +727,7 @@ extern float FUN_001f9b80_2c1928(void *, void *) __asm__("FUN_001f9b80");
 extern u8 *FUN_002141f8_2c26c8(struct Moby *) __asm__("FUN_002141f8");
 extern int FUN_001efa68_002c82f0(void *, void *, int, void *, int) __asm__("FUN_001efa68");
 extern void FUN_001f9c90_2bffa8(void *, void *, float) __asm__("FUN_001f9c90");
-extern void FUN_L00_001ff600_2bffa8(void *, void *, float) __asm__("FUN_L00_001ff600");
+extern int FUN_L00_001ff600_2bffa8(void *, void *, float) __asm__("FUN_L00_001ff600");
 extern void FUN_001e93b0_2bffa8(void *) __asm__("FUN_001e93b0");
 extern char D_L00_001E9B48[], D_L00_001E9B70[];
 extern s32 D_L00_00177F00[];
@@ -890,8 +890,8 @@ collision_done:
             }
         }
         qcopy(&probe,pos); probe.f[2] += size * 0.3f;
-        hit = FUN_00213260_2bffa8(4);
         rate = frame_scale;
+        hit = FUN_00213260_2bffa8(4);
         if (!hit) { vars->target = FUN_L00_002bed90(moby,&probe,&moby->rot,vars->previous_target,1); rate = frame_scale; }
         vars->move_speed = rate * 0.1f * speed; moby->state = 4;
         if (!vars->target) {
@@ -921,8 +921,8 @@ collision_done:
             }
             distance = FUN_001f9b80_2c1928(pos,&vars->target->pos);
             if (vars->target == hero.moby) {
-                moby->state = 5;
                 rate = frame_scale;
+                moby->state = 5;
                 if (moby->anim_flags & 2) {
                     rate = frame_scale;
                     if (moby->prev_seq != 6) { ANIM_2bffa8(6,0); rate = frame_scale; }
@@ -975,8 +975,8 @@ collision_done:
             if (!FUN_L00_002bf9f0(moby,vars,vars,0)) {
                 if (vars->target) { vars->previous_target = vars->target; vars->timer = (s32)((u32)vars->timer + 500); }
                 vars->velocity.f[0] = moby->pos.x-vars->target_pos.f[0];
-                vars->velocity.f[2] = 0.01f;
                 vars->velocity.f[1] = moby->pos.y-vars->target_pos.f[1];
+                vars->velocity.f[2] = 0.01f;
                 fast_vec_normalize(&vars->velocity,&vars->velocity,0.1f);
                 moby->state = 8; if (moby->prev_seq != 5) ANIM_2bffa8(5,5); goto finish;
             }
@@ -1043,10 +1043,11 @@ destroy:
         flags = FUN_L00_00258ad0_2bffa8(moby,&vars->velocity,HI_2bffa8(0x1ec0),0,size*0.7f,HF_2bffa8(0x1ef0));
         if (flags & 2) { vars->velocity.f[2] = 0.0f; fast_vec_scale(&vars->velocity,&vars->velocity,0.5f); }
         FUN_001f9c90_2bffa8(&vars->velocity,&vars->velocity,frame_scale*0.05f);
-        if (flags & 2) moby->state = 2;
-        else {
+        if (!(flags & 2)) {
 falling_anim:
             if (moby->prev_seq != 5) ANIM_2bffa8(5,5);
+        } else {
+            moby->state = 2;
         }
 turn:
         angle = atan2_f(vars->velocity.f[0],vars->velocity.f[1]);

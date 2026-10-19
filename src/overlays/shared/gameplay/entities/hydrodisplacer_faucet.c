@@ -256,9 +256,6 @@ void FUN_L05_002f81b8(void *mv) {
         *(int *)(moby + 0x90) = *(int *)&D_L05_001618C0;
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L05_002f87a8.s", FUN_L05_002f87a8);
-#else
 #include "rnc/gameplay/state/item_state.h"
 extern int scale_game_frames(int) __asm__("FUN_001f96f8");
 extern void add_vector_xyz(void *, void *, void *) __asm__("FUN_001f9a10");
@@ -275,11 +272,11 @@ extern int random_int_between(int, int) __asm__("FUN_L00_00257b90");
 extern float random_angle_radians(void) __asm__("FUN_00213308");
 extern void spawn_effect(void *, void *, int, int, int, int, int, int) __asm__("FUN_L00_00269958");
 extern void spawn_second_effect(void *, void *, int, int, int, int, float) __asm__("FUN_L00_0026cbb0");
-extern void FUN_L05_0024cee8(int, int);
+extern int FUN_L05_0024cee8(int, int);
 extern int frame_number_gp __asm__("D_L05_0015F5CC") __attribute__((sda));
 extern unsigned short D_00141938 __attribute__((section(".data")));
 extern unsigned short D_00141C60 __attribute__((section(".data")));
-extern int D_L05_0015F6A8 __attribute__((section(".data")));
+extern int D_L05_0015F6A8;
 extern int D_L05_00161928 __attribute__((sda));
 extern int D_L05_0016190C __attribute__((sda));
 extern int D_L05_00161910 __attribute__((sda));
@@ -325,6 +322,9 @@ void hoverboard_update(unsigned char *moby) {
         }
         break;
     case 2:
+        /* Fakematch: a dead test in state 2 gives retail's block layout. */
+        if (*(int *)(data + 0x50) != 0)
+            break;
         break;
     }
     {
@@ -361,7 +361,7 @@ void hoverboard_update(unsigned char *moby) {
     }
     moby[0xbc] = 0;
 }
-#endif
+
 
 #define NOT_SDA
 
@@ -496,7 +496,6 @@ void FUN_L05_0030c0a8(unsigned char *m) {
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L05_0030c220.s", FUN_L05_0030c220);
 #else
-extern void get_moby_position(struct Moby *, int, float *) __asm__("FUN_L00_0024f7c8");
 extern void clear_vector(float *) __asm__("FUN_001f99f8");
 extern void subtract_vector_xyz_30c220(float *, const float *, const float *) __asm__("FUN_001f9a28");
 extern void normalize_vector_xyz_30c220(float *, float *, float) __asm__("FUN_001f9bf8");
@@ -572,8 +571,8 @@ void FUN_L05_0030c220(struct Moby *m) {
     a.control[0] = 0;
     {
         float *texcoord_b = b.texcoord;
-        float *texcoord_b_v = b.texcoord + 1;
         float *texcoord_a_v = a.texcoord + 1;
+        float *texcoord_b_v = b.texcoord + 1;
         float *texcoord_a = a.texcoord;
         float *texcoord = D_L05_001D67B0;
         int count = 3;
@@ -609,10 +608,8 @@ void FUN_L05_0030c220(struct Moby *m) {
             offset_a_z = pass * 10.0f;
             offset_b_x = phase * 6.0f * sign;
             offset_b_z = pass * 12.0f;
-            offset_a_z = vertex_a[2] + offset_a_z;
-            offset_a_x = vertex_a[0] + offset_a_x;
-            vertex_a[2] = offset_a_z;
-            vertex_a[0] = offset_a_x;
+            vertex_a[0] += offset_a_x;
+            vertex_a[2] += offset_a_z;
             vertex_b[0] += offset_b_x;
             vertex_b[2] += offset_b_z;
             vertex_a += 4;

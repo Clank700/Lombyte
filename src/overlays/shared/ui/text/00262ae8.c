@@ -87,7 +87,7 @@ typedef struct {
 #define D_0013F65E hero.air_frames.s
 #define D_0013F650 hero.grounded_frames
 #define D_0013FA40 hero.unk6E0[4]
-#define D_0013FA5C (*(s32 *)&hero.pad_6FC[0x10])
+#define D_0013FA5C (*(s32 *)((u8 *)&hero + 0x70C))
 #define D_0013FBB4 hero.unk864
 #define D_0013FBF8 hero.unk8A8
 #define D_0013FA30 hero.unk6E0
@@ -110,8 +110,8 @@ void FUN_L05_00262b58(HudCounter *e) {
         if (D_0013F65E < 6 || ((f32)D_0013FA5C < 1.0f)) return;
         D_L05_0015FAD4 = D_0013FA5C;
         D_L05_0015FAD8 = 0;
-        i = 3;
         dst = &D_L05_0015FAEC;
+        i = 3;
         do { *dst-- = 0; } while (--i >= 0);
         counter[2] = 1;
         counter[1] = D_L05_0015F87C;
@@ -127,8 +127,8 @@ void FUN_L05_00262b58(HudCounter *e) {
         limit = D_0013FA5C;
         timer = D_L05_0015F87C;
         if (D_L05_0015FAD4 < limit) {
-            D_L05_0015FAD4 = limit;
             counter[1] = timer;
+            D_L05_0015FAD4 = limit;
         }
         if (D_0013F650 == 0) {
             if ((u32)(D_001413D4 - 0x6d) > 2) return;
@@ -144,7 +144,11 @@ void FUN_L05_00262b58(HudCounter *e) {
         i = 2;
         dst = (s32 *)&D_0013FA5C - 1;
         do { *dst-- = 0; } while (--i >= 0);
-        if (D_001413D4 == 0x6b) {
+        if (D_001413D4 != 0x6b) {
+            counter[2] = 2;
+            counter[1] = D_L05_0015F87C;
+            counter[0] = scale_game_frames(0x3c);
+        } else {
             if (D_L05_0015FAD8 > 2) {
                 D_L05_0015FAFC = D_L05_0015FAF8;
                 D_L05_0015FAF8 = D_L05_0015FAF4;
@@ -154,10 +158,6 @@ void FUN_L05_00262b58(HudCounter *e) {
             counter[2] = 3;
             counter[1] = D_L05_0015F87C;
             counter[0] = scale_game_frames(0x78);
-        } else {
-            counter[2] = 2;
-            counter[1] = D_L05_0015F87C;
-            counter[0] = scale_game_frames(0x3c);
         }
         break;
     case 2:
@@ -284,8 +284,8 @@ s32 FUN_L05_00262f50(char *e) {
                 D_L05_0015FAF0 = group;
                 D_L05_0015FB00 = D_L05_0017E918[group];
                 count = 1;
-                src = &D_L05_0015FAF4;
                 i = 2;
+                src = &D_L05_0015FAF4;
                 do { count += (*src++ == group); } while (--i >= 0);
                 D_L05_0015FB00 = D_L05_0015FB00 / count;
                 sprintf_alt(buf, D_L05_0015F860, D_L05_0015FB00);

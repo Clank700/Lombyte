@@ -1087,12 +1087,12 @@ void codebot_slot_update(struct Moby *moby) {
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L15_002ec760.s", FUN_L15_002ec760);
 #else
-extern int D_L15_0015F5C4, D_L15_0015FFD8, D_L15_0015FFE4;
-extern int D_L15_0015ED84;
-extern char *D_L15_001600EC;
+extern int D_L15_0015F5C4, D_L15_0015FFD8, D_L15_0015FFE4 __attribute__((sda));
+extern int D_L15_0015ED84 __attribute__((sda));
+extern char *D_L15_001600EC __attribute__((sda));
 extern unsigned int D_001413DC;
-extern unsigned char D_0013DD50;
-extern unsigned char D_001413F4 __attribute__((section(".data")));
+extern unsigned char D_0013DD50 __attribute__((section(".data")));
+extern unsigned char D_001413F4 __attribute__((sda));
 extern float D_0013F420, D_0013F424, D_L15_0015ED64;
 extern unsigned char D_L15_0015EDB0;
 extern float D_0015ED68;
@@ -1144,8 +1144,8 @@ void ultramech_scientist_update(struct Moby *moby) {
         moby->collision = 0;
         moby->flags |= 0x41;
     } else {
-        moby->collision = moby->pclass->collision;
         moby->flags &= 0xffbe;
+        moby->collision = moby->pclass->collision;
         FUN_002499d8(moby);
     }
     switch (moby->state) {
@@ -1287,11 +1287,11 @@ ready:
         FUN_00252348(6.0f, turn, random_float_between(0.0f, 30.0f) * angle, data + 0x260);
         FUN_001f89f0(data + 0x260, data + 0x260, pos);
     }
-    if (*(int *)(data + 0x274) == 0) {
-        vecs.target = *(OvlQuad *)(data + 0x260);
-    } else {
+    if (*(int *)(data + 0x274) != 0) {
         vecs.target = *(OvlQuad *)0x13f420;
         fast = 0.04f;
+    } else {
+        vecs.target = *(OvlQuad *)(data + 0x260);
     }
     vecs.pos = *(OvlQuad *)(pos);
     ((float *)&vecs.pos)[2] += 1.0f;
@@ -1305,7 +1305,7 @@ ready:
     {
     float half_yaw = yaw * 0.5f;
     *(volatile float *)(data + 0x248) = half_yaw;
-    *(volatile float *)(data + 0x1c4) = pitch * 1.25f;
+    *(float *)(data + 0x1c4) = pitch * 1.25f;
     *(volatile float *)(data + 0x1c8) = half_yaw;
     }
     {

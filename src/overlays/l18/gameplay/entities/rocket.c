@@ -2724,7 +2724,7 @@ extern float D_L18_00161FD8 __attribute__((sda));
 extern float D_L18_00161FE4 __attribute__((sda));
 extern volatile unsigned char D_L18_00161FC8 __attribute__((sda));
 extern volatile unsigned char D_L18_00161FD4 __attribute__((sda));
-extern volatile unsigned char D_L18_00161FE0 __attribute__((sda));
+extern unsigned char D_L18_00161FE0 __attribute__((sda));
 extern volatile unsigned char D_L18_00161FC9 __attribute__((section(".sdata")));
 extern volatile unsigned char D_L18_00161FCA __attribute__((section(".sdata")));
 extern volatile unsigned char D_L18_00161FCB __attribute__((section(".sdata")));
@@ -2750,7 +2750,7 @@ void FUN_L18_002ea800(void *arg) {
     *(Q128 *)v10 = *(Q128 *)&moby->pos;
     FUN_L06_0030bef8(v10, scale_ticks(30), 0x80806060, 0x801010);
     trooper_play_sound(0x10, 0, (int)arg, 0x58E);
-    if (D_L18_00161F6C > 0) {
+    if (i < D_L18_00161F6C) {
         int a, b, c;
         float angle, elevation, scale, speed;
         do {

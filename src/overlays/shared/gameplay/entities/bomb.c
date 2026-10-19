@@ -568,7 +568,7 @@ struct Moby *FUN_L00_002c9348(State *a) {
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/us/overlays/asm/FUN_L00_002c97e0.s", FUN_L00_002c97e0);
 #else
-extern f32 D_L00_0015F5D4_gp __asm__("D_L00_0015F5D4") __attribute__((sda));
+extern f32 D_L00_0015F5D4_gp __asm__("D_L00_0015F5D4");
 extern f32 D_L00_0015F5D0_macro __asm__("D_L00_0015F5D0") __attribute__((section(".sdata")));
 extern f32 D_L00_0015F5D4_macro __asm__("D_L00_0015F5D4") __attribute__((section(".sdata")));
 
@@ -2675,12 +2675,12 @@ state2:
             other = (struct Moby *)coll_hit.moby;
             if (other && other->oclass == 0 && other->state != 0xfe && other->state != 0xfd)
                 goto update_rotations;
-            other = (struct Moby *)((volatile CollisionHit *)&coll_hit)->moby;
+            other = (struct Moby *)coll_hit.moby;
             if (other) {
                 category = 0;
                 if (other->pclass) category = *(u8 *)((u8 *)other->pclass + 0x46);
             }
-            other = (struct Moby *)((volatile CollisionHit *)&coll_hit)->moby;
+            other = (struct Moby *)coll_hit.moby;
             if (other && other->state != 0xfe && other->state != 0xfd &&
                 (category == 5 || category == 7 || category == 8)) {
                 FUN_00259858_2ce358(1.0f, scratch.effect, m, 0x10000);
