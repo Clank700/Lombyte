@@ -1176,7 +1176,7 @@ void FUN_L18_0021eac8(void) {
         }
         break;
     }
-    case 0x15: {
+    case HERO_STATE_CROUCH_SWING: {
         s32 jumping;
         hero.target_speed = 0.0f;
         if (hero.unkA9C != 0 || hero.anim_frame < D_L18_0017C628[hero.attack_record].f18) {
@@ -2250,7 +2250,7 @@ void FUN_L18_0021eac8(void) {
         FUN_L00_0020b5b8();
         break;
     }
-    case 0x16: {
+    case HERO_STATE_HURT: {
         f32 l = vector_length_xy(&hero.motion.velocity);
         f32 d = frame_time_sq * 4.0f;
         if (hero.air_frames.s == 0 && scale_game_frames(10) < hero.state_timer) {
@@ -2417,15 +2417,15 @@ void FUN_L18_0021eac8(void) {
             }
         }
         switch (hero.attack_record) {
-        case 0:
-        case 1:
+        case ATTACK_RECORD_POINT_3_STRIKE:
+        case ATTACK_RECORD_POINT_4_STRIKE:
             if (hero.unkA9C == 0 && hero.anim_frame >= 7.0f && hero.anim_frame < 15.0f) {
                 hero.target_speed = frame_time * 21.0f;
             }
             speed_step(frame_time_sq * 180.0f, frame_time_sq * 140.0f);
             set_planar_vel(99999.0f);
             break;
-        case 2:
+        case ATTACK_RECORD_POINTS_3_AND_4_STRIKE:
             if (hero.unkA9C == 0 && hero.anim_frame >= 11.0f && hero.anim_frame < 20.0f) {
                 hero.target_speed = frame_time * 30.0f;
             }

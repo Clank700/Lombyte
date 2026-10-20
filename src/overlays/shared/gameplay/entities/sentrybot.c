@@ -95,11 +95,16 @@ void sentrybot_update(unsigned char *moby) {
     enum {
         SENTRYBOT_INITIALIZE = 0,
         SENTRYBOT_WAIT_FOR_LINKED_MOBY = 1,
+        SENTRYBOT_PATROL_IDLE = 2,
         SENTRYBOT_PATROL_PAUSE = 3,
+        SENTRYBOT_PATROL_MOVE = 4,
+        SENTRYBOT_DEACTIVATE_LINKED_MOBYS_AFTER_ANIMATION = 5,
         SENTRYBOT_TURN_NEGATIVE_HEADING_DELTA = 6,
         SENTRYBOT_TURN_POSITIVE_HEADING_DELTA = 7,
         SENTRYBOT_TURN_AROUND = 8,
         SENTRYBOT_RETURN_HOME = 9,
+        SENTRYBOT_WAIT_FOR_ANIMATION_THEN_PATROL_IDLE = 10,
+        SENTRYBOT_WAIT_FOR_TRANSITION_ANIMATION = 11,
         SENTRYBOT_PATROL_MOVE_FAST = 13,
         SENTRYBOT_APPROACH_LINKED_MOBY = 14,
         SENTRYBOT_ACTIVATE_LINKED_MOBY = 15,
@@ -108,15 +113,9 @@ void sentrybot_update(unsigned char *moby) {
         SENTRYBOT_DEATH_KNOCKBACK = 23
     };
     enum {
-        SENTRYBOT_PATROL_MOVE = 4
-    };
-    enum {
         SENTRYBOT_ANIM_TURN_NEGATIVE_HEADING_DELTA = 10,
         SENTRYBOT_ANIM_TURN_POSITIVE_HEADING_DELTA = 11,
         SENTRYBOT_ANIM_TURN_AROUND = 12
-    };
-    enum {
-        SENTRYBOT_PATROL_IDLE = 2
     };
     float va[4];
     float vb[4];
@@ -302,7 +301,7 @@ void sentrybot_update(unsigned char *moby) {
             }
         }
         break;
-    case 10:
+    case SENTRYBOT_WAIT_FOR_ANIMATION_THEN_PATROL_IDLE:
         if (*(int *)(data + 0x114) != 2) {
             moby[0xBC] = 1;
             if (data[0x15F] != 0) {
@@ -325,7 +324,7 @@ void sentrybot_update(unsigned char *moby) {
             *(short *)(data + 0x194) = 0;
         }
         break;
-    case 5:
+    case SENTRYBOT_DEACTIVATE_LINKED_MOBYS_AFTER_ANIMATION:
         if (moby[0x70] & 2) {
             *(short *)(data + 0x154) = scale_game_frames(0xF0);
             if (*(int *)(data + 0x150) != -1) {
@@ -550,7 +549,7 @@ void sentrybot_update(unsigned char *moby) {
         }
         break;
     }
-    case 11:
+    case SENTRYBOT_WAIT_FOR_TRANSITION_ANIMATION:
         if (*(int *)(data + 0x128) != -1) {
             FUN_L15_002cbba0((unsigned char *)(D_L15_0015FFD8_m + (*(int *)(data + 0x128) << 8)));
         }
@@ -1310,6 +1309,8 @@ void FUN_L15_0029a570(void *object, int flag) {
         NONLETHAL_FALL_HIT_RESPONSE = 6,
         SENTRYBOT_RECOVERABLE_KNOCKBACK_RESPONSE = 7,
         SENTRYBOT_RECOVERABLE_ARC_KNOCKBACK_RESPONSE = 8,
+        SENTRYBOT_FIRST_CHANNEL_BLEND_HIT_RESPONSE = 9,
+        SENTRYBOT_FIRST_CHANNEL_BLEND_TARGET_HIT_RESPONSE = 10,
         SENTRYBOT_NO_KNOCKBACK_START_RESPONSE = 11
     };
     unsigned char *moby = object;
@@ -1352,8 +1353,8 @@ void FUN_L15_0029a570(void *object, int flag) {
         case SENTRYBOT_NO_KNOCKBACK_SETUP_RESPONSE:
         case SENTRYBOT_NO_KNOCKBACK_START_RESPONSE:
             break;
-        case 9:
-        case 10:
+        case SENTRYBOT_FIRST_CHANNEL_BLEND_HIT_RESPONSE:
+        case SENTRYBOT_FIRST_CHANNEL_BLEND_TARGET_HIT_RESPONSE:
             data[0x67] = 0xFA;
             break;
         case NONLETHAL_KNOCKBACK_HIT_RESPONSE:

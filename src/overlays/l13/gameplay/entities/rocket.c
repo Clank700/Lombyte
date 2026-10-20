@@ -659,6 +659,8 @@ void poison_vessel_update(struct Moby *moby) {
     enum {
         HIT_RESULT_NONE = 0,
         HIT_RESULT_DEATH = 1,
+        HIT_RESULT_DYING_KNOCKBACK = 2,
+        HIT_RESULT_STUN_KNOCKBACK = 3,
         HIT_RESULT_NO_REACTION = 11
     };
     struct BlastVars *vars = (struct BlastVars *)moby->pvars;
@@ -682,11 +684,11 @@ void poison_vessel_update(struct Moby *moby) {
         }
         switch (hit_check_7b10(moby, hit, health, 0, &kind, 0, 0, 4)) {
         case HIT_RESULT_DEATH:
-        case 2:
+        case HIT_RESULT_DYING_KNOCKBACK:
             *health = 0;
             break;
         case HIT_RESULT_NONE:
-        case 3:
+        case HIT_RESULT_STUN_KNOCKBACK:
         case HIT_RESULT_NO_REACTION:
             break;
         }
@@ -1209,6 +1211,8 @@ void FUN_L13_00308d10(struct Moby *moby) {
     enum {
         HIT_RESULT_NONE = 0,
         HIT_RESULT_DEATH = 1,
+        HIT_RESULT_DYING_KNOCKBACK = 2,
+        HIT_RESULT_STUN_KNOCKBACK = 3,
         HIT_RESULT_NO_REACTION = 11
     };
     struct WalkerVars_8d10 *vars = (struct WalkerVars_8d10 *)moby->pvars;
@@ -1244,7 +1248,7 @@ void FUN_L13_00308d10(struct Moby *moby) {
         case HIT_RESULT_NONE:
         case HIT_RESULT_NO_REACTION:
             break;
-        case 3:
+        case HIT_RESULT_STUN_KNOCKBACK:
         case 4:
         case 5:
         case 6:
@@ -1262,7 +1266,7 @@ void FUN_L13_00308d10(struct Moby *moby) {
             vars->flash_time = 0xFA;
             break;
         case HIT_RESULT_DEATH:
-        case 2:
+        case HIT_RESULT_DYING_KNOCKBACK:
             moby->state = 0x10;
             moby->flags &= ~0x1000;
             vars->knock_up = D_L13_00161E68 * frame_time;

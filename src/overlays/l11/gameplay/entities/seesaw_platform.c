@@ -1111,15 +1111,15 @@ void ammocrate_update(struct Moby *m) __asm__("FUN_L11_0030f728");
 void ammocrate_update(struct Moby *m) {
     enum {
         AMMOCRATE_STATE_INITIALIZE = 0,
+        AMMOCRATE_STATE_DAMPED_FALL = 1,
         AMMOCRATE_STATE_ATTRACT_TO_SHIP = 2,
         AMMOCRATE_STATE_FREE_FALL = 3,
         AMMOCRATE_STATE_COLLECTED = 4,
-        AMMOCRATE_STATE_REMOVE = 5,
-        OCLASS_SHIP_AMMO_PICKUP = 0x4C2,
-        OCLASS_SHIP_HEALTH_PICKUP = 0x4C4
+        AMMOCRATE_STATE_REMOVE = 5
     };
     enum {
-        AMMOCRATE_STATE_DAMPED_FALL = 1
+        OCLASS_SHIP_AMMO_PICKUP = 0x4C2,
+        OCLASS_SHIP_HEALTH_PICKUP = 0x4C4
     };
     struct Moby *ship = hero.ship_moby;
     char *pv = m->pvars;
@@ -1642,7 +1642,10 @@ void FUN_L11_00310698(struct Moby *m) {
         HIT_REACTION_DEATH = 1,
         HIT_REACTION_DEATH_KNOCKBACK = 2,
         HIT_REACTION_KNOCKBACK = 3,
+        HIT_REACTION_KNOCKBACK_AND_CANCEL_PROJECTILE = 4,
+        HIT_REACTION_KNOCKBACK_WITH_TIMER_EXTENSION = 5,
         HIT_REACTION_HURT_WITHOUT_KNOCKBACK = 9,
+        HIT_REACTION_HURT_WITHOUT_STATE_CHANGE = 10,
         HIT_REACTION_NO_RESPONSE = 11
     };
     struct PokiPathVars *pv = (struct PokiPathVars *)m->pvars;
@@ -1683,12 +1686,12 @@ void FUN_L11_00310698(struct Moby *m) {
         case HIT_REACTION_NO_RESPONSE:
             break;
         case HIT_REACTION_HURT_WITHOUT_KNOCKBACK:
-        case 10:
+        case HIT_REACTION_HURT_WITHOUT_STATE_CHANGE:
             pv->unk67 = 0xFA;
             break;
         case HIT_REACTION_KNOCKBACK:
-        case 4:
-        case 5:
+        case HIT_REACTION_KNOCKBACK_AND_CANCEL_PROJECTILE:
+        case HIT_REACTION_KNOCKBACK_WITH_TIMER_EXTENSION:
         case 6:
         case 7:
         case 8:
@@ -3198,6 +3201,7 @@ void puffoid_update(struct Moby *moby) {
         PUFFOID_STATE_SPRAY_ATTACK = 5,
         PUFFOID_STATE_RETURN_HOME = 6,
         PUFFOID_STATE_JUMP_HOME = 7,
+        PUFFOID_STATE_JUMP_THEN_WAIT_FOR_HOME_JUMP = 8,
         PUFFOID_STATE_KNOCKBACK = 9,
         PUFFOID_STATE_REPOSITION_AND_FACE_TARGET = 10,
         PUFFOID_STATE_DEATH_KNOCKBACK = 11,
@@ -3296,7 +3300,7 @@ void puffoid_update(struct Moby *moby) {
         break;
     }
     case PUFFOID_STATE_JUMP_HOME:
-    case 8:
+    case PUFFOID_STATE_JUMP_THEN_WAIT_FOR_HOME_JUMP:
         add_vector_4318(&moby->pos, &moby->pos, d->vel);
         d->vel[2] -= D_L11_001622F0 * frame_time_sq;
         if (d->vel[2] < 0.0f) {

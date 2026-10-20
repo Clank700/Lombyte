@@ -157,6 +157,9 @@ void FUN_L16_002270c8(void) {
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
         HERO_STATE_GRIND_COLLISION_RECOVERY = 66,
+        HERO_STATE_SLIP_ALT = 88,
+        HERO_STATE_APPROACH_TARGET_POSE = 101,
+        HERO_STATE_AT_TARGET_POSE = 103,
         HERO_STATE_WATER_DEATH = 106,
         HERO_STATE_DEATH_FALL = 119
     };
@@ -911,7 +914,7 @@ void FUN_L16_002270c8(void) {
                         }
                     }
                     break;
-                case 101:
+                case HERO_STATE_APPROACH_TARGET_POSE:
                     if (vector_distance(hero.motion.pos.f, hero.unk1640.f) < 0.2f) {
                         if (frame_time * 2.7f > hero.motion.speed_xy) {
                             if (fast_difference_between_rotations(
@@ -932,7 +935,7 @@ void FUN_L16_002270c8(void) {
                         hero_set_state(0x65, 1);
                     }
                     break;
-                case 103:
+                case HERO_STATE_AT_TARGET_POSE:
                     if ((hero.unkA98 & 2) || hero.unk1650 != 0) {
                         hero_set_state(HERO_STATE_IDLE, 1);
                     }
@@ -2431,7 +2434,7 @@ void FUN_L16_002270c8(void) {
                         hero_set_state(0x54, 1);
                     }
                     break;
-                case 88:
+                case HERO_STATE_SLIP_ALT:
                     if (scale_game_frames(0x12C) < hero.state_timer) {
                         hero_respawn();
                     }

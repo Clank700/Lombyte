@@ -318,6 +318,7 @@ void sand_shark_update(struct Moby *moby) {
         SAND_SHARK_WAIT_FOR_TARGET_IN_VOLUME = 3,
         SAND_SHARK_APPROACH_TARGET = 5,
         SAND_SHARK_RETURN_HOME = 7,
+        SAND_SHARK_KNOCKBACK_UNTIL_LANDING = 8,
         SAND_SHARK_WAIT_FOR_HERO_LAUNCH_TRIGGER = 12,
         SAND_SHARK_BALLISTIC_FLIGHT = 13,
         SAND_SHARK_APPROACH_TARGET_WITH_PATH_PROXIMITY_CHECK = 14,
@@ -331,7 +332,9 @@ void sand_shark_update(struct Moby *moby) {
         SAND_SHARK_RETURN_HOME_WITH_HEIGHT_OFFSET = 23,
         SAND_SHARK_DEATH_KNOCKBACK = 24,
         SAND_SHARK_FADE_OUT = 25,
-        SAND_SHARK_BALLISTIC_FLIGHT_WITH_PARTICLES = 27
+        SAND_SHARK_INACTIVE_WAIT_FOR_RELAUNCH = 26,
+        SAND_SHARK_BALLISTIC_FLIGHT_WITH_PARTICLES = 27,
+        SAND_SHARK_WAIT_FOR_LINKED_MOBY_BEFORE_INITIALIZE = 29
     };
     Varsd3e50 *vars;
     OvlVec4 v0;
@@ -417,7 +420,7 @@ void sand_shark_update(struct Moby *moby) {
             }
         }
         break;
-    case 29:
+    case SAND_SHARK_WAIT_FOR_LINKED_MOBY_BEFORE_INITIALIZE:
         if (((struct Moby *)((char *)D_L02_0015FFD8_e50 + (vars->unk258 << 8)))->state >= 5 && D_001413D4_e50 != 0x72) {
             moby->flags = (moby->flags & 0xFFBE) | 0x1000;
             moby->collision = moby->pclass->collision;
@@ -749,7 +752,7 @@ void sand_shark_update(struct Moby *moby) {
             fast_vec_add(&moby->pos, &moby->pos, &v4);
         }
         break;
-    case 8:
+    case SAND_SHARK_KNOCKBACK_UNTIL_LANDING:
         if (FUN_L00_0025c698_e50(moby, vars->unk120) & 1) {
             moby->state = 0xB;
             if (moby->prev_seq != 4) {
@@ -878,7 +881,7 @@ void sand_shark_update(struct Moby *moby) {
             }
         }
         break;
-    case 26:
+    case SAND_SHARK_INACTIVE_WAIT_FOR_RELAUNCH:
         vars->unk27C = FUN_L02_002d5658_e50(moby);
         if (vars->unk27C == 0) {
             remove_moby_e50(moby);

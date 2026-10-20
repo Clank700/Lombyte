@@ -1190,12 +1190,16 @@ extern void transform_vector(void *, void *, void *) __asm__("func_001F9D20");
 void FUN_L08_002d5d08(char *moby) {
     enum {
         LINKED_CLASS_SECOND_HIGHEST_Y_LAUNCH_OFFSET = 0,
+        LINKED_CLASS_FOURTH_LOWEST_X_LAUNCH_OFFSET = 1,
         LINKED_CLASS_SECOND_LOWEST_X_LAUNCH_OFFSET = 2,
         LINKED_CLASS_LOWEST_X_LAUNCH_OFFSET = 3,
+        LINKED_CLASS_THIRD_HIGHEST_X_LAUNCH_OFFSET = 4,
         LINKED_CLASS_LOWEST_Z_LAUNCH_OFFSET = 5,
         LINKED_CLASS_HIGHEST_X_LAUNCH_OFFSET = 6,
         LINKED_CLASS_LOWEST_Y_LAUNCH_OFFSET = 7,
-        LINKED_CLASS_HIGHEST_Z_LAUNCH_OFFSET = 8
+        LINKED_CLASS_HIGHEST_Z_LAUNCH_OFFSET = 8,
+        LINKED_CLASS_FOURTH_HIGHEST_Y_LAUNCH_OFFSET = 9,
+        LINKED_CLASS_THIRD_LOWEST_X_LAUNCH_OFFSET = 10
     };
     float a[4];
     float b[4];
@@ -1250,7 +1254,7 @@ void FUN_L08_002d5d08(char *moby) {
                 case LINKED_CLASS_SECOND_HIGHEST_Y_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 1.629f; c[1] = -1.341f; c[2] = 11.48f;
                     qcopy(b, c); break;
-                case 1:
+                case LINKED_CLASS_FOURTH_LOWEST_X_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 1.299f; c[1] = -5.558f; c[2] = 11.48f;
                     qcopy(b, c); break;
                 case LINKED_CLASS_SECOND_LOWEST_X_LAUNCH_OFFSET:
@@ -1259,7 +1263,7 @@ void FUN_L08_002d5d08(char *moby) {
                 case LINKED_CLASS_LOWEST_X_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 0.019f; c[1] = -6.19f; c[2] = 3.409f;
                     qcopy(b, c); break;
-                case 4:
+                case LINKED_CLASS_THIRD_HIGHEST_X_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 3.196f; c[1] = -2.105f; c[2] = 7.784f;
                     qcopy(b, c); break;
                 case LINKED_CLASS_LOWEST_Z_LAUNCH_OFFSET:
@@ -1274,10 +1278,10 @@ void FUN_L08_002d5d08(char *moby) {
                 case LINKED_CLASS_HIGHEST_Z_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 1.539f; c[1] = -1.071f; c[2] = 13.144f;
                     qcopy(b, c); break;
-                case 9:
+                case LINKED_CLASS_FOURTH_HIGHEST_Y_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 1.596f; c[1] = -2.512f; c[2] = 8.359f;
                     qcopy(b, c); break;
-                case 10:
+                case LINKED_CLASS_THIRD_LOWEST_X_LAUNCH_OFFSET:
                     *(u128_7010 *)c = 0; c[0] = 0.885f; c[1] = -5.824f; c[2] = 8.224f;
                     qcopy(b, c); break;
                 }

@@ -151,6 +151,9 @@ void FUN_L00_00210c80_8(void *, s32, f32, f32) __asm__("FUN_L00_00210c80");
 
 extern OvlMobyEntry40 D_L02_00178700[];
 s32 FUN_L02_0021ff70(s32 arg) {
+    enum {
+        HERO_VEHICLE_MODE_NORMAL_HERO = 0
+    };
     u8 *m;
     OvlMobyEntry40 *tbl;
     u8 *mob;
@@ -207,7 +210,7 @@ s32 FUN_L02_0021ff70(s32 arg) {
         v.i[2] = 0;
     }
     switch (G.vehicle_mode) {
-    case 0:
+    case HERO_VEHICLE_MODE_NORMAL_HERO:
         mob = (u8 *)G.unk2280;
         if (mob != 0 && (*(s16 *)(mob + 0xA6) == 0x4EB || *(s16 *)(mob + 0xA6) == 0x558)) {
             id = 0x80;
@@ -801,6 +804,10 @@ void subtract_vector_xyz(void *, void *, void *);
 extern s32 D_0013CB14[];
 
 void FUN_L02_00225c20(void) {
+    enum {
+        HERO_STATE_MOVE_TO_TARGET_POSITION = 0x65,
+        HERO_STATE_BRAKE_AT_TARGET_POSITION = 0x66
+    };
     FVec4 vec[14];
     Moby *moby;
     int prevState;
@@ -2163,7 +2170,7 @@ void FUN_L02_00225c20(void) {
         set_vector_length_xy(hero.motion.velocity.f, hero.motion.velocity.f, len);
         FUN_L00_002334d0(hero.motion.velocity.f, hero.motion.velocity.f, 0.004f);
     } break;
-    case 0x65: {
+    case HERO_STATE_MOVE_TO_TARGET_POSITION: {
         float len;
         float k;
 
@@ -2217,7 +2224,7 @@ void FUN_L02_00225c20(void) {
             FUN_L00_002334d0(hero.motion.velocity.f, hero.motion.velocity.f, frame_time_sq * 54.0f);
         }
     } break;
-    case 0x66: {
+    case HERO_STATE_BRAKE_AT_TARGET_POSITION: {
 
         subtract_vector_xyz(vec[0], hero.unk1640.f, hero.motion.pos.f);
         if (dot_vectors_xyz(vec[0], hero.motion.unk150.f) < 0.0f) {
@@ -2233,7 +2240,7 @@ void FUN_L02_00225c20(void) {
             FUN_L00_002334d0(hero.motion.velocity.f, hero.motion.velocity.f, frame_time_sq * 54.0f);
         }
     } break;
-    case 0x40:
+    case HERO_STATE_FIDGET:
     case 0x67:
         clear_vector(hero.motion.velocity.f);
         break;

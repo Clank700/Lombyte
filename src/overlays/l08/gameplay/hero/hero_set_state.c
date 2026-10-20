@@ -90,6 +90,7 @@ int hero_set_state(int a, int b) {
     enum {
         ENTER_IDLE = 0,
         ENTER_ATTACK_COMBO = 0x13,
+        ENTER_DROWN = 0x6A,
         ENTER_SLIP = 0x79
     };
     int old2088;
@@ -406,7 +407,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0x65, 0, (float)scale_game_frames(0x11));
         break;
     }
-    case 0x6A: {
+    case ENTER_DROWN: {
         struct Hero *p = &hero;
         p->state.control_mode = 0x14;
         p->unk20A7 = 1;
@@ -978,7 +979,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 8: {
+    case HERO_STATE_LAND: {
         struct Hero *p = &hero;
         int animation_timing_selector = -2;
         p->state.control_mode = 5;
@@ -994,14 +995,14 @@ int hero_set_state(int a, int b) {
         break;
     }
     case HERO_STATE_JUMP:
-    case 9:
-    case 0xA:
-    case 0xB:
+    case HERO_STATE_RUN_JUMP:
+    case HERO_STATE_PACK_JUMP:
+    case HERO_STATE_HIGH_JUMP:
     case 0xC:
     case 0xD:
     case 0xE:
     case 0xF:
-    case 0x10:
+    case HERO_STATE_PACK_LONG_JUMP:
     case 0x11:
     case 0x12:
     case 0x1C:

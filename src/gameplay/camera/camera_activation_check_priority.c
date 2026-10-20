@@ -31,9 +31,13 @@ int camera_activation_check_priority(void *cur, void *other) __asm__("FUN_001ec2
 int camera_activation_check_priority(void *cur, void *other) {
     enum {
         CAMERA_ACTIVATION_BY_PRIORITY = 0,
-        CAMERA_COMPARE_ACCEPT = 1,
+        CAMERA_ACTIVATION_HANDOFF_GATED_PRIORITY = 1,
+        CAMERA_ACTIVATION_REQUIRE_HANDOFF_PRIORITY = 2,
         CAMERA_ACTIVATION_IN_CLIP_VOLUME = 4,
         CAMERA_ACTIVATION_MATCH_LISTENER_GROUP = 7
+    };
+    enum {
+        CAMERA_COMPARE_ACCEPT = 1
     };
     char *c = (char *)cur;
     char *o = (char *)other;
@@ -54,8 +58,8 @@ int camera_activation_check_priority(void *cur, void *other) {
         }
     }
     switch (*(int *)state) {
-    case 1:
-    case 2:
+    case CAMERA_ACTIVATION_HANDOFF_GATED_PRIORITY:
+    case CAMERA_ACTIVATION_REQUIRE_HANDOFF_PRIORITY:
         if (state[9] == 0) {
             return 0;
         }

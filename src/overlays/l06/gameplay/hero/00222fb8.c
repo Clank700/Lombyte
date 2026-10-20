@@ -1009,6 +1009,10 @@ extern f32 set_planar_vel(f32) __asm__("FUN_L00_002120d8");
 extern s32 FUN_L00_00211870(f32);
 
 void FUN_L06_0022e020(void) {
+    enum {
+        HERO_STATE_VEHICLE_MODE_1_HURT = 0x46,
+        HERO_STATE_VEHICLE_MODE_3_HURT = 0x56
+    };
     struct MobyView *moby = (struct MobyView *)hero.moby;
     s32 sub = hero.state.step;
     s32 anim = moby->b53;
@@ -1031,7 +1035,7 @@ void FUN_L06_0022e020(void) {
     case 0x1D:
     case 0x1E:
     case 0x1F:
-    case 0x3D:
+    case HERO_STATE_DYING:
     case 0x70:
     case 0x71:
     case 0x72:
@@ -2589,7 +2593,7 @@ void FUN_L06_0022e020(void) {
             FUN_L00_002334d0(&hero.motion.velocity, &hero.motion.velocity, frame_time_sq * 54.0f);
         }
         break;
-    case 0x40:
+    case HERO_STATE_FIDGET:
     case 0x67:
         clear_u64_value(&hero.motion.velocity);
         break;
@@ -2724,7 +2728,7 @@ void FUN_L06_0022e020(void) {
         }
         break;
     }
-    case 0x46: {
+    case HERO_STATE_VEHICLE_MODE_1_HURT: {
         f32 len = vector_length_xy(&hero.motion.velocity);
         f32 l2 = len;
         if (hero.air_frames.s != 0) {
@@ -2855,7 +2859,7 @@ void FUN_L06_0022e020(void) {
         }
         break;
     }
-    case 0x56: {
+    case HERO_STATE_VEHICLE_MODE_3_HURT: {
         f32 len = vector_length_xy(&hero.motion.velocity);
         f32 l2 = len;
         if (hero.air_frames.s != 0) {

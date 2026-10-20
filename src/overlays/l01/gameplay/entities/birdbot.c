@@ -712,7 +712,10 @@ void birdbot_update(PeMoby *m) {
         BIRDBOT_HIT_REACTION_FORCE_FATAL_KNOCKBACK = 2,
         BIRDBOT_HIT_REACTION_NONFATAL_KNOCKBACK = 3,
         BIRDBOT_HIT_REACTION_LOW_SPEED_NONFATAL_KNOCKBACK = 4,
-        BIRDBOT_HIT_REACTION_ANIMATED_NONFATAL_KNOCKBACK = 6
+        BIRDBOT_HIT_REACTION_LOW_SPEED_NONFATAL_KNOCKBACK_NO_BLEND = 5,
+        BIRDBOT_HIT_REACTION_ANIMATED_NONFATAL_KNOCKBACK = 6,
+        BIRDBOT_HIT_REACTION_NO_KNOCKBACK = 7,
+        BIRDBOT_HIT_REACTION_SKIP_KNOCKBACK_SETUP = 8
     };
     PeVars *v;
     PeVec old;
@@ -775,8 +778,8 @@ void birdbot_update(PeMoby *m) {
         }
         switch (kind) {
         case BIRDBOT_HIT_REACTION_KEEP_CURRENT_STATE:
-        case 7:
-        case 8:
+        case BIRDBOT_HIT_REACTION_NO_KNOCKBACK:
+        case BIRDBOT_HIT_REACTION_SKIP_KNOCKBACK_SETUP:
         case 9:
         case 10:
         case 11:
@@ -823,7 +826,7 @@ void birdbot_update(PeMoby *m) {
             FUN_L00_0025d458_u(m, (short *)v->x60);
             break;
         case BIRDBOT_HIT_REACTION_LOW_SPEED_NONFATAL_KNOCKBACK:
-        case 5:
+        case BIRDBOT_HIT_REACTION_LOW_SPEED_NONFATAL_KNOCKBACK_NO_BLEND:
             v->w90 = 0x200;
             v->b67 = 0xFA;
             v->f80 = 0.008f;
@@ -1559,6 +1562,8 @@ void peckbot_update(Mob577 *self) {
         PECKBOT_STATE_RETURN_HOME = 5,
         PECKBOT_STATE_NONFATAL_KNOCKBACK = 6,
         PECKBOT_STATE_WAIT_FOR_CLOSE_TARGET = 8,
+        PECKBOT_STATE_FACE_HOME_AND_WAIT = 10,
+        PECKBOT_STATE_HOME_TRIGGERED_KNOCKBACK = 11,
         PECKBOT_STATE_RECOVER_FROM_BLOCKED_MOVEMENT = 12,
         PECKBOT_STATE_MOVE_FORWARD_NEAR_LEADER = 13,
         PECKBOT_STATE_AIRBORNE_IDLE = 14,
@@ -1575,7 +1580,7 @@ void peckbot_update(Mob577 *self) {
     s32 hitA0;
     f32 hitA4;
     f32 angle;
-    f32 tmpAC;
+    f32 knockback_travel_time;
     Mob577Vars *v;
     Mob577Hit *hit;
     MobyNode *m;
@@ -1802,7 +1807,7 @@ void peckbot_update(Mob577 *self) {
             SET_ANIM(self, 5, 0, scale_game_frames(3));
         }
         break;
-    case 10:
+    case PECKBOT_STATE_FACE_HOME_AND_WAIT:
         ang = FUN_L00_001ff8b0_cf(v->home.f[0] - self->pos.f[0], v->home.f[1] - self->pos.f[1]);
         FUN_L00_00258278(self, v->turn, ang, 0.05f, 0.3f, 0.2f);
         fast_vec_sub(&vector_scratch, &target.pos, &v->home);
@@ -1816,7 +1821,7 @@ void peckbot_update(Mob577 *self) {
             v->x134 = 0.0f;
             v->x130 = D_L01_00161A6C;
             v->x138 = D_L01_00161A68 * frame_time;
-            v->x13C = FUN_L00_0025abf0(&self->pos, &v->home, &tmpAC, v->x138, -D_L01_00161A6C);
+            v->x13C = FUN_L00_0025abf0(&self->pos, &v->home, &knockback_travel_time, v->x138, -D_L01_00161A6C);
             v->x144 = 13;
             v->x15D = 0;
             trooper_start_knockback(self, v->knock, 6, 1, 0, self->rot.f[2]);
@@ -1825,7 +1830,7 @@ void peckbot_update(Mob577 *self) {
             self->state = 11;
         }
         break;
-    case 11:
+    case PECKBOT_STATE_HOME_TRIGGERED_KNOCKBACK:
         if (mine_fall(self, v->knock) & 1) {
             self->state = 3;
             if (random_integer_below(0x100) & 1) {

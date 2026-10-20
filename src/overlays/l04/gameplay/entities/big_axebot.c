@@ -572,7 +572,10 @@ void big_axebot_update(M_B7B0 *moby) {
         BIG_AXEBOT_HIT_REACTION_CONDITIONAL_HIT_RECOVERY = 3,
         BIG_AXEBOT_HIT_REACTION_RETURN_TO_IDLE = 4,
         BIG_AXEBOT_HIT_REACTION_IDLE_RECOVERY = 5,
-        BIG_AXEBOT_HIT_REACTION_KNOCKBACK = 7
+        BIG_AXEBOT_HIT_REACTION_CONDITIONAL_RECOIL_RECOVERY = 6,
+        BIG_AXEBOT_HIT_REACTION_KNOCKBACK = 7,
+        BIG_AXEBOT_HIT_REACTION_CONDITIONAL_RECOVERY = 8,
+        BIG_AXEBOT_HIT_REACTION_IGNORED = 11
     };
     D_B7B0 *data = moby->data;
     T_B7B0 tg;
@@ -668,8 +671,8 @@ void big_axebot_update(M_B7B0 *moby) {
                 case BIG_AXEBOT_HIT_REACTION_NONE:
                     break;
                 case BIG_AXEBOT_HIT_REACTION_CONDITIONAL_HIT_RECOVERY:
-                case 6:
-                case 8:
+                case BIG_AXEBOT_HIT_REACTION_CONDITIONAL_RECOIL_RECOVERY:
+                case BIG_AXEBOT_HIT_REACTION_CONDITIONAL_RECOVERY:
                     allocate_voice_for_target_entry(0xB, 0, (char *)moby);
                     if (data->f448 <= 0) {
                         data->f408 = -0.5235988f;
@@ -737,7 +740,7 @@ void big_axebot_update(M_B7B0 *moby) {
                 case 2:
                 case 9:
                 case 10:
-                case 11:
+                case BIG_AXEBOT_HIT_REACTION_IGNORED:
                     break;
                 }
             }
@@ -1575,7 +1578,10 @@ void circular_saw_enemy_update(M_35F0 *moby) {
         CIRCULAR_SAW_HIT_REACTION_START_HIT_RECOVERY = 3,
         CIRCULAR_SAW_HIT_REACTION_KNOCKBACK_RECOVERY = 4,
         CIRCULAR_SAW_HIT_REACTION_BACKWARD_RECOIL = 5,
-        CIRCULAR_SAW_HIT_REACTION_RECOIL_RECOVERY = 6
+        CIRCULAR_SAW_HIT_REACTION_RECOIL_RECOVERY = 6,
+        CIRCULAR_SAW_HIT_REACTION_IGNORED = 7,
+        CIRCULAR_SAW_HIT_REACTION_NO_ADDITIONAL_REACTION = 8,
+        CIRCULAR_SAW_HIT_REACTION_CONTINUE_WITHOUT_RESPONSE = 9
     };
     enum {
         CIRCULAR_SAW_POINT_ATTACK_APPROACH_AND_ALIGN = 0,
@@ -1684,9 +1690,9 @@ void circular_saw_enemy_update(M_35F0 *moby) {
                 trooper_anim_update(moby, (short *)data->fB0);
                 data->f14D = scale_game_frames(0x14);
                 break;
-            case 7:
-            case 8:
-            case 9:
+            case CIRCULAR_SAW_HIT_REACTION_IGNORED:
+            case CIRCULAR_SAW_HIT_REACTION_NO_ADDITIONAL_REACTION:
+            case CIRCULAR_SAW_HIT_REACTION_CONTINUE_WITHOUT_RESPONSE:
             case 10:
             case 11:
                 break;
@@ -2348,7 +2354,10 @@ void blarg_trooper_update(struct Moby *moby) {
         BLARG_TROOPER_HIT_REACTION_FATAL = 1,
         BLARG_TROOPER_HIT_REACTION_FATAL_KNOCKBACK = 2,
         BLARG_TROOPER_HIT_REACTION_START_HIT_RECOVERY = 3,
-        BLARG_TROOPER_HIT_REACTION_START_KNOCKBACK_RECOVERY = 4
+        BLARG_TROOPER_HIT_REACTION_START_KNOCKBACK_RECOVERY = 4,
+        BLARG_TROOPER_HIT_REACTION_KNOCKBACK_RECOVERY = 5,
+        BLARG_TROOPER_HIT_REACTION_RECOIL_RECOVERY = 6,
+        BLARG_TROOPER_HIT_REACTION_IGNORED = 11
     };
     struct {
         float tgt[20];
@@ -2496,7 +2505,7 @@ void blarg_trooper_update(struct Moby *moby) {
             FUN_L00_00257470(moby, 0, -1);
             break;
         case BLARG_TROOPER_HIT_REACTION_START_HIT_RECOVERY:
-        case 6: {
+        case BLARG_TROOPER_HIT_REACTION_RECOIL_RECOVERY: {
             int h;
             *(unsigned char *)(data + 0x67) = 0x96;
             blend_moby_animation_p(moby, (void *)8, 0, (void *)scale_game_frames(5));
@@ -2513,7 +2522,7 @@ void blarg_trooper_update(struct Moby *moby) {
             break;
         }
         case BLARG_TROOPER_HIT_REACTION_START_KNOCKBACK_RECOVERY:
-        case 5:
+        case BLARG_TROOPER_HIT_REACTION_KNOCKBACK_RECOVERY:
             *(unsigned char *)(data + 0x67) = 0xFA;
             blend_moby_animation_p(moby, (void *)0xC, 0, (void *)scale_game_frames(5));
             moby->state = 0xA;
@@ -2526,7 +2535,7 @@ void blarg_trooper_update(struct Moby *moby) {
         case 8:
         case 9:
         case 10:
-        case 11:
+        case BLARG_TROOPER_HIT_REACTION_IGNORED:
             break;
         }
         trooper_anim_update(moby, (short *)(data + 0x60));

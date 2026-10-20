@@ -835,6 +835,9 @@ void FUN_L14_002ad8b8(struct Moby *moby) {
         HIT_REACTION_LETHAL = 1,
         HIT_REACTION_DEATH_FALL = 2,
         HIT_REACTION_PLAY_HIT_ANIMATION = 3,
+        HIT_REACTION_HIGH_RED_FLASH_AND_HIT_ANIMATION = 4,
+        HIT_REACTION_ANIMATE_WITH_LOW_RED_FLASH = 9,
+        HIT_REACTION_LOW_RED_FLASH_AND_HIT_ANIMATION = 10,
         HIT_REACTION_NONE = 11
     };
     char *data = (char *)moby->pvars;
@@ -853,13 +856,13 @@ void FUN_L14_002ad8b8(struct Moby *moby) {
         if (st == 3)
             moby->command = 1;
         switch (v) {
-        case 9:
-        case 10:
+        case HIT_REACTION_ANIMATE_WITH_LOW_RED_FLASH:
+        case HIT_REACTION_LOW_RED_FLASH_AND_HIT_ANIMATION:
             data[0x67] = 0x64;
             blend_moby_animation(moby, 1, 0, 5);
             break;
         case HIT_REACTION_PLAY_HIT_ANIMATION:
-        case 4:
+        case HIT_REACTION_HIGH_RED_FLASH_AND_HIT_ANIMATION:
         case 5:
         case 6:
         case 7:
@@ -1923,6 +1926,9 @@ void FUN_L14_002b4340(struct Moby *m) {
         HIT_REACTION_LETHAL = 1,
         HIT_REACTION_DESTROY = 2,
         HIT_REACTION_PLAY_HIT_ANIMATION = 3,
+        HIT_REACTION_HIGH_RED_FLASH_AND_HIT_ANIMATION = 4,
+        HIT_REACTION_ANIMATE_WITH_LOW_RED_FLASH = 9,
+        HIT_REACTION_LOW_RED_FLASH_AND_HIT_ANIMATION = 10,
         HIT_REACTION_NONE = 11
     };
     unsigned char *d = m->pvars;
@@ -1949,12 +1955,12 @@ void FUN_L14_002b4340(struct Moby *m) {
         case HIT_REACTION_NO_ACTION:
         case HIT_REACTION_NONE:
             break;
-        case 9:
-        case 10:
+        case HIT_REACTION_ANIMATE_WITH_LOW_RED_FLASH:
+        case HIT_REACTION_LOW_RED_FLASH_AND_HIT_ANIMATION:
             d[0x67] = 100;
             break;
         case HIT_REACTION_PLAY_HIT_ANIMATION:
-        case 4:
+        case HIT_REACTION_HIGH_RED_FLASH_AND_HIT_ANIMATION:
         case 5:
         case 6:
         case 7:
@@ -2516,6 +2522,9 @@ void FUN_L14_002b5290(struct Moby *m) {
         HIT_REACTION_LETHAL = 1,
         HIT_REACTION_DESTROY = 2,
         HIT_REACTION_PLAY_HIT_ANIMATION = 3,
+        HIT_REACTION_HIGH_RED_FLASH_AND_HIT_ANIMATION = 4,
+        HIT_REACTION_RED_FLASH_ONLY = 9,
+        HIT_REACTION_FLASH_RED = 10,
         HIT_REACTION_NONE = 11
     };
     unsigned char *d = m->pvars;
@@ -2547,15 +2556,15 @@ void FUN_L14_002b5290(struct Moby *m) {
         case HIT_REACTION_NONE:
             break;
         case HIT_REACTION_PLAY_HIT_ANIMATION:
-        case 4:
+        case HIT_REACTION_HIGH_RED_FLASH_AND_HIT_ANIMATION:
         case 5:
         case 6:
         case 7:
         case 8:
             FUN_00212f90(m, 2, 0, 5);
             m->anim_speed = 1.75f;
-        case 9:
-        case 10:
+        case HIT_REACTION_RED_FLASH_ONLY:
+        case HIT_REACTION_FLASH_RED:
             d[0x67] = 0xFA;
             break;
         case HIT_REACTION_LETHAL:

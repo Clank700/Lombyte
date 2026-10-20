@@ -538,12 +538,15 @@ extern void FUN_002ac910_2d09b8(void *, void *, void *, f32, s32, s32, s32, s32,
 void break_crate(M2d1428 *moby, s32 hit, s32 source) __asm__("FUN_L00_002d09b8");
 void break_crate(M2d1428 *moby, s32 hit, s32 source) {
     enum {
+        CRATE_VARIANT_OPTIONAL_QUARTER_TURN = 0,
+        CRATE_VARIANT_MISSION_THRESHOLD_GATED = 1,
         CRATE_VARIANT_DAMAGE_FLAG_GATED = 2,
         CRATE_VARIANT_IMPACT_TRIGGERED = 5,
         CRATE_VARIANT_INITIAL_DAMAGE_STAGE = 7,
         CRATE_VARIANT_SECOND_DAMAGE_STAGE = 8,
         CRATE_VARIANT_PENULTIMATE_DAMAGE_STAGE = 9,
-        CRATE_VARIANT_FINAL_DAMAGE_STAGE = 10
+        CRATE_VARIANT_FINAL_DAMAGE_STAGE = 10,
+        CRATE_VARIANT_CONDITIONAL_RESPAWN_START = 11
     };
     u8 *vars = (u8 *)moby->vars;
     V2d09b8 position, away, rotation, basis[3], launch, spawn_pos, spin;
@@ -592,14 +595,14 @@ void break_crate(M2d1428 *moby, s32 hit, s32 source) {
         else
             FUN_001ff2a8_2d09b8(&away, &moby->pos, (*(u8 * *)D_001413D0) + 0x10);
         switch ((s16)((u16)moby->oclass - 500)) {
-        case 1: kind = 0x15C; break;
+        case CRATE_VARIANT_MISSION_THRESHOLD_GATED: kind = 0x15C; break;
         case 3: kind = 0x15F; break;
         case CRATE_VARIANT_DAMAGE_FLAG_GATED:
             if (!angle) {
             }
             kind = 0x162;
             break;
-        case 0: case 11: kind = 0x165; break;
+        case CRATE_VARIANT_OPTIONAL_QUARTER_TURN: case CRATE_VARIANT_CONDITIONAL_RESPAWN_START: kind = 0x165; break;
         case 4: kind = 0x168; break;
         case CRATE_VARIANT_IMPACT_TRIGGERED: kind = 0x16B; break;
         case 6: kind = 0x16E; break;
@@ -2266,6 +2269,7 @@ void horny_toad_update(Moby *moby) {
         HORNY_TOAD_APPROACH_AND_FACE_TARGET = 6,
         HORNY_TOAD_PLAY_TARGET_ANIMATION = 7,
         HORNY_TOAD_RETURN_HOME = 8,
+        HORNY_TOAD_RUN_MOVEMENT_SEQUENCE = 9,
         HORNY_TOAD_MOVE_TO_POINT_OR_FACE_TARGET = 10,
         HORNY_TOAD_RECOVER_FROM_REACTION = 11,
         HORNY_TOAD_DYING = 12
@@ -2324,7 +2328,7 @@ void horny_toad_update(Moby *moby) {
         }
         break;
     }
-    case 9:
+    case HORNY_TOAD_RUN_MOVEMENT_SEQUENCE:
         if (FUN_L00_002dc9f0_2d4610(moby, data->unk70) != 0) {
             moby->state = 5;
             data->unk138 = 0;

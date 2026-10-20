@@ -616,6 +616,13 @@ extern f32 set_planar_vel(f32) __asm__("FUN_L00_002120d8");
 extern s32 FUN_L00_00211870(f32);
 
 void FUN_L15_0020ed50(void) {
+    enum {
+        HERO_STATE_MOVE_TO_TARGET_POSITION = 0x65,
+        HERO_STATE_BRAKE_AT_TARGET_POSITION = 0x66
+    };
+    enum {
+        HERO_ATTACK_RECORD_DUAL_POINT_HIT_QUERY = 2
+    };
     struct MobyView *moby = (struct MobyView *)hero.moby;
     s32 sub = hero.state.step;
     s32 anim = moby->b53;
@@ -2214,7 +2221,7 @@ void FUN_L15_0020ed50(void) {
         FUN_L00_002334d0(&hero.motion.velocity, &hero.motion.velocity, 0.004f);
         break;
     }
-    case 0x65: {
+    case HERO_STATE_MOVE_TO_TARGET_POSITION: {
         f32 l;
         f32 k;
         subtract_vector_xyz(&spatial_or_hit_descriptor_work, &hero.unk1640, &hero.motion.pos);
@@ -2268,7 +2275,7 @@ void FUN_L15_0020ed50(void) {
         }
         break;
     }
-    case 0x66:
+    case HERO_STATE_BRAKE_AT_TARGET_POSITION:
         subtract_vector_xyz(&spatial_or_hit_descriptor_work, &hero.unk1640, &hero.motion.pos);
         if (fast_vec_dot(&spatial_or_hit_descriptor_work, &hero.motion.unk150) < 0.0f) {
             clear_u64_value(&hero.motion.unk150);
@@ -2346,7 +2353,7 @@ void FUN_L15_0020ed50(void) {
                     collect_mobies_in_sphere(2.0f, &spatial_or_hit_descriptor_work, 0x10, (struct MobyView *)hero.moby, &v10);
                 }
                 break;
-            case 2:
+            case HERO_ATTACK_RECORD_DUAL_POINT_HIT_QUERY:
                 if (hero.anim_frame > 14.0f && hero.anim_frame < 21.0f) {
                     f32 hit_radius = 2.0f;
                     moby_point_position((struct MobyView *)hero.moby, 3, &spatial_or_hit_descriptor_work);

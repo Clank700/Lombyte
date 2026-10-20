@@ -135,11 +135,14 @@ extern float D_L06_00167558_lui __asm__("D_L06_00167558") __attribute__((section
 void FUN_L06_0023b440(void) {
     enum {
         HERO_STATE_DOUBLE_JUMP = 14,
+        HERO_STATE_LEDGE_HANG = 25,
         HERO_STATE_GRIND_JUMP = 41,
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
         HERO_STATE_GRIND_COLLISION_RECOVERY = 66,
         HERO_STATE_APPROACH_TARGET_POSE = 101,
+        HERO_STATE_TARGET_POSE_APPROACH_TRANSITION = 102,
+        HERO_STATE_TARGET_POSE_REACHED = 103,
         HERO_STATE_DEATH_FALL = 119
     };
     unsigned char *moby;
@@ -754,12 +757,12 @@ void FUN_L06_0023b440(void) {
                     }
                     FUN_L00_00228c18();
                     break;
-                case 102:
+                case HERO_STATE_TARGET_POSE_APPROACH_TRANSITION:
                     if (hero.unkA98 & 2) {
                         hero_set_state(0x65, 1);
                     }
                     break;
-                case 103:
+                case HERO_STATE_TARGET_POSE_REACHED:
                     if ((hero.unkA98 & 2) || hero.unk1650 != 0) {
                         hero_set_state(HERO_STATE_IDLE, 1);
                     }
@@ -1273,7 +1276,7 @@ void FUN_L06_0023b440(void) {
                         hero_set_state(0x19, 0);
                     }
                     break;
-                case 25:
+                case HERO_STATE_LEDGE_HANG:
                     if ((hero.unkA98 & 2) && ((unsigned char *)hero.moby)[0x53] == 0x20) {
                         set_hero_animation(0x21, 0, scale_game_frames(6));
                     }
