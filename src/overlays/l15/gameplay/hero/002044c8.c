@@ -33,8 +33,8 @@ void FUN_L15_002044c8(void) {
         if (g->frames_off_ground.s == 0 || g->ground_distance < 0.3f) {
             g->unk12E7 = 1;
             if (g->vehicle_mode == 0) {
-                char *p = ((char *)g->items[1].moby);
-                if (p != 0 && *(short *)(p + 0xA6) == 0xAD)
+                char *item_slot_one_moby = ((char *)g->items[1].moby);
+                if (item_slot_one_moby != 0 && *(short *)(item_slot_one_moby + 0xA6) == 0xAD)
                     g->unk308 = 1;
             }
         }
@@ -47,9 +47,9 @@ void FUN_L15_002044c8(void) {
     }
     if (st == 0) {
         struct Hero *q = &hero;
-        float d = q->water_surface_z - q->ground_z.f;
-        q->unk22A4 = d;
-        if (d < 0.85f && 0.25f < d)
+        float water_depth = q->water_surface_z - q->ground_z.f;
+        q->unk22A4 = water_depth;
+        if (water_depth < 0.85f && 0.25f < water_depth)
             *(char *)&q->unk20A9 = 1;
         {
             struct Hero *flag = &hero;
@@ -97,7 +97,7 @@ void FUN_L15_002044c8(void) {
     }
     {
         struct Hero *q = &hero;
-        struct Hero *h;
+        struct Hero *hero_ptr;
         if (q->unk12E3 != 0 && q->grounded_frames != 0) {
             int k = q->state.control_mode;
             if (k != 0x10 && k != 0x14 && k != 7) {
@@ -105,15 +105,15 @@ void FUN_L15_002044c8(void) {
                 return;
             }
         }
-        h = &hero;
-        if (h->selector_3 != 0 && h->state.current != 0x68 &&
-            h->state.current != 0x7B) {
-            if (absolute_float(h->unk2F4 - (h->motion.pos.f[2] + 0.25f)) < 1.0f) {
-                if (h->unk2F4 - h->motion.pos.f[2] > 0.0f) {
-                    if (h->state.current != 0x69 || h->unk41E != 0) {
-                        if (h->motion.displacement.f[2] < 0.0f) {
+        hero_ptr = &hero;
+        if (hero_ptr->selector_3 != 0 && hero_ptr->state.current != 0x68 &&
+            hero_ptr->state.current != 0x7B) {
+            if (absolute_float(hero_ptr->unk2F4 - (hero_ptr->motion.pos.f[2] + 0.25f)) < 1.0f) {
+                if (hero_ptr->unk2F4 - hero_ptr->motion.pos.f[2] > 0.0f) {
+                    if (hero_ptr->state.current != 0x69 || hero_ptr->unk41E != 0) {
+                        if (hero_ptr->motion.displacement.f[2] < 0.0f) {
                             FUN_L00_0020b930();
-                            if (h->health.hp == 0)
+                            if (hero_ptr->health.hp == 0)
                                 hero_set_state(0x7B, 1);
                             else
                                 hero_set_state(0x68, 1);
@@ -123,11 +123,11 @@ void FUN_L15_002044c8(void) {
                 }
             }
         }
-        h = &hero;
-        if (h->selector_11 != 0 && h->state.current != 0x7B) {
-            if (absolute_float(h->unk2F4 - (h->motion.pos.f[2] + 0.25f)) < 1.0f) {
-                if (h->unk2F4 - h->motion.pos.f[2] > 0.0f) {
-                    if (h->motion.displacement.f[2] < 0.0f) {
+        hero_ptr = &hero;
+        if (hero_ptr->selector_11 != 0 && hero_ptr->state.current != 0x7B) {
+            if (absolute_float(hero_ptr->unk2F4 - (hero_ptr->motion.pos.f[2] + 0.25f)) < 1.0f) {
+                if (hero_ptr->unk2F4 - hero_ptr->motion.pos.f[2] > 0.0f) {
+                    if (hero_ptr->motion.displacement.f[2] < 0.0f) {
                         FUN_L00_0020b930();
                         hero_set_state(0x7B, 1);
                     }
@@ -632,7 +632,7 @@ void FUN_L15_0020ed50(void) {
     Vec4 spatial_or_hit_descriptor_tail_work;
     Vec4 motion_work_vector;
     Vec4 m40[4];
-    Vec4 m80[4];
+    Vec4 transposed_yaw_rotation_matrix[4];
     Vec4 vC0;
     Vec4 vD0;
 
@@ -1253,8 +1253,8 @@ void FUN_L15_0020ed50(void) {
         clear_u64_value(&spatial_or_hit_descriptor_tail_work);
         spatial_or_hit_descriptor_tail_work.f[2] = hero.motion.rot.f[2];
         euler_rotation_matrix(m40, &spatial_or_hit_descriptor_tail_work);
-        transpose_rotation_matrix(m80, m40);
-        transform_vector(&spatial_or_hit_descriptor_work, &spatial_or_hit_descriptor_work, m80);
+        transpose_rotation_matrix(transposed_yaw_rotation_matrix, m40);
+        transform_vector(&spatial_or_hit_descriptor_work, &spatial_or_hit_descriptor_work, transposed_yaw_rotation_matrix);
         v10.f[0] = -fast_arc_tan(square_root(spatial_or_hit_descriptor_work.f[0] * spatial_or_hit_descriptor_work.f[0] + spatial_or_hit_descriptor_work.f[2] * spatial_or_hit_descriptor_work.f[2]), spatial_or_hit_descriptor_work.f[1]);
         v10.f[1] = fast_arc_tan(spatial_or_hit_descriptor_work.f[2], spatial_or_hit_descriptor_work.f[0]);
         FUN_L00_0025bc98(&hero.motion.rot.f[1], v10.f[1], &hero.motion.unkA0.f[1], 0, frame_scale_sq * 0.04f, frame_scale_sq * 0.2f,
@@ -1756,14 +1756,14 @@ void FUN_L15_0020ed50(void) {
         }
         FUN_L01_00232290();
         if (hero.unk930 > 0.0f) {
-            Vec4 *p = &hero.move_impulse;
+            Vec4 *move_impulse_ptr = &hero.move_impulse;
             FUN_L00_002132b8(0.7f, 0.0f);
             spatial_or_hit_descriptor_work.q = hero.move_impulse.q;
             hero.target_speed += forward_component(&spatial_or_hit_descriptor_work);
             if (hero.target_speed < frame_time * 0.7f) {
                 hero.target_speed = frame_time * 0.7f;
             }
-            clear_u64_value(p);
+            clear_u64_value(move_impulse_ptr);
         }
         k = 1.0f;
         if (hero.state.step == 1 && hero.unk3BE == 0) {

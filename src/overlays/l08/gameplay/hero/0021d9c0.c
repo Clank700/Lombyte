@@ -23,25 +23,25 @@ extern int hero_set_state(int, int) __asm__("FUN_L08_00230b38");
 float absolute_float(float input) __asm__("func_001F99C0");
 
 void FUN_L08_0021d9c0(void) {
-    struct Hero *p = &hero;
+    struct Hero *hero_ptr = &hero;
     int v;
     int x;
-    unsigned char saved = p->unk12ED;
-    v = p->ground_type;
-    fast_mem_zero16(&p->ground_type, 0x10);
-    p->unk12ED = saved;
-    p->ground_type = -1;
-    p->unk20A9 = 0;
-    p->unk308 = 0;
+    unsigned char saved = hero_ptr->unk12ED;
+    v = hero_ptr->ground_type;
+    fast_mem_zero16(&hero_ptr->ground_type, 0x10);
+    hero_ptr->unk12ED = saved;
+    hero_ptr->ground_type = -1;
+    hero_ptr->unk20A9 = 0;
+    hero_ptr->unk308 = 0;
     if (v == -1)
         return;
     if (v == 2) {
-        if (p->frames_off_ground.s == 0 || p->ground_distance < 0.3f) {
-            p->unk12E7 = 1;
-            if (p->vehicle_mode == 0) {
-                char *o = ((char *)p->items[1].moby);
-                if (o != 0 && *(short *)(o + 0xA6) == 0xAD)
-                    p->unk308 = 1;
+        if (hero_ptr->frames_off_ground.s == 0 || hero_ptr->ground_distance < 0.3f) {
+            hero_ptr->unk12E7 = 1;
+            if (hero_ptr->vehicle_mode == 0) {
+                char *item_moby = ((char *)hero_ptr->items[1].moby);
+                if (item_moby != 0 && *(short *)(item_moby + 0xA6) == 0xAD)
+                    hero_ptr->unk308 = 1;
             }
         }
     }
@@ -426,7 +426,7 @@ void FUN_L08_002284e0(void) {
     Vec4 vector_and_hit_descriptor_scratch;
     Vec4 movement_vector_scratch;
     Vec4 m40[4];
-    Vec4 m80[4];
+    Vec4 transposed_rotation_matrix[4];
     Vec4 vC0;
     Vec4 vD0;
 
@@ -1086,8 +1086,8 @@ void FUN_L08_002284e0(void) {
         clear_u64_value(&vector_and_hit_descriptor_scratch);
         vector_and_hit_descriptor_scratch.f[2] = hero.motion.rot.f[2];
         euler_rotation_matrix(m40, &vector_and_hit_descriptor_scratch);
-        transpose_rotation_matrix(m80, m40);
-        transform_vector(&vector_and_attack_descriptor_scratch, &vector_and_attack_descriptor_scratch, m80);
+        transpose_rotation_matrix(transposed_rotation_matrix, m40);
+        transform_vector(&vector_and_attack_descriptor_scratch, &vector_and_attack_descriptor_scratch, transposed_rotation_matrix);
         v10.f[0] = -fast_arc_tan(square_root(vector_and_attack_descriptor_scratch.f[0] * vector_and_attack_descriptor_scratch.f[0] + vector_and_attack_descriptor_scratch.f[2] * vector_and_attack_descriptor_scratch.f[2]), vector_and_attack_descriptor_scratch.f[1]);
         v10.f[1] = fast_arc_tan(vector_and_attack_descriptor_scratch.f[2], vector_and_attack_descriptor_scratch.f[0]);
         FUN_L00_0025bc98(&hero.motion.rot.f[1], v10.f[1], &hero.motion.unkA0.f[1], 0, frame_scale_sq * 0.04f, frame_scale_sq * 0.2f,
@@ -1629,14 +1629,14 @@ void FUN_L08_002284e0(void) {
         }
         FUN_L00_00211be8();
         if (hero.unk930 > 0.0f) {
-            Vec4 *p = &hero.move_impulse;
+            Vec4 *move_impulse_ptr = &hero.move_impulse;
             FUN_L00_002132b8(0.7f, 0.0f);
             vector_and_attack_descriptor_scratch.q = hero.move_impulse.q;
             hero.target_speed += forward_component(&vector_and_attack_descriptor_scratch);
             if (hero.target_speed < frame_time * 0.7f) {
                 hero.target_speed = frame_time * 0.7f;
             }
-            clear_u64_value(p);
+            clear_u64_value(move_impulse_ptr);
         }
         k = 1.0f;
         if (hero.state.step == 1 && hero.unk3BE == 0) {

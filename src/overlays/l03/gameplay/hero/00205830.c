@@ -30,9 +30,9 @@ s32 FUN_L03_00205830(Vec4 *from, s32 **outOwner, Vec4 *to, s32 *outI, f32 *outF,
     s32 gotI;
     f32 gotF;
     s32 i;
-    Vec4 *p = &pos;
+    Vec4 *source_position_ptr = &pos;
 
-    *(u128 *)p = *(u128 *)from;
+    *(u128 *)source_position_ptr = *(u128 *)from;
     for (i = 0; i < D_L03_0015F710; i++) {
         if (skip != 0 && D_L03_0015F70C[i].owner == skip)
             continue;
@@ -40,14 +40,14 @@ s32 FUN_L03_00205830(Vec4 *from, s32 **outOwner, Vec4 *to, s32 *outI, f32 *outF,
             continue;
         if (*D_L03_0015F70C[i].owner == 0)
             continue;
-        if (fast_vec_dist(&D_L03_0015F70C[i], p) > D_L03_0015F70C[i].sphere.f[3])
+        if (fast_vec_dist(&D_L03_0015F70C[i], source_position_ptr) > D_L03_0015F70C[i].sphere.f[3])
             continue;
-        if (!FUN_L00_0025df68(D_L03_0015F70C[i].owner, p, to, &gotI, &gotF, D_L03_0015F70C[i].kind,
+        if (!FUN_L00_0025df68(D_L03_0015F70C[i].owner, source_position_ptr, to, &gotI, &gotF, D_L03_0015F70C[i].kind,
                               12.0f, 10.0f, 0.0f))
             continue;
-        if (!(vector_distance(p, to) < 1.7f))
+        if (!(vector_distance(source_position_ptr, to) < 1.7f))
             continue;
-        if (!(FUN_001f99c0(p->f[2] - to->f[2]) < 1.5f))
+        if (!(FUN_001f99c0(source_position_ptr->f[2] - to->f[2]) < 1.5f))
             continue;
         *outOwner = D_L03_0015F70C[i].owner;
         *outI = gotI;
@@ -357,7 +357,7 @@ void FUN_L03_0020ef60(void) {
     Vec4 v20;
     Vec4 motion_offset_or_position;
     Vec4 m40[4];
-    Vec4 m80[4];
+    Vec4 inverse_yaw_matrix[4];
     Vec4 vC0;
     Vec4 vD0;
 
@@ -1017,8 +1017,8 @@ void FUN_L03_0020ef60(void) {
         clear_u64_value(&v20);
         v20.f[2] = hero.motion.rot.f[2];
         euler_rotation_matrix(m40, &v20);
-        transpose_rotation_matrix(m80, m40);
-        transform_vector(&v0, &v0, m80);
+        transpose_rotation_matrix(inverse_yaw_matrix, m40);
+        transform_vector(&v0, &v0, inverse_yaw_matrix);
         v10.f[0] = -fast_arc_tan(square_root(v0.f[0] * v0.f[0] + v0.f[2] * v0.f[2]), v0.f[1]);
         v10.f[1] = fast_arc_tan(v0.f[2], v0.f[0]);
         FUN_L00_0025bc98(&hero.motion.rot.f[1], v10.f[1], &hero.motion.unkA0.f[1], 0, frame_scale_sq * 0.04f, frame_scale_sq * 0.2f,
@@ -1520,14 +1520,14 @@ void FUN_L03_0020ef60(void) {
         }
         FUN_L01_00232290();
         if (hero.unk930 > 0.0f) {
-            Vec4 *p = &hero.move_impulse;
+            Vec4 *move_impulse_ptr = &hero.move_impulse;
             FUN_L00_002132b8(0.7f, 0.0f);
             v0.q = hero.move_impulse.q;
             hero.target_speed += forward_component(&v0);
             if (hero.target_speed < frame_time * 0.7f) {
                 hero.target_speed = frame_time * 0.7f;
             }
-            clear_u64_value(p);
+            clear_u64_value(move_impulse_ptr);
         }
         k = 1.0f;
         if (hero.state.step == 1 && hero.unk3BE == 0) {

@@ -4,13 +4,13 @@
 #include "asm.h"
 
 int walker_gait_mask(float *a, float v) __asm__("FUN_L00_002a13f0");
-int walker_gait_mask(float *a, float v) {
+int walker_gait_mask(float *gait_record, float v) {
     int bit = 1;
     int r = 0;
     int i;
-    float *p = a + 12;
-    for (i = 0; i < 2; i++, p++) {
-        float x = p[4], y = p[6];
+    float *interval_cursor = gait_record + 12;
+    for (i = 0; i < 2; i++, interval_cursor++) {
+        float x = interval_cursor[4], y = interval_cursor[6];
         if (x <= y) {
             if (x <= v && v <= y)
                 r |= bit;
@@ -19,8 +19,8 @@ int walker_gait_mask(float *a, float v) {
                 r |= bit;
         }
         bit <<= 1;
-        x = p[-2];
-        y = p[0];
+        x = interval_cursor[-2];
+        y = interval_cursor[0];
         if (x <= y) {
             if (x <= v && v <= y)
                 r |= bit;
@@ -31,9 +31,9 @@ int walker_gait_mask(float *a, float v) {
         bit <<= 1;
     }
     if (r == 0) {
-        if (v < a[6] || a[6] + 1.0f < v)
+        if (v < gait_record[6] || gait_record[6] + 1.0f < v)
             r |= bit;
-        if (v < a[7] || a[7] + 1.0f < v)
+        if (v < gait_record[7] || gait_record[7] + 1.0f < v)
             r |= bit << 1;
     }
     return r;
@@ -44,13 +44,13 @@ void FUN_L00_002a1538(u8 *gait_data) {
     u8 *r = gait_data + 0x130;
     u8 *q = gait_data + 0x170;
     for (i = 0; i < 2; i++) {
-        u8 *p = gait_data + i * 0xB0;
-        if (p[0x161] != 0)
+        u8 *gait_region_base = gait_data + i * 0xB0;
+        if (gait_region_base[0x161] != 0)
             FUN_L00_001fff28(q + i * 0xB0, 2, 0.0f);
-        if (p[0x121] != 0)
+        if (gait_region_base[0x121] != 0)
             FUN_L00_001fff28(r + i * 0xB0, 2, 0.0f);
-        *(s32 *)(p + 0x104) = 0;
-        *(s32 *)(p + 0xFC) = 0;
+        *(s32 *)(gait_region_base + 0x104) = 0;
+        *(s32 *)(gait_region_base + 0xFC) = 0;
     }
 }
 #define NOT_SDA
@@ -61,9 +61,9 @@ void FUN_L00_002a1538(u8 *gait_data) {
 
 extern float square_root(float) __asm__("FUN_001f9988");
 
-float FUN_L00_002a15c8(char *a, char *b) {
+float FUN_L00_002a15c8(char *walker_moby, char *b) {
     float s = *(float *)(b + 0xDC);
-    float gap = *(float *)(a + 0x18) - *(float *)(b + 0x68);
+    float gap = *(float *)(walker_moby + 0x18) - *(float *)(b + 0x68);
     float c = *(float *)(b + 0xD8) + s * 0.5f;
     float d = c * c + (s + s) * gap;
     float res;

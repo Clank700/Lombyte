@@ -89,7 +89,12 @@ extern char D_L08_0017C720[];
 int hero_set_state(int a, int b) {
     enum {
         ENTER_IDLE = 0,
+        HERO_STATE_DOUBLE_JUMP = 0xE,
         ENTER_ATTACK_COMBO = 0x13,
+        HERO_STATE_GRIND_JUMP = 0x29,
+        HERO_STATE_GRIND_ATTACK = 0x2B,
+        HERO_STATE_APPROACH_TARGET_POSE = 0x65,
+        HERO_STATE_AT_TARGET_POSE = 0x67,
         ENTER_DROWN = 0x6A,
         ENTER_SLIP = 0x79
     };
@@ -175,7 +180,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x67: {
+    case HERO_STATE_AT_TARGET_POSE: {
         struct Hero *p = &hero;
         p->state.control_mode = 0;
         p->unk2284 = 0;
@@ -582,7 +587,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x65: {
+    case HERO_STATE_APPROACH_TARGET_POSE: {
         struct Hero *p = &hero;
         p->state.control_mode = 1;
         p->unk2284 = 0;
@@ -1000,13 +1005,13 @@ int hero_set_state(int a, int b) {
     case HERO_STATE_HIGH_JUMP:
     case 0xC:
     case 0xD:
-    case 0xE:
+    case HERO_STATE_DOUBLE_JUMP:
     case 0xF:
     case HERO_STATE_PACK_LONG_JUMP:
     case 0x11:
     case 0x12:
     case 0x1C:
-    case 0x29:
+    case HERO_STATE_GRIND_JUMP:
     case 0x2A:
     case 0x3C:
     case 0x49:
@@ -1598,7 +1603,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x2B: {
+    case HERO_STATE_GRIND_ATTACK: {
         struct Hero *p = &hero;
         p->state.control_mode = 0xF;
         p->unkA64 = 0;

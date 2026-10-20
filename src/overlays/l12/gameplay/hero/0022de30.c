@@ -81,8 +81,8 @@ void FUN_L12_0022de30(void) {
         struct Hero *h = &hero;
         if (h->selector_13) {
             if (h->state.current != 0x7F) {
-                float e = absolute_float(h->water_surface_z - (h->motion.pos.f[2] + 0.25f));
-                if (e < 1.0f) {
+                float water_surface_distance = absolute_float(h->water_surface_z - (h->motion.pos.f[2] + 0.25f));
+                if (water_surface_distance < 1.0f) {
                     if (h->water_surface_z - h->motion.pos.f[2] > 0.0f) {
                         if (h->motion.displacement.f[2] < 0.0f) {
                             FUN_L00_0020b930();
@@ -185,7 +185,7 @@ void FUN_L12_00233e80(void) {
     f32 f;
     s32 r;
     s32 i;
-    f32 a;
+    f32 ground_probe_angle;
     u8 *p;
 
     s32 k;
@@ -320,12 +320,12 @@ d1:
         hero.unk2E8.f = ground_geometry_scratch.f[0];
     }
     for (i = 0; i < 2; i++) {
-        a = 1.5707964f;
+        ground_probe_angle = 1.5707964f;
         if (i == 1) {
-            a = -a;
+            ground_probe_angle = -ground_probe_angle;
         }
-        FUN_L00_002335c8(&ground_probe_first_endpoint, 0.2f, a, 0.45f);
-        FUN_L00_002335c8(&unused_ground_probe_output, 0.2f, a, -0.45f);
+        FUN_L00_002335c8(&ground_probe_first_endpoint, 0.2f, ground_probe_angle, 0.45f);
+        FUN_L00_002335c8(&unused_ground_probe_output, 0.2f, ground_probe_angle, -0.45f);
         if (FUN_001efa68_u(&ground_probe_first_endpoint, &collision_ray_second_endpoint, 0x22, (s32)hero.moby, 0)) {
             f = HH.point.f[2] - hero.ground_z.f;
             hero.unk2C0.f[i] = f;
@@ -655,7 +655,7 @@ void FUN_L12_00238900(void) {
     Vec4 v20;
     Vec4 movement_vector_scratch;
     Vec4 m40[4];
-    Vec4 m80[4];
+    Vec4 transposed_yaw_matrix[4];
     Vec4 vC0;
     Vec4 vD0;
 
@@ -1343,8 +1343,8 @@ void FUN_L12_00238900(void) {
         clear_u64_value(&v20);
         v20.f[2] = hero.motion.rot.f[2];
         euler_rotation_matrix(m40, &v20);
-        transpose_rotation_matrix(m80, m40);
-        transform_vector(&geometry_and_hit_descriptor_scratch, &geometry_and_hit_descriptor_scratch, m80);
+        transpose_rotation_matrix(transposed_yaw_matrix, m40);
+        transform_vector(&geometry_and_hit_descriptor_scratch, &geometry_and_hit_descriptor_scratch, transposed_yaw_matrix);
         v10.f[0] = -fast_arc_tan(square_root(geometry_and_hit_descriptor_scratch.f[0] * geometry_and_hit_descriptor_scratch.f[0] + geometry_and_hit_descriptor_scratch.f[2] * geometry_and_hit_descriptor_scratch.f[2]), geometry_and_hit_descriptor_scratch.f[1]);
         v10.f[1] = fast_arc_tan(geometry_and_hit_descriptor_scratch.f[2], geometry_and_hit_descriptor_scratch.f[0]);
         FUN_L00_0025bc98(&hero.motion.rot.f[1], v10.f[1], &hero.motion.unkA0.f[1], 0, frame_scale_sq * 0.04f, frame_scale_sq * 0.2f,
@@ -1928,14 +1928,14 @@ void FUN_L12_00238900(void) {
         }
         FUN_L00_00211be8();
         if (hero.unk930 > 0.0f) {
-            Vec4 *p = &hero.move_impulse;
+            Vec4 *move_impulse_ptr = &hero.move_impulse;
             FUN_L00_002132b8(0.7f, 0.0f);
             geometry_and_hit_descriptor_scratch.q = hero.move_impulse.q;
             hero.target_speed += forward_component(&geometry_and_hit_descriptor_scratch);
             if (hero.target_speed < frame_time * 0.7f) {
                 hero.target_speed = frame_time * 0.7f;
             }
-            clear_u64_value(p);
+            clear_u64_value(move_impulse_ptr);
         }
         k = 1.0f;
         if (hero.state.step == 1 && hero.unk3BE == 0) {
