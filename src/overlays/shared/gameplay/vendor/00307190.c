@@ -70,7 +70,7 @@ void FUN_L08_00307298(char *fire_bolt) {
     float prev[4];
     float sc[4];
     float off[4];
-    float tmp[4];
+    float unused_vector_argument[4];
     char *tracked_moby;
     switch (((unsigned char *)fire_bolt)[0x20]) {
     case FIRE_BOLT_STATE_FLYING:
@@ -84,7 +84,7 @@ void FUN_L08_00307298(char *fire_bolt) {
             float trail_velocity_scale = random_float_between_alt(0.95f, 0.985f);
             scale_vector_xyz(sc, bolt_data, trail_velocity_scale);
             normalize_vector_xyz(off, bolt_data, -0.1f);
-            FUN_L00_001ff290(tmp, off, fire_bolt + 0x10);
+            FUN_L00_001ff290(unused_vector_argument, off, fire_bolt + 0x10);
             trail_frame_count = scale_game_frames(random_int_between(0xF, 0x14));
             FUN_L00_00269958(off, sc, 0x6F00AFFF, 0xFF, trail_frame_count, 0x28,
                              scale_game_frames(random_int_between(7, 0xA)), 1);
@@ -307,16 +307,16 @@ void FUN_L08_00307cf0(Moby *moby) {
                 D_L08_00160260 = ((Cam_3091B0 *)(D_L08_00167640_3091B0 - 0x140))->f148 - D_L08_0016235C;
                 ground_height = func_L00_002644E0_3091B0(&pt);
                 if (ground_height < ((Cam_3091B0 *)(D_L08_00167640_3091B0 - 0x140))->f148 + D_L08_00162344) {
-                    void *q;
+                    void *distance_selected_spawn_argument;
                     if (ground_height < D_L08_00160260) {
                         w = D_L08_00160260;
                     } else {
                         w = ground_height;
                     }
-                    q = 0;
-                    if (8.0f < origin_distance_xy) q = D_L08_00162358;
-                    if (flag == 0) func_L08_00273A80_3091B0(&pt, q, w, &par);
-                    if (flag == 1) func_L08_002803B8_3091B0(&pt, q, w, &par);
+                    distance_selected_spawn_argument = 0;
+                    if (8.0f < origin_distance_xy) distance_selected_spawn_argument = D_L08_00162358;
+                    if (flag == 0) func_L08_00273A80_3091B0(&pt, distance_selected_spawn_argument, w, &par);
+                    if (flag == 1) func_L08_002803B8_3091B0(&pt, distance_selected_spawn_argument, w, &par);
                 }
             } while (--cnt != 0);
         }
@@ -416,7 +416,7 @@ void FUN_L08_003085f0(char *moby) {
     float v[4];
     float pos[4];
     float w[4];
-    float o[4];
+    float randomized_spawn_vector[4];
     char *moby_data = *(char **)(moby + 0x78);
     int i;
     subtract_vector_xyz(v, D_L08_001675C0, moby + 0x10);
@@ -437,12 +437,12 @@ void FUN_L08_003085f0(char *moby) {
             v[1] = v[1] + fast_sin(ang) * rad;
             subtract_vector_xyz(w, v, D_L08_001675C0);
             if (!(vector_length_xy(w) <= *(float *)(moby_data + 0x10))) {
-                o[0] = D_L08_00162360[0] + random_float_between_alt(-r, r);
-                o[1] = D_L08_00162364 + random_float_between_alt(-r, r);
-                o[2] = -(random_float_between_alt(*(float *)(moby_data + 0x18), *(float *)(moby_data + 0x1C)) *
+                randomized_spawn_vector[0] = D_L08_00162360[0] + random_float_between_alt(-r, r);
+                randomized_spawn_vector[1] = D_L08_00162364 + random_float_between_alt(-r, r);
+                randomized_spawn_vector[2] = -(random_float_between_alt(*(float *)(moby_data + 0x18), *(float *)(moby_data + 0x1C)) *
                          frame_time);
-                o[3] = 0.0f;
-                FUN_L08_00272cb8(v, *(void **)moby_data, o, *(float *)(moby + 0x18) - *(float *)(moby_data + 0x20));
+                randomized_spawn_vector[3] = 0.0f;
+                FUN_L08_00272cb8(v, *(void **)moby_data, randomized_spawn_vector, *(float *)(moby + 0x18) - *(float *)(moby_data + 0x20));
             }
         }
     }

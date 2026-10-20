@@ -125,12 +125,15 @@ void FUN_L12_002461f0(void) {
     enum {
         HERO_STATE_ITEM_BUTTON_RELEASE_WAIT = 23,
         HERO_STATE_LOOK_RELEASE_WAIT = 30,
+        HERO_STATE_ITEM_MOBY_FRAME_EXIT_WAIT = 32,
         HERO_STATE_ITEM_ANIMATION_RELEASE_GATE = 46,
         HERO_STATE_ITEM_BUTTON_RELEASE_SEQUENCE_EXIT_WAIT = 48,
         HERO_STATE_CIRCLE_RELEASE_WAIT = 89,
         HERO_STATE_APPROACH_TARGET_POSE = 101,
         HERO_STATE_TARGET_POSE_APPROACH_RESTART_WAIT = 102,
         HERO_STATE_TARGET_POSE_WAIT = 103,
+        HERO_STATE_ATTACK_RECORD_FRAME_EXIT_WAIT = 112,
+        HERO_STATE_ANIMATION_FRAME_EXIT_WAIT = 113,
         HERO_STATE_LOW_ALTITUDE_RESPAWN_WAIT = 119
     };
     struct Moby *moby;
@@ -1005,12 +1008,12 @@ void FUN_L12_002461f0(void) {
                         }
                     }
                     break;
-                case 112:
+                case HERO_STATE_ATTACK_RECORD_FRAME_EXIT_WAIT:
                     if (hero.anim_frame > (float)D_L12_0017C0A8[hero.attack_record].f18) {
                         hero_set_state(HERO_STATE_IDLE, 1);
                     }
                     break;
-                case 113:
+                case HERO_STATE_ANIMATION_FRAME_EXIT_WAIT:
                     if (25.0f < hero.anim_frame) {
                         hero_set_state(HERO_STATE_IDLE, 1);
                     }
@@ -2037,7 +2040,7 @@ void FUN_L12_002461f0(void) {
                     }
                     D_L12_0016CC00 = 0;
                     break;
-                case 32:
+                case HERO_STATE_ITEM_MOBY_FRAME_EXIT_WAIT:
                     if (hero.items[0].moby != 0 && hero.unkA9C == 0 && hero.anim_frame > 20.0f) {
                         hero_set_state(HERO_STATE_IDLE, 0);
                     }

@@ -52,7 +52,7 @@ extern int func_001FA898_r_80970(float) __asm__("FUN_001fa6d0");
 extern int func_002140B0_80970(int) __asm__("FUN_00213260");
 extern int func_001F9850_80970(int) __asm__("FUN_001f96f8");
 extern unsigned char *D_L01_001B2538 __attribute__((section(".data")));
-char *FUN_L01_00280970(int a, char *b) {
+char *FUN_L01_00280970(int particle_value, char *b) {
     char *particle = func_00218928_80970(0xE);
     int r;
     int *particle_data;
@@ -73,12 +73,12 @@ char *FUN_L01_00280970(int a, char *b) {
         particle_data = (int *)(particle + 0x20);
         particle_data[2] = (int)b;
         particle_data[1] = 1;
-        if (a == 0) {
+        if (particle_value == 0) {
             particle_data[0] = 0;
         } else if (func_002140B0_80970(2)) {
-            particle_data[0] = a;
+            particle_data[0] = particle_value;
         } else {
-            particle_data[0] = -a;
+            particle_data[0] = -particle_value;
         }
     }
     return particle;
@@ -91,7 +91,7 @@ extern int trunc_285768(float) __asm__("FUN_001fa6d0");
 /* Allocates a type 0x29 particle and fills it from the arguments; kind 0xFF
  * derives the frame from flags and picks one of two blend modes. */
 char *draw_number(float scale, void *pos, int a, int idx, int b, unsigned char flags, short h, unsigned char kind) __asm__("FUN_L01_00285768");
-char *draw_number(float scale, void *pos, int source_moby, int idx, int b, unsigned char flags, short h, unsigned char kind) {
+char *draw_number(float scale, void *pos, int source_moby, int idx, int b, unsigned char flags, short particle_lifetime, unsigned char kind) {
     char *r = alloc_285768(0x29);
     if (r != 0) {
         int *tail = (int *)(r + 0x20);
@@ -111,7 +111,7 @@ char *draw_number(float scale, void *pos, int source_moby, int idx, int b, unsig
         r[1] = 0;
         r[2] = D_L01_001B25A4[0][idx];
         *(float *)(r + 0xC) = scale * 210000.0f;
-        *(short *)(r + 0xA) = h;
+        *(short *)(r + 0xA) = particle_lifetime;
         ((unsigned char *)r)[8] = 0xA0;
         /* taking the address changes register allocation to match */
         *tail = *&source_moby;
@@ -128,7 +128,7 @@ extern int func_001FA898_87158(float) __asm__("FUN_001fa6d0");
 extern int func_002140B0_87158(int) __asm__("FUN_00213260");
 extern float func_001FA888_87158(int) __asm__("FUN_001fa6c0");
 extern unsigned char *D_L01_001B25D0 __attribute__((section(".data")));
-unsigned char *FUN_L01_00287158(void *spawn_position, int b, int c, int d, float f, float g) {
+unsigned char *FUN_L01_00287158(void *spawn_position, int b, int particle_data_value, int particle_lifetime, float particle_scale, float g) {
     unsigned char *r = func_00218928_87158(0x34);
     if (r != 0) {
         char *v = (char *)r + 0x20;
@@ -139,14 +139,14 @@ unsigned char *FUN_L01_00287158(void *spawn_position, int b, int c, int d, float
         r[9] = func_001FA898_87158(4.0f) + 0x20;
         r[1] = 1;
         r[2] = *D_L01_001B25D0;
-        *(short *)(r + 0xA) = d;
-        *(float *)(r + 0xC) = f * 210000.0f;
+        *(short *)(r + 0xA) = particle_lifetime;
+        *(float *)(r + 0xC) = particle_scale * 210000.0f;
         r[8] = func_002140B0_87158(0xFF);
         *(int *)(v + 8) = b;
-        *(int *)(v + 0xC) = c;
-        *(float *)v = f;
+        *(int *)(v + 0xC) = particle_data_value;
+        *(float *)v = particle_scale;
         *(float *)(v + 4) = g;
-        *(float *)(v + 0x10) = 1.0f / func_001FA888_87158(d);
+        *(float *)(v + 0x10) = 1.0f / func_001FA888_87158(particle_lifetime);
     }
     return r;
 }
@@ -351,7 +351,7 @@ extern void scale_vector_xyz(void *out, void *a, f32 s) __asm__("FUN_001f9a68");
 extern void subtract_vector_xyz(void *out, void *a, void *b) __asm__("FUN_001f9a28");
 extern void *func_001153FC_c(void *, int, unsigned int) __asm__("FUN_001153fc");
 
-void FUN_L01_0028b8c8(void *out, int *l, int idx, float a, float b) {
+void FUN_L01_0028b8c8(void *out, int *l, int idx, float tangent_tension, float b) {
     void *neighboring_points[3];
     float weighted_incoming_delta[4];
     float weighted_outgoing_delta[4];
@@ -363,8 +363,8 @@ void FUN_L01_0028b8c8(void *out, int *l, int idx, float a, float b) {
     neighboring_points[1] = FUN_L01_0028b7b0(l, *l + idx);
     neighboring_points[2] = FUN_L01_0028b7b0(l, *l + idx + 1);
     {
-        wb = (1.0f - a) * (b + 1.0f) * 0.5f;
-        wa = (1.0f - a) * (1.0f - b) * 0.5f;
+        wb = (1.0f - tangent_tension) * (b + 1.0f) * 0.5f;
+        wa = (1.0f - tangent_tension) * (1.0f - b) * 0.5f;
     }
     incoming_segment_distance = fast_vec_dist(neighboring_points[0], neighboring_points[1]);
     outgoing_segment_distance = fast_vec_dist(neighboring_points[1], neighboring_points[2]);
@@ -390,15 +390,15 @@ void FUN_L01_0028b8c8(void *out, int *l, int idx, float a, float b) {
 extern void fast_vec_add(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void fast_vec_scale(void *, void *, float) __asm__("FUN_001f9a68");
 
-void FUN_L01_0028ba80(float t, void *out, void *start_point, void *end_point, void *start_tangent, void *end_tangent) {
+void FUN_L01_0028ba80(float segment_parameter, void *out, void *start_point, void *end_point, void *start_tangent, void *end_tangent) {
     char weighted_vector[16];
-    float t_squared = t * t;
-    float t_cubed = t_squared * t;
+    float t_squared = segment_parameter * segment_parameter;
+    float t_cubed = t_squared * segment_parameter;
     float b = t_squared * 3.0f;
     float twice_t_cubed = t_cubed + t_cubed;
     float twice_t_squared = t_squared + t_squared;
     fast_vec_scale(out, start_point, twice_t_cubed - b + 1.0f);
-    fast_vec_scale(weighted_vector, start_tangent, t_cubed - twice_t_squared + t);
+    fast_vec_scale(weighted_vector, start_tangent, t_cubed - twice_t_squared + segment_parameter);
     fast_vec_add(out, out, weighted_vector);
     fast_vec_scale(weighted_vector, end_tangent, t_cubed - t_squared);
     fast_vec_add(out, out, weighted_vector);
@@ -428,7 +428,7 @@ float FUN_L01_0028bb90(float tangent_tension, float b, T_28b828 *path, int parti
 
     index = 0;
     while (index < count) {
-        float t;
+        float segment_parameter;
         float step;
         float segmentLength;
         int nextIndex;
@@ -437,23 +437,23 @@ float FUN_L01_0028bb90(float tangent_tension, float b, T_28b828 *path, int parti
         if (particles) {
             draw_number(1.0f, &currentNode, (int)moby, index % 15 + 2, 0x80108010, 0x7f, -1, 0xff);
         }
-        t = 0.05f;
+        segment_parameter = 0.05f;
         nextIndex = FUN_L01_0028b828(path, index + 1);
         segmentLength = 0.0f;
         nextNode.q = *(OvlQuad *)((char *)path->f10 + nextIndex * 16 + 0x10);
         *(int *)path = index;
         ((void (*)(void *, int *, float, float, int))FUN_L01_0028b8c8)(&nextTangent, (int *)path, tangent_tension, b, 1);
         previousPoint.q = currentNode.q;
-        step = t;
+        step = segment_parameter;
         do {
             if (particles) {
                 draw_number(0.2f, &previousPoint, (int)moby, 0, 0x80404080, 0x7f, -1, 0xff);
             }
-            FUN_L01_0028ba80(t, &point, &currentNode, &nextNode, &previousTangent, &nextTangent);
-            t += step;
+            FUN_L01_0028ba80(segment_parameter, &point, &currentNode, &nextNode, &previousTangent, &nextTangent);
+            segment_parameter += step;
             segmentLength += fast_vec_dist(&previousPoint, &point);
             previousPoint.q = point.q;
-        } while (t <= 1.0f);
+        } while (segment_parameter <= 1.0f);
         total += segmentLength;
         {
             char *nodeData = (char *)path->f10;

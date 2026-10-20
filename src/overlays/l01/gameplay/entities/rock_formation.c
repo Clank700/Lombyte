@@ -46,7 +46,7 @@ void rock_formation_update(struct Moby *rock_formation_moby) {
     DebrisHit *hit;
     s32 i;
     s32 j;
-    f32 s;
+    f32 offset_component_or_particle_size;
 
     hit = trooper_find_hit(rock_formation_moby, 0x10000, 0);
     rock_formation_moby->hit_slot = 0xFF;
@@ -65,18 +65,18 @@ void rock_formation_update(struct Moby *rock_formation_moby) {
                 pos.f[2] = random_float_between(-1.0f, 1.0f);
                 off.q = 0;
                 vel.q = pos.q;
-                s = random_float_between(-1.0f, 1.0f);
-                s *= fast_cos(rock_formation_moby->rot.z);
-                off.f[0] = s;
-                s = random_float_between(-0.3f, 0.3f);
-                s *= fast_sin(rock_formation_moby->rot.z);
-                off.f[1] = s;
+                offset_component_or_particle_size = random_float_between(-1.0f, 1.0f);
+                offset_component_or_particle_size *= fast_cos(rock_formation_moby->rot.z);
+                off.f[0] = offset_component_or_particle_size;
+                offset_component_or_particle_size = random_float_between(-0.3f, 0.3f);
+                offset_component_or_particle_size *= fast_sin(rock_formation_moby->rot.z);
+                off.f[1] = offset_component_or_particle_size;
                 off.f[2] = random_float_between(0.0f, 2.0f);
                 pos.q = off.q;
                 fast_vec_add(&pos, &pos, &rock_formation_moby->pos);
                 fast_vec_normalize(&vel, &vel, random_float_between(0.5f, 1.5f) * frame_time);
-                s = random_float_between(0.5f, 1.0f) * 210000.0f;
-                FUN_L00_0026ced0(&pos, &vel, 0x5F787878, 0x181818, s, scale_game_frames(FUN_L00_00257b90(30, 90)));
+                offset_component_or_particle_size = random_float_between(0.5f, 1.0f) * 210000.0f;
+                FUN_L00_0026ced0(&pos, &vel, 0x5F787878, 0x181818, offset_component_or_particle_size, scale_game_frames(FUN_L00_00257b90(30, 90)));
             }
         }
         for (j = 0; j < 40; j++) {
@@ -92,12 +92,12 @@ void rock_formation_update(struct Moby *rock_formation_moby) {
             pos.f[2] = random_float_between(-1.0f, 1.0f);
             off.q = 0;
             vel.q = pos.q;
-            s = random_float_between(-1.2f, 1.2f);
-            s *= fast_cos(rock_formation_moby->rot.z);
-            off.f[0] = s;
-            s = random_float_between(-0.4f, 0.4f);
-            s *= fast_sin(rock_formation_moby->rot.z);
-            off.f[1] = s;
+            offset_component_or_particle_size = random_float_between(-1.2f, 1.2f);
+            offset_component_or_particle_size *= fast_cos(rock_formation_moby->rot.z);
+            off.f[0] = offset_component_or_particle_size;
+            offset_component_or_particle_size = random_float_between(-0.4f, 0.4f);
+            offset_component_or_particle_size *= fast_sin(rock_formation_moby->rot.z);
+            off.f[1] = offset_component_or_particle_size;
             off.f[2] = random_float_between(0.5f, 2.0f);
             pos.q = off.q;
             fast_vec_add(&pos, &pos, &rock_formation_moby->pos);
@@ -296,7 +296,7 @@ extern void FUN_L00_00250df8();
 BeamMoby *FUN_L01_002fa068(s32 owner, u128 *pos, u128 *target, s32 color) {
     u128 position_copy;
     u128 target_copy;
-    BeamMoby *m;
+    BeamMoby *spawned_moby;
     BeamVars *v;
     u128 *pp;
     u128 *tp;
@@ -305,26 +305,26 @@ BeamMoby *FUN_L01_002fa068(s32 owner, u128 *pos, u128 *target, s32 color) {
     tp = &target_copy;
     position_copy = *pos;
     target_copy = *target;
-    m = spawn_beam_moby(0x2D2);
-    if (m != 0) {
-        v = m->pvars;
+    spawned_moby = spawn_beam_moby(0x2D2);
+    if (spawned_moby != 0) {
+        v = spawned_moby->pvars;
         v->owner = owner;
-        m->b30 = 0x7F;
-        m->h32 = 0x7F;
-        m->b31 = 1;
-        m->scale *= 0.5f;
-        set_moby_color(m, 0x7F, 0x7F, 0x7F);
-        m->rx = random_angle_radians();
-        m->ry = random_angle_radians();
-        m->rz = random_angle_radians();
-        qcopy(&m->pos, pp);
+        spawned_moby->b30 = 0x7F;
+        spawned_moby->h32 = 0x7F;
+        spawned_moby->b31 = 1;
+        spawned_moby->scale *= 0.5f;
+        set_moby_color(spawned_moby, 0x7F, 0x7F, 0x7F);
+        spawned_moby->rx = random_angle_radians();
+        spawned_moby->ry = random_angle_radians();
+        spawned_moby->rz = random_angle_radians();
+        qcopy(&spawned_moby->pos, pp);
         qcopy(&v->target, tp);
         v->color = color;
-        FUN_L00_0026daa0(m, 0x2F00007F, color, -1, 210000.0f);
-        FUN_L00_0026daa0(m, 0x4F004F7F, v->color, -1, 115500.0f);
-        FUN_L00_00250df8(m);
+        FUN_L00_0026daa0(spawned_moby, 0x2F00007F, color, -1, 210000.0f);
+        FUN_L00_0026daa0(spawned_moby, 0x4F004F7F, v->color, -1, 115500.0f);
+        FUN_L00_00250df8(spawned_moby);
     }
-    return m;
+    return spawned_moby;
 }
 
 /*
@@ -456,7 +456,7 @@ void update_birdbot_projectile(DropMoby *projectile) {
     Vec4 prev;
     DropProbe probe;
     u128 burst_position;
-    f32 a;
+    f32 scaled_ten;
     f32 b;
     f32 zero;
     f32 one;
@@ -469,10 +469,10 @@ void update_birdbot_projectile(DropMoby *projectile) {
     zero = 0.0f;
     one = 1.0f;
     ten = 10.0f;
-    a = multiply_global_factor_ed64(ten);
+    scaled_ten = multiply_global_factor_ed64(ten);
     b = multiply_global_factor_ed64(ten);
     b = b * multiply_global_factor_ed64(ten);
-    ((f32 *)&v->vel)[2] -= (a * zero + one) * 2.0f / b;
+    ((f32 *)&v->vel)[2] -= (scaled_ten * zero + one) * 2.0f / b;
     fast_vec_add(pos, pos, &v->vel);
     if (projectile->pos.f[0] < zero || projectile->pos.f[1] < zero || projectile->pos.f[2] < zero ||
         vector_distance(pos, D_L01_00167240) > 64.0f) {
@@ -515,7 +515,7 @@ void destroyable_cave_wall_update(struct Moby *m) __asm__("FUN_L01_002fa800");
 void destroyable_cave_wall_update(struct Moby *cave_wall_moby) {
     s32 i;
     s32 j;
-    f32 s;
+    f32 offset_component_or_smoke_scale;
 
     if (D_L01_001BB6B0.collected[(s16)cave_wall_moby->save_id] != 0 ||
         (D_0014C190_257218[current_level_index][(s16)cave_wall_moby->save_id >> 5] >> (cave_wall_moby->save_id & 0x1F)) & 1) {
@@ -537,18 +537,18 @@ void destroyable_cave_wall_update(struct Moby *cave_wall_moby) {
                 pos.f[2] = random_float_between(-1.0f, 1.0f);
                 off.q = 0;
                 vel.q = pos.q;
-                s = random_float_between(-4.0f, 4.0f);
-                s *= fast_cos(cave_wall_moby->rot.z);
-                off.f[0] = s;
-                s = random_float_between(-1.0f, 1.0f);
-                s *= fast_sin(cave_wall_moby->rot.z);
-                off.f[1] = s;
+                offset_component_or_smoke_scale = random_float_between(-4.0f, 4.0f);
+                offset_component_or_smoke_scale *= fast_cos(cave_wall_moby->rot.z);
+                off.f[0] = offset_component_or_smoke_scale;
+                offset_component_or_smoke_scale = random_float_between(-1.0f, 1.0f);
+                offset_component_or_smoke_scale *= fast_sin(cave_wall_moby->rot.z);
+                off.f[1] = offset_component_or_smoke_scale;
                 off.f[2] = random_float_between(0.0f, 8.0f);
                 pos.q = off.q;
                 fast_vec_add(&pos, &pos, &cave_wall_moby->pos);
                 fast_vec_normalize(&vel, &vel, random_float_between(1.5f, 3.5f) * frame_time);
-                s = random_float_between(1.5f, 3.5f) * 210000.0f;
-                FUN_L00_0026ced0(&pos, &vel, 0x5F787878, 0x181818, s, scale_game_frames(FUN_L00_00257b90(120, 240)));
+                offset_component_or_smoke_scale = random_float_between(1.5f, 3.5f) * 210000.0f;
+                FUN_L00_0026ced0(&pos, &vel, 0x5F787878, 0x181818, offset_component_or_smoke_scale, scale_game_frames(FUN_L00_00257b90(120, 240)));
             }
         }
         for (j = 0; j < 100; j++) {
@@ -564,12 +564,12 @@ void destroyable_cave_wall_update(struct Moby *cave_wall_moby) {
             pos.f[2] = random_float_between(-1.0f, 1.0f);
             off.q = 0;
             vel.q = pos.q;
-            s = random_float_between(-4.0f, 4.0f);
-            s *= fast_cos(cave_wall_moby->rot.z);
-            off.f[0] = s;
-            s = random_float_between(-1.0f, 1.0f);
-            s *= fast_sin(cave_wall_moby->rot.z);
-            off.f[1] = s;
+            offset_component_or_smoke_scale = random_float_between(-4.0f, 4.0f);
+            offset_component_or_smoke_scale *= fast_cos(cave_wall_moby->rot.z);
+            off.f[0] = offset_component_or_smoke_scale;
+            offset_component_or_smoke_scale = random_float_between(-1.0f, 1.0f);
+            offset_component_or_smoke_scale *= fast_sin(cave_wall_moby->rot.z);
+            off.f[1] = offset_component_or_smoke_scale;
             off.f[2] = random_float_between(1.0f, 8.0f);
             pos.q = off.q;
             fast_vec_add(&pos, &pos, &cave_wall_moby->pos);
@@ -734,11 +734,11 @@ void agnogg_ship_front_update(Moby_2FC140 *moby) {
     };
     Data_2FC140 *data;
     Link_2FC140 *linked_moby_data;
-    int r16;
+    int level_table_byte;
     int cnt;
     int flag;
     int i;
-    int n4;
+    int scene_start_gate_value;
     float fz;
     float fd;
 
@@ -758,14 +758,14 @@ void agnogg_ship_front_update(Moby_2FC140 *moby) {
         moby->pos.z = moby->pos.z + fd;
         break;
     case AGNOGG_SHIP_WAIT_FOR_DESCENT_TRIGGER:
-        r16 = *(unsigned char *)(moby->fB0 + (current_level_index_macro << 4) + D_0014C050_u);
-        if (r16 == 0xFF) {
+        level_table_byte = *(unsigned char *)(moby->fB0 + (current_level_index_macro << 4) + D_0014C050_u);
+        if (level_table_byte == 0xFF) {
             if (moby->f53 != 2) {
                 blend_moby_animation(moby, 2, 0, scale_game_frames(0x14));
             }
             moby->state = 10;
             moby->flags = moby->flags & 0xFFBE;
-            moby->f32 = r16;
+            moby->f32 = level_table_byte;
             moby->f94 = moby->pclass->f10;
         } else {
             if (cutscene_mode == 0) {
@@ -850,11 +850,11 @@ void agnogg_ship_front_update(Moby_2FC140 *moby) {
         if (flag == 0) {
             break;
         }
-        n4 = D_001413DC[0];
-        if (n4 == 7) {
+        scene_start_gate_value = D_001413DC[0];
+        if (scene_start_gate_value == 7) {
             break;
         }
-        if (n4 == 0x14) {
+        if (scene_start_gate_value == 0x14) {
             break;
         }
         data->timer = scale_game_frames(0x2D);
@@ -1101,8 +1101,8 @@ void FUN_L01_002fd0e8(struct Moby *moby) {
     f32 bubble_path_fraction;
     f32 zero;
     u8 *tex;
-    s32 n;
-    s32 m;
+    s32 ripple_tile_index;
+    s32 bind_tile_index;
     PoolTile *tiles;
 
     volumes = (s32 *)moby->pvars;
@@ -1153,11 +1153,11 @@ void FUN_L01_002fd0e8(struct Moby *moby) {
         D_L01_00161214 = 48.0f;
         pool_draw_tiles = pool_tiles;
         pool_draw_tex = pool_tile_tex;
-        for (m = 0; m < 21; m++) {
-            pool_bind_tile(&pool_tiles[m], tex + m * 16);
+        for (bind_tile_index = 0; bind_tile_index < 21; bind_tile_index++) {
+            pool_bind_tile(&pool_tiles[bind_tile_index], tex + bind_tile_index * 16);
         }
-        for (n = 0; n < 21; n++) {
-            PoolTile *tile = &pool_tiles[n];
+        for (ripple_tile_index = 0; ripple_tile_index < 21; ripple_tile_index++) {
+            PoolTile *tile = &pool_tiles[ripple_tile_index];
             tiles = pool_tiles;
 
             for (j = 0; j < 2; j++) {
@@ -1353,7 +1353,7 @@ void FUN_L01_002feb58(void *arg) {
     s32 j;
     s32 k;
     s32 n;
-    s32 m;
+    s32 vertex_pair_start_index;
     Vec4 *v;
     Vec4 *w;
     f32 glow_factor;
@@ -1371,7 +1371,7 @@ void FUN_L01_002feb58(void *arg) {
         for (n = 0; n < 4; n++) {
             k--;
             w = (D_L01_001FBC80 + n)->verts;
-            for (m = 0; m < (D_L01_001FBC80 + n)->count; m += 2) {
+            for (vertex_pair_start_index = 0; vertex_pair_start_index < (D_L01_001FBC80 + n)->count; vertex_pair_start_index += 2) {
                 if (k & 1) {
                     w[0].f[2] += 0.05f;
                     w[0].f[3] -= 0.05f;
@@ -1522,24 +1522,24 @@ void pipe_update(struct Moby *moby) {
         }
         allocate_voice_for_target_entry(0, 0, (int)moby);
         for (k = 0x95; k >= 0;) {
-            float a, b;
+            float velocity_component_or_size, b;
             *(OvlQuad *)v = 0;
             v[0] = -0.2f;
             v[2] = 1.2f;
             k--;
             add_vector_xyz(v, v, &moby->pos);
-            a = fast_cos(random_angle_radians());
+            velocity_component_or_size = fast_cos(random_angle_radians());
             b = random_float_between(1.5f, 3.0f);
-            a = a * (b * frame_time);
-            w[0] = a;
-            a = fast_sin(random_angle_radians());
+            velocity_component_or_size = velocity_component_or_size * (b * frame_time);
+            w[0] = velocity_component_or_size;
+            velocity_component_or_size = fast_sin(random_angle_radians());
             b = random_float_between(1.5f, 3.0f);
-            a = a * (b * frame_time);
-            w[1] = a;
+            velocity_component_or_size = velocity_component_or_size * (b * frame_time);
+            w[1] = velocity_component_or_size;
             w[2] = 0;
             w[2] = random_float_between(w[2], 3.0f) * frame_time;
-            a = random_float_between(125000.0f, 175000.0f);
-            FUN_L00_0026ced0(v, w, 0x207F7F7F, 0x272727, a,
+            velocity_component_or_size = random_float_between(125000.0f, 175000.0f);
+            FUN_L00_0026ced0(v, w, 0x207F7F7F, 0x272727, velocity_component_or_size,
                              scale_game_frames(FUN_L00_00257b90(0x2D, 0x3C)));
         }
         FUN_L01_002ffa90_c(moby);

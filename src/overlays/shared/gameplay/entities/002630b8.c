@@ -134,7 +134,7 @@ void FUN_001f9a28_002634f8(void *, void *, void *) __asm__("FUN_001f9a28");
 float FUN_001f9b20_002634f8(void *) __asm__("FUN_001f9b20");
 void FUN_L00_00268f10_002634f8(Vec4_2634f8 *, int) __asm__("FUN_L00_00268f10");
 void FUN_L00_002634f8(Vec4_2634f8 *v) {
-    Vec4_2634f8 ground_probe_start, u, d;
+    Vec4_2634f8 ground_probe_start, u, position_delta;
     float k, f;
     S166C80_2634f8 *b;
     k = (D_L00_0015FCA4_002634f8 - D_L00_0015FCA0_002634f8) * 0.00390625f;
@@ -146,10 +146,10 @@ void FUN_L00_002634f8(Vec4_2634f8 *v) {
         u.q = ground_probe_start.q;
         u.f[2] = u.f[2] - (k + k);
         if (FUN_001efa68_002634f8(&ground_probe_start, &u, 0x12, 0, 0)) {
-            FUN_001f9a28_002634f8(&d, &D_L00_00173E60_002634f8, &b->pos);
+            FUN_001f9a28_002634f8(&position_delta, &D_L00_00173E60_002634f8, &b->pos);
             FUN_L00_00268f10_002634f8(
                 &D_L00_00173E60_002634f8,
-                (u8)(int)(FUN_001f9b20_002634f8(&d) / 60.0f * 191.0f + 64.0f));
+                (u8)(int)(FUN_001f9b20_002634f8(&position_delta) / 60.0f * 191.0f + 64.0f));
         }
     }
 }
@@ -348,7 +348,7 @@ void draw_trail(void *p0, void *p1, void *vel, float a, float b) __asm__("FUN_L0
 void draw_trail(void *first_spawn_position, void *second_spawn_position, void *vel, float a, float b) {
     P_263b70 *part;
     T_263b70 *tail;
-    int i, j, m;
+    int i, j, alternating_spawn_value;
     for (i = 0; i < 2; i++) {
         int random_magnitude = FUN_00213260_263b70(0x10);
         part = FUN_L00_0026d000_263b70(first_spawn_position, FUN_00213260_263b70(2) == 0 ? random_magnitude : -random_magnitude, vel, 0.1f, 1.0f,
@@ -362,10 +362,10 @@ void draw_trail(void *first_spawn_position, void *second_spawn_position, void *v
             tail->bB = part->hA;
         }
     }
-    m = 0x10;
+    alternating_spawn_value = 0x10;
     for (j = 0; j < 3; j++) {
-        part = FUN_L00_0026d000_263b70(second_spawn_position, m, vel, 0.05f, 1.0f, 0.97f, b, 0x7FFFFFFF);
-        m = -m;
+        part = FUN_L00_0026d000_263b70(second_spawn_position, alternating_spawn_value, vel, 0.05f, 1.0f, 0.97f, b, 0x7FFFFFFF);
+        alternating_spawn_value = -alternating_spawn_value;
         if (part) {
             tail = &part->tail;
             part->b9 = FUN_001fa6d0_263b70(4.0f) + 0x40;
@@ -397,10 +397,10 @@ s32 get_help_message_text() __asm__("FUN_001fdd10");
 void sprintf() __asm__("FUN_00116248");
 /* Calls sprintf on D_L00_00179118 with help message a and b; c frames (default 0xB4). */
 void FUN_L00_00263db0(s32 a, s32 b, s32 c);
-void FUN_L00_00263db0(s32 a, s32 b, s32 message_duration_frames) {
+void FUN_L00_00263db0(s32 help_message_selector, s32 b, s32 message_duration_frames) {
     if (message_duration_frames == -1)
         message_duration_frames = scale_game_frames(0xB4);
-    sprintf(D_L00_00179118, get_help_message_text(a), b);
+    sprintf(D_L00_00179118, get_help_message_text(help_message_selector), b);
     D_L00_0015F640 = message_duration_frames;
 }
 typedef unsigned int u128_263e30 __attribute__((mode(TI), aligned(16)));

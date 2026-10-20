@@ -72,11 +72,11 @@ void drek_fight_missile_update(struct Moby *moby) {
     }
     switch (moby->state) {
     case DREK_MISSILE_INITIALIZE: {
-        float a = D_0015ED6C_a[1];
+        float wander_acceleration_scale = D_0015ED6C_a[1];
         float b = frame_time;
-        *(float *)(missile_vars + 0x158) = a * 10.0f;
+        *(float *)(missile_vars + 0x158) = wander_acceleration_scale * 10.0f;
         *(float *)(missile_vars + 0x154) = b * 12.566371f;
-        *(float *)(missile_vars + 0x150) = a * 3.1415927f;
+        *(float *)(missile_vars + 0x150) = wander_acceleration_scale * 3.1415927f;
         *(float *)(missile_vars + 0x15C) = b * 10.0f;
         *(float *)(missile_vars + 0x168) = random_angle_radians();
         moby->draw_dist = 0xFF;
@@ -305,7 +305,7 @@ void FUN_L18_002f0390(struct Moby *moby) {
     int i;
     int j;
     int k;
-    int n;
+    int trail_segment_index;
     int base;
 
     if (D_L18_00162238_gp != 0) {
@@ -341,14 +341,14 @@ void FUN_L18_002f0390(struct Moby *moby) {
             goto again;
         }
         data = (char *)missile_moby->pvars;
-        for (n = 0; n < *(short *)(data + 0x164); n++) {
-            base = (*(short *)(data + 0x166) - n + 15) & 15;
+        for (trail_segment_index = 0; trail_segment_index < *(short *)(data + 0x164); trail_segment_index++) {
+            base = (*(short *)(data + 0x166) - trail_segment_index + 15) & 15;
             if (D_L18_0016223C == 0) {
                 for (k = 0; k < 4; k++) {
-                    add_vector_xyz(&quads[n].positions[k], data + 0x10 + (((base + (k >> 1)) & 15) << 4),
+                    add_vector_xyz(&quads[trail_segment_index].positions[k], data + 0x10 + (((base + (k >> 1)) & 15) << 4),
                                    extra + ((k & 1) << 2));
                 }
-                draw_geometry_quad(&quads[n], 0, 0);
+                draw_geometry_quad(&quads[trail_segment_index], 0, 0);
             }
         }
     } while (*group_entry++ >= 0);
@@ -383,7 +383,7 @@ void FUN_L18_002f06c0(struct Moby *group_moby) {
     char *missile_vars;
     float moving_phase_step;
     float b;
-    int c;
+    int phase_blended_color;
     if (D_L18_00162238_gp != 0) {
         return;
     }
@@ -394,18 +394,18 @@ void FUN_L18_002f06c0(struct Moby *group_moby) {
         missile_moby = D_L18_0015FFD8_c7 + ((*group_entry & 0x7FFF) << 8);
         if (*(short *)(missile_moby + 0xA6) == 0x54B) {
             missile_vars = *(char **)(missile_moby + 0x78);
-            c = FUN_001fa6e0_c7(FUN_001f9de0_c7(*(float *)(missile_vars + 0x168)) * 0.5f + 0.5f,
+            phase_blended_color = FUN_001fa6e0_c7(FUN_001f9de0_c7(*(float *)(missile_vars + 0x168)) * 0.5f + 0.5f,
                                 D_L18_00162260, D_L18_00162264);
             FUN_001f9bf8_c7(v, missile_moby + 0xC0, D_L18_0016226C);
             FUN_001f9a10_c7(v, v, missile_moby + 0x10);
             switch (missile_moby[0x20]) {
             case DREK_MISSILE_WANDER:
             case DREK_MISSILE_DIVE:
-                FUN_L00_00263618_c7(v, c, D_L18_00162268, 0.0f);
+                FUN_L00_00263618_c7(v, phase_blended_color, D_L18_00162268, 0.0f);
                 *(float *)(missile_vars + 0x168) = FUN_001fa580_c7(*(float *)(missile_vars + 0x168), moving_phase_step);
                 break;
             case DREK_MISSILE_WAIT_TO_EXPLODE:
-                FUN_L00_00263618_c7(v, c, D_L18_00162268, 0.0f);
+                FUN_L00_00263618_c7(v, phase_blended_color, D_L18_00162268, 0.0f);
                 *(float *)(missile_vars + 0x168) = FUN_001fa580_c7(*(float *)(missile_vars + 0x168), b);
                 break;
             }
@@ -646,7 +646,7 @@ void FUN_L18_002f16f0(struct Moby *moby) {
             if (moby->state != 4) {
                 float v[4];
                 float s, z, f20;
-                int n;
+                int debris_spawn_frames;
                 moby_vars->f344 = moby_vars->f344 + 0.25f;
                 if (random_integer_below(func_001FA898_r(moby_vars->f344)) == 0) {
                     s = random_float_between(-1.0471976f, 1.0471976f);
@@ -656,8 +656,8 @@ void FUN_L18_002f16f0(struct Moby *moby) {
                     v[1] = fast_sin(f20) * z;
                     v[2] = 15.0f;
                     add_vector_xyz(v, v, &hero.motion.pos);
-                    n = scale_game_frames(240);
-                    spawn_debris_chunk(v, D_L18_0015F580_c, 0x2B8, n, D_L18_001622C0, 2.0f, 1.0f,
+                    debris_spawn_frames = scale_game_frames(240);
+                    spawn_debris_chunk(v, D_L18_0015F580_c, 0x2B8, debris_spawn_frames, D_L18_001622C0, 2.0f, 1.0f,
                                      0.75f, 0);
                 }
             }
@@ -1029,12 +1029,12 @@ extern unsigned char *D_L18_0015FFD8;
 void FUN_L18_002f2598(void *source_moby) {
     unsigned char *source_moby_bytes = source_moby;
     short *group_entry = D_L18_001AC240_c[source_moby_bytes[0x21]];
-    E *e = D_L18_001DB500;
+    E *height_records = D_L18_001DB500;
     do {
         Mx *group_moby = (Mx *)(((*(unsigned short *)group_entry & 0x7FFF) << 8) + (int)D_L18_0015FFD8);
         group_moby->f = *(float *)(source_moby_bytes + 0x18);
         if (group_moby->kind == 0x57A) {
-            e[group_moby->l->idx].f = *(float *)(source_moby_bytes + 0x18);
+            height_records[group_moby->l->idx].f = *(float *)(source_moby_bytes + 0x18);
         }
     } while (*group_entry++ >= 0);
 }
@@ -1528,6 +1528,7 @@ void drek_final_boss_robot_update(BossMoby *moby) {
         DREK_BOSS_INITIALIZE_PAIRED_TRANSFORM_TRANSITION = 5,
         DREK_BOSS_WAIT_FOR_SCENE = 7,
         DREK_BOSS_WAIT_FOR_PAIRED_TRANSFORM_TRANSITION = 8,
+        DREK_BOSS_APPROACH_PATH_START = 9,
         DREK_BOSS_FOLLOW_PATH_AND_FIRE_AT_MOBYS = 10,
         DREK_BOSS_FINISH_PATH_AND_WAIT_FOR_HERO = 0xB,
         DREK_BOSS_SELECT_NEXT_ACTION = 0xC,
@@ -1542,6 +1543,10 @@ void drek_final_boss_robot_update(BossMoby *moby) {
         DREK_BOSS_APPROACH_SELECTED_MOBY = 0x15,
         DREK_BOSS_DEATH_EXPLOSIONS = 0x1A,
         DREK_BOSS_RUN_ENDING_SEQUENCE = 0x1B
+    };
+    enum {
+        DREK_BOSS_PHASE_BEFORE_MISSILE_GROUP = 4,
+        DREK_BOSS_PHASE_AFTER_MISSILE_GROUP_START = 5
     };
     BossData *boss_data = (BossData *)moby->f78;
     BossMoby *tgt;
@@ -1780,7 +1785,7 @@ void drek_final_boss_robot_update(BossMoby *moby) {
             blend_moby_animation(moby, 10, 0, scale_game_frames(0x14));
         }
         break;
-    case 9: {
+    case DREK_BOSS_APPROACH_PATH_START: {
         float lvl;
         int hit;
 
@@ -2413,10 +2418,10 @@ void drek_final_boss_robot_update(BossMoby *moby) {
             case 3:
                 ticks = scale_game_frames(0x4B0);
                 break;
-            case 4:
+            case DREK_BOSS_PHASE_BEFORE_MISSILE_GROUP:
                 ticks = scale_game_frames(900);
                 break;
-            case 5:
+            case DREK_BOSS_PHASE_AFTER_MISSILE_GROUP_START:
             default:
                 ticks = scale_game_frames(600);
                 break;
@@ -2590,11 +2595,11 @@ extern s32 D_L18_001623A8_gp __asm__("D_L18_001623A8") __attribute__((sda));
 void FUN_L18_002f5e18(struct Moby *moby) {
     char *moby_vars = (char *)moby->pvars;
     if (*(int *)(moby_vars + 0x3E4) == 0) {
-        char *a = D_0013E533 + 0xE1D;
-        if (*(int *)(a + 0x300) != 0) {
-            *(int *)(moby_vars + 0x3E8) = *(int *)(a + 0x2FC);
+        char *latch_source_data = D_0013E533 + 0xE1D;
+        if (*(int *)(latch_source_data + 0x300) != 0) {
+            *(int *)(moby_vars + 0x3E8) = *(int *)(latch_source_data + 0x2FC);
         }
-        if (*(int *)(a + 0x2084) == 0x77) {
+        if (*(int *)(latch_source_data + 0x2084) == 0x77) {
             char *latched_moby = *(char **)(moby_vars + 0x3E8);
             *(int *)(moby_vars + 0x3E4) = 1;
             if (latched_moby != 0) {
@@ -3094,14 +3099,14 @@ unsigned char *FUN_L18_002f6e10(struct Moby *self) {
             candidate_moby = D_L18_0015FFD8 + off;
             if (vector_distance(candidate_moby + 0x10, selection_origin) < *(float *)&D_L18_00162338) {
                 unsigned char *r;
-                int a, b;
+                int tilt_delay_frames, b;
                 float dot;
 
                 subtract_vector_xyz(v, candidate_moby + 0x10, selection_origin);
                 r = D_L18_0015FFD8 + off;
-                a = scale_game_frames(0x3C);
+                tilt_delay_frames = scale_game_frames(0x3C);
                 b = scale_game_frames(*(int *)&D_L18_0016233C);
-                FUN_L18_002d8888(r, a, b);
+                FUN_L18_002d8888(r, tilt_delay_frames, b);
                 dot = dot_vectors_xyz(v, &self->rot_row0);
                 if (0.333f < dot) {
                     float candidate_distance = vector_length_xyz(v);
@@ -3281,12 +3286,12 @@ extern float D_L18_001623E4 __attribute__((sda));
 /* Ported from rac1-decomp src/overlays/l18_veldin2/vendor_002F2AE0.c (func_L18_002F86E8) */
 void FUN_L18_002f7288(char *moby) {
     char *boss_data = *(char **)(moby + 0x78);
-    char *t = *(char **)(D_L18_0015EF50 + *(int *)(boss_data + 0x224) * 32 + 0x1c);
+    char *selected_scalar_record = *(char **)(D_L18_0015EF50 + *(int *)(boss_data + 0x224) * 32 + 0x1c);
     float f;
     float x;
     float y;
-    float *p0;
-    float *p1;
+    float *first_scalar_value;
+    float *second_scalar_value;
     float *p2;
     float *p3;
     unsigned char st;
@@ -3310,13 +3315,13 @@ void FUN_L18_002f7288(char *moby) {
             *(int *)(boss_data + 0x360) == 0) {
             x = D_L18_001623D0;
             y = D_L18_001623D4;
-            p0 = (float *)(t + 0x34);
-            p1 = (float *)(t + 0x38);
+            first_scalar_value = (float *)(selected_scalar_record + 0x34);
+            second_scalar_value = (float *)(selected_scalar_record + 0x38);
             p2 = (float *)(boss_data + 0x378);
             p3 = (float *)(boss_data + 0x37c);
         } else {
-            p0 = (float *)(t + 0x34);
-            p1 = (float *)(t + 0x38);
+            first_scalar_value = (float *)(selected_scalar_record + 0x34);
+            second_scalar_value = (float *)(selected_scalar_record + 0x38);
             p3 = (float *)(boss_data + 0x37c);
             p2 = (float *)(boss_data + 0x378);
             if (vector_distance(hero.motion.pos.f,
@@ -3328,16 +3333,16 @@ void FUN_L18_002f7288(char *moby) {
     } else if (st == 9 || st == 6) {
         x = D_L18_001623E0;
         y = D_L18_001623E4;
-        p0 = (float *)(t + 0x34);
-        p1 = (float *)(t + 0x38);
+        first_scalar_value = (float *)(selected_scalar_record + 0x34);
+        second_scalar_value = (float *)(selected_scalar_record + 0x38);
         p2 = (float *)(boss_data + 0x378);
         p3 = (float *)(boss_data + 0x37c);
     } else if (st == 0 || st == 10 || st == 11 || st == 1 || st == 0x1b) {
         int i;
         char *g;
         char *q;
-        p0 = (float *)(t + 0x34);
-        p1 = (float *)(t + 0x38);
+        first_scalar_value = (float *)(selected_scalar_record + 0x34);
+        second_scalar_value = (float *)(selected_scalar_record + 0x38);
         for (i = 0, p2 = (float *)(boss_data + 0x378), p3 = (float *)(boss_data + 0x37c); i < 0x30; i++) {
             char *scanned_entry;
             if (*(int *)(boss_data + 0x3ec) == 0) {
@@ -3372,8 +3377,8 @@ void FUN_L18_002f7288(char *moby) {
             }
         }
     } else {
-        p0 = (float *)(t + 0x34);
-        p1 = (float *)(t + 0x38);
+        first_scalar_value = (float *)(selected_scalar_record + 0x34);
+        second_scalar_value = (float *)(selected_scalar_record + 0x38);
         p2 = (float *)(boss_data + 0x378);
         p3 = (float *)(boss_data + 0x37c);
         if (*(float *)(boss_data + 0x38c) > 0.0f) {
@@ -3382,9 +3387,9 @@ void FUN_L18_002f7288(char *moby) {
                      boss_data + 0x36c, 0x15e);
         }
     }
-    advance_accelerated_scalar_7288(p0, x, p2, *(float *)&D_L18_001623B4 * D_0015ED6C_e[1],
+    advance_accelerated_scalar_7288(first_scalar_value, x, p2, *(float *)&D_L18_001623B4 * D_0015ED6C_e[1],
                      *(float *)&D_L18_001623B4 * D_0015ED6C_e[1], D_L18_001623B0 * D_0015ED6C_e[0]);
-    advance_accelerated_scalar_7288(p1, y, p3, *(float *)&D_L18_001623B4 * D_0015ED6C_e[1],
+    advance_accelerated_scalar_7288(second_scalar_value, y, p3, *(float *)&D_L18_001623B4 * D_0015ED6C_e[1],
                      *(float *)&D_L18_001623B4 * D_0015ED6C_e[1], D_L18_001623B0 * D_0015ED6C_e[0]);
 }
 
@@ -3505,13 +3510,13 @@ void FUN_L18_002f7880(struct Moby *moby) {
     char b[16];
     L18Q *boss_vars = (L18Q *)moby->pvars;
     int attached_glow_period_frames = scale_game_frames(*(int *)&D_L18_00162460_gp);
-    float f = convert_integer_to_float(game_frame % attached_glow_period_frames);
+    float attached_glow_cycle_value = convert_integer_to_float(game_frame % attached_glow_period_frames);
     int attached_glow_color;
     int i;
-    f = f / convert_integer_to_float(attached_glow_period_frames);
-    f = f * 6.18318f;
-    f = fast_sin(f - 3.14159f);
-    attached_glow_color = fast_tween_color(*(int *)&D_L18_00162458_gp, *(int *)&D_L18_0016245C_gp, f * 0.5f + 0.5f);
+    attached_glow_cycle_value = attached_glow_cycle_value / convert_integer_to_float(attached_glow_period_frames);
+    attached_glow_cycle_value = attached_glow_cycle_value * 6.18318f;
+    attached_glow_cycle_value = fast_sin(attached_glow_cycle_value - 3.14159f);
+    attached_glow_color = fast_tween_color(*(int *)&D_L18_00162458_gp, *(int *)&D_L18_0016245C_gp, attached_glow_cycle_value * 0.5f + 0.5f);
     moby_point_position(boss_vars->p3A0, 1, joint_world_position);
     FUN_L00_00263618(joint_world_position, attached_glow_color, *(float *)&D_L18_00162450_gp, *(float *)&D_L18_00162454_gp);
     moby_point_position(boss_vars->p3A0, 2, joint_world_position);
@@ -3852,9 +3857,9 @@ void FUN_L18_002f8050(void *mv) {
         float *pa = (float *)(moby_bytes + 0x10);
         char *pl = (char *)&hero.motion.pos;
         if (vector_distance(pa, pl) < 10.0f) {
-            char *q = pl - 0x80;
-            *(char **)(tank_data + 0xB0) = *(char **)(q + 0x2080);
-            qcopy(tank_data + 0x70, *(char **)(q + 0x2080) + 0x10);
+            char *hero_base_bytes = pl - 0x80;
+            *(char **)(tank_data + 0xB0) = *(char **)(hero_base_bytes + 0x2080);
+            qcopy(tank_data + 0x70, *(char **)(hero_base_bytes + 0x2080) + 0x10);
         } else if (*(char **)(tank_data + 0xB0)) {
             if (30.0f < vector_distance(pa, *(char **)(tank_data + 0xB0) + 0x10)) {
                 *(int *)(tank_data + 0xB4) = 2;

@@ -153,7 +153,7 @@ void FUN_L05_002402a8(void) {
     f32 f;
     s32 r;
     s32 i;
-    f32 a;
+    f32 side_probe_angle;
     u8 *p;
 
     s32 k;
@@ -305,12 +305,12 @@ d1:
         hero.unk2E8.f = ground_vector_scratch.f[0];
     }
     for (i = 0; i < 2; i++) {
-        a = 1.5707964f;
+        side_probe_angle = 1.5707964f;
         if (i == 1) {
-            a = -a;
+            side_probe_angle = -side_probe_angle;
         }
-        FUN_L00_002335c8(&side_probe_endpoint, 0.2f, a, 0.45f);
-        FUN_L00_002335c8(&unused_probe_vector, 0.2f, a, -0.45f);
+        FUN_L00_002335c8(&side_probe_endpoint, 0.2f, side_probe_angle, 0.45f);
+        FUN_L00_002335c8(&unused_probe_vector, 0.2f, side_probe_angle, -0.45f);
         if (collision_line(&side_probe_endpoint, &shared_probe_endpoint, 0x22, (s32)hero.moby, 0)) {
             f = HH.point.f[2] - hero.ground_z.f;
             hero.unk2C0.f[i] = f;
@@ -364,7 +364,7 @@ s32 FUN_L05_00240ed0(s32 mode) {
     s32 mask;
     s32 i;
     u128_2133a8 *collision_result_base;
-    f32 h;
+    f32 query_height_or_displacement_length;
     if (hero.unk1CC != 0) {
         return 1;
     }
@@ -406,11 +406,11 @@ s32 FUN_L05_00240ed0(s32 mode) {
                 break;
         } else {
             s32 collision_query_result;
-            h = hero.capsule_top - hero.unk224;
-            if (h < 0.05f) {
-                h = 0.05f;
+            query_height_or_displacement_length = hero.capsule_top - hero.unk224;
+            if (query_height_or_displacement_length < 0.05f) {
+                query_height_or_displacement_length = 0.05f;
             }
-            collision_query_result = coll2_2133a8(&hero.motion.pos.q, mask, hero.unk234, ((s32)hero.moby), h);
+            collision_query_result = coll2_2133a8(&hero.motion.pos.q, mask, hero.unk234, ((s32)hero.moby), query_height_or_displacement_length);
             if (!(collision_query_result | FUN_L00_001f3170(&hero.motion.pos.q, hero.unk234)))
                 break;
         }
@@ -423,8 +423,8 @@ s32 FUN_L05_00240ed0(s32 mode) {
     }
     vsub_2133a8(&hero.motion.pos.q, &hero.motion.pos.q, &v);
     vsub_2133a8(&w, &hero.motion.pos.q, &old);
-    h = vlen_2133a8(&w);
-    if (hero.unk234 * 1.5f < h) {
+    query_height_or_displacement_length = vlen_2133a8(&w);
+    if (hero.unk234 * 1.5f < query_height_or_displacement_length) {
         if (mode == 0xF) {
             if (512.0f < w.f[0])
                 w.f[0] = 512.0f;

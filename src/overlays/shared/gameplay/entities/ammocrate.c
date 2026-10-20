@@ -13,7 +13,7 @@
 extern float fast_add_rotations(float, float) __asm__("FUN_001fa580");
 extern float fast_subtract_rotations(float, float) __asm__("FUN_001fa5c8");
 
-float FUN_L13_002ba088(int flag, int n, float x, float b, float end_value, float lo, float hi) {
+float FUN_L13_002ba088(int flag, int squaring_loop_limit, float x, float b, float end_value, float lo, float hi) {
     float t;
     float u;
     float r = 0.0f;
@@ -26,7 +26,7 @@ float FUN_L13_002ba088(int flag, int n, float x, float b, float end_value, float
         if (t > 1.0f) {
             t = 1.0f;
         }
-        for (i = 1; i < n; i++) {
+        for (i = 1; i < squaring_loop_limit; i++) {
             t = t * t;
         }
         u = 1.0f - t;
@@ -422,7 +422,7 @@ void FUN_L13_002e6c08(Moby *rocket) {
     V4_2E8040 vel;
     V4_2E8040 dir;
     unsigned char *spawned_effect;
-    float t;
+    float trail_segment_fraction;
 
     qcopy(&old, &*(V4_2E8040 *)&rocket->pos);
     rocket->scale += (((Cls_2E8040 *)rocket->pclass)->scale - rocket->scale) * 0.1f;
@@ -438,8 +438,8 @@ void FUN_L13_002e6c08(Moby *rocket) {
     if (spawned_effect != 0) {
         spawned_effect[3] = 0x48;
     }
-    for (t = 0.0f; t < 1.0f; t += 0.33333334f) {
-        func_L00_001FF4B0_2E8040(&tmp, rocket_data, func_002140F8_2E8040(t, t + 0.33333334f) * rocket_data->speed);
+    for (trail_segment_fraction = 0.0f; trail_segment_fraction < 1.0f; trail_segment_fraction += 0.33333334f) {
+        func_L00_001FF4B0_2E8040(&tmp, rocket_data, func_002140F8_2E8040(trail_segment_fraction, trail_segment_fraction + 0.33333334f) * rocket_data->speed);
         func_001F9BD8_2E8040(&tmp, &tmp, &*(V4_2E8040 *)&rocket->pos);
         spawned_effect = spawn_particle(&tmp, (float *)&vel, func_001F9850_2E8040(0x3C), 0x7F, 0x606060, 3, 40000.0f, 1000.0f, 1.0f, -0.0002f, 0.0f);
         if (spawned_effect != 0) {

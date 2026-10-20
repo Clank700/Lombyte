@@ -355,10 +355,13 @@ void spawner_update(struct Moby *moby) {
         SPAWNER_TARGET_COUNT_ANGULAR_SPREAD = 0,
         SPAWNER_TARGET_HALF_REFERENCE_OFFSET = 1,
         SPAWNER_TARGET_UNUSED_POINT = 2,
+        SPAWNER_TARGET_HELPER_INDEXED_POINT = 3,
         SPAWNER_TARGET_COUNT_INDEXED_POINT = 4,
         SPAWNER_TARGET_SKIP_SETUP = 5
     };
     enum {
+        SPAWNER_ACTIVATION_ENTER_SPAWN_ENABLED = 0,
+        SPAWNER_ACTIVATION_SET_SPAWN_ENABLED = 3,
         SPAWNER_ACTIVATION_STAY_IN_PROXIMITY_WAIT = 6
     };
     int used[4];
@@ -471,7 +474,7 @@ void spawner_update(struct Moby *moby) {
     case SPAWNER_WAIT_FOR_PROXIMITY:
         if (near1) {
             switch (spawner_data->b84) {
-            case 0:
+            case SPAWNER_ACTIVATION_ENTER_SPAWN_ENABLED:
                 moby->state = 2;
                 break;
             case 1:
@@ -480,7 +483,7 @@ void spawner_update(struct Moby *moby) {
             case 2:
                 moby->state = 7;
                 break;
-            case 3:
+            case SPAWNER_ACTIVATION_SET_SPAWN_ENABLED:
                 moby->state = 2;
                 break;
             case 4:
@@ -608,7 +611,7 @@ void spawner_update(struct Moby *moby) {
                 qcopy(&target_position, &spawn_position);
                 break;
             }
-            case 3: {
+            case SPAWNER_TARGET_HELPER_INDEXED_POINT: {
                 int *p = spawner_data->pts;
                 int n = 0;
                 int k;
@@ -1360,7 +1363,7 @@ void FUN_L03_002ce238(char *helicopter_moby) {
     int res;
     char *helicopter_data;
     char *r;
-    float a, b, p, q;
+    float reaction_heading_angle, b, reaction_roll_angle, reaction_pitch_angle;
     helicopter_data = *(char **)(helicopter_moby + 0x78);
     fv = 0.0f;
     r = find_moby_hit(helicopter_moby, 0x330000, 0);
@@ -1374,17 +1377,17 @@ void FUN_L03_002ce238(char *helicopter_moby) {
             *(unsigned char *)(helicopter_data + 0x67) = 0xB4;
             trooper_anim_update(helicopter_moby, (short *)(helicopter_data + 0x60));
             if (*(float *)(r + 0x1C) == 5627.925f && *(unsigned char *)(helicopter_moby + 0x20) != 4) {
-                a = fast_arc_tan(*(float *)(helicopter_moby + 0x10) - *(float *)(r + 0),
+                reaction_heading_angle = fast_arc_tan(*(float *)(helicopter_moby + 0x10) - *(float *)(r + 0),
                                  *(float *)(helicopter_moby + 0x14) - *(float *)(r + 4));
-                b = fast_subtract_rotations(a, *(float *)(helicopter_moby + 0x48));
-                p = fast_cos(b) * 0.08726646f;
-                q = fast_sin(b) * -0.34906584f;
-                if (absolute_float(*(float *)(helicopter_moby + 0x40)) < absolute_float(q)) {
-                    *(float *)(helicopter_moby + 0x40) = q;
+                b = fast_subtract_rotations(reaction_heading_angle, *(float *)(helicopter_moby + 0x48));
+                reaction_roll_angle = fast_cos(b) * 0.08726646f;
+                reaction_pitch_angle = fast_sin(b) * -0.34906584f;
+                if (absolute_float(*(float *)(helicopter_moby + 0x40)) < absolute_float(reaction_pitch_angle)) {
+                    *(float *)(helicopter_moby + 0x40) = reaction_pitch_angle;
                     *(float *)(helicopter_data + 0x218) = 0.0f;
                 }
-                if (absolute_float(*(float *)(helicopter_moby + 0x44)) < absolute_float(p)) {
-                    *(float *)(helicopter_moby + 0x44) = p;
+                if (absolute_float(*(float *)(helicopter_moby + 0x44)) < absolute_float(reaction_roll_angle)) {
+                    *(float *)(helicopter_moby + 0x44) = reaction_roll_angle;
                     *(float *)(helicopter_data + 0x21C) = 0.0f;
                 }
                 *(float *)(helicopter_data + 0x214) = frame_time * 4.0f;
@@ -1434,7 +1437,7 @@ void statue_update(unsigned char *statue_moby) {
     };
     int flag = 0;
     float z;
-    char *p, *pos, *vel;
+    char *zero_vector, *pos, *vel;
     char *x = find_moby_hit(statue_moby, 0x10000, 0);
     switch (statue_moby[0x20]) {
     case STATUE_INITIALIZE:
@@ -1451,13 +1454,13 @@ void statue_update(unsigned char *statue_moby) {
     case STATUE_BREAK_APART:
         allocate_voice_for_target_entry(0, 0, (int)statue_moby);
         z = 0.0f;
-        p = D_L03_0015F580;
+        zero_vector = D_L03_0015F580;
         pos = statue_moby + 0x10;
         FUN_L01_002787a0(statue_moby);
         vel = statue_moby + 0x40;
-        FUN_L00_00263fd8(statue_moby, 0x727, pos, vel, 0, 0, z, p, p, p);
-        FUN_L00_00263fd8(statue_moby, 0x728, pos, vel, 0, 0, z, p, p, p);
-        FUN_L00_00263fd8(statue_moby, 0x729, pos, vel, 0, 0, z, p, p, p);
+        FUN_L00_00263fd8(statue_moby, 0x727, pos, vel, 0, 0, z, zero_vector, zero_vector, zero_vector);
+        FUN_L00_00263fd8(statue_moby, 0x728, pos, vel, 0, 0, z, zero_vector, zero_vector, zero_vector);
+        FUN_L00_00263fd8(statue_moby, 0x729, pos, vel, 0, 0, z, zero_vector, zero_vector, zero_vector);
         mark_moby_for_removal_c(statue_moby);
         break;
     }
@@ -1903,12 +1906,12 @@ void qwark_rilgar_update(L03WatchMoby *moby) {
     tracking = 0;
     if (moby->animation == 0) {
         char *g = (char *)&hero.motion.pos;
-        L03Player *q;
+        L03Player *player_aim_view;
         tracking = 1;
         if (vector_distance(moby->position, g) < 8.0f &&
-            (q = (L03Player *)(g - 0x80),
+            (player_aim_view = (L03Player *)(g - 0x80),
              fast_difference_between_rotations(
-                 moby->yaw, fast_arc_tan(q->aim[0] - moby->position[0], q->aim[1] - moby->position[1]))) <
+                 moby->yaw, fast_arc_tan(player_aim_view->aim[0] - moby->position[0], player_aim_view->aim[1] - moby->position[1]))) <
                 1.5707964f) {
             if (fast_vec_length(g + 0x80) > 0.01f)
                 watch_data->moving_timer = scale_game_frames(120);

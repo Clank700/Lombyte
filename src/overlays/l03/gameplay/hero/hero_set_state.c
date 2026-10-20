@@ -90,8 +90,11 @@ int hero_set_state(int a, int b) {
     enum {
         HERO_STATE_WATER_SURFACE_ENTRY = 0x37,
         HERO_STATE_VEHICLE_IDLE = 0x53,
+        HERO_STATE_STOP_GRAVITY_SPEED = 0x66,
+        HERO_STATE_IDLE_MOTION_CLEARED = 0x67,
         HERO_STATE_DROWN = 0x6A,
-        HERO_STATE_PATH_MOTION_ENTRY = 0x74
+        HERO_STATE_PATH_MOTION_ENTRY = 0x74,
+        HERO_STATE_DYING_MOTION_CAPPED = 0x80
     };
     int old2088;
     char *moby;
@@ -174,7 +177,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x67: {
+    case HERO_STATE_IDLE_MOTION_CLEARED: {
         struct Hero *p = &hero;
         p->state.control_mode = 0;
         p->unk2284 = 0;
@@ -209,7 +212,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0x45, 0, (float)scale_game_frames(0xC));
         break;
     }
-    case 0x80: {
+    case HERO_STATE_DYING_MOTION_CAPPED: {
         struct Hero *p = &hero;
         p->state.control_mode = 0x14;
         p->unk2284 = 0;
@@ -624,7 +627,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x66: {
+    case HERO_STATE_STOP_GRAVITY_SPEED: {
         struct Hero *p = &hero;
         char *v = (char *)&p->motion.unk110;
         p->state.control_mode = 1;

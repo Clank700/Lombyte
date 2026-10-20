@@ -122,11 +122,11 @@ extern void FUN_L00_00211250_2215c8(void) __asm__("FUN_L00_00211250");
 extern Entry70_2215c8 D_L00_001798F0[];
 void FUN_L00_002215c8(void) {
     Vec4 sum;
-    Vec4 d;
-    struct Moby *m;
+    Vec4 sample_delta;
+    struct Moby *spawned_moby;
     s32 i;
-    s32 n;
-    s32 n8;
+    s32 sample_index_base;
+    s32 sample_count;
 
     if (hero.unk20AD == 0) {
         FUN_L00_002165b8_2215c8();
@@ -184,12 +184,12 @@ void FUN_L00_002215c8(void) {
                 hero.unk20A6 = 1;
             }
         } else {
-            m = create_moby(0x27A);
-            hero.unkA8C = m;
-            if (m != 0) {
-                qcopy(&m->pos, &hero.motion.pos);
-                qcopy(&m->rot, &hero.motion.rot);
-                m->draw_dist = 0x40;
+            spawned_moby = create_moby(0x27A);
+            hero.unkA8C = spawned_moby;
+            if (spawned_moby != 0) {
+                qcopy(&spawned_moby->pos, &hero.motion.pos);
+                qcopy(&spawned_moby->rot, &hero.motion.rot);
+                spawned_moby->draw_dist = 0x40;
                 ((struct Moby *)hero.unkA8C)->visible = 1;
                 ((struct Moby *)hero.unkA8C)->glow_color = 0;
                 ((struct Moby *)hero.unkA8C)->spawn_frame = hero.moby->spawn_frame;
@@ -208,17 +208,17 @@ void FUN_L00_002215c8(void) {
     if (hero.air_frames.s != 0 && gravity_z(&hero.motion.velocity) < 0.0f) {
         if (hero.unk21B4 != 0x20) goto skip;
         clear_u64_value(&sum);
-        n8 = 8;
-        for (i = 0; i < n8; i++) {
-            n = hero.unk21B0 - i;
+        sample_count = 8;
+        for (i = 0; i < sample_count; i++) {
+            sample_index_base = hero.unk21B0 - i;
             {
-                s32 a = (n + 0x1F) % 32;
-                s32 b = (n + 0x1E) % 32;
-                FUN_001f9a28_2215c8(&d, &hero.unk1B00[a], &hero.unk1B00[b]);
+                s32 sample_index = (sample_index_base + 0x1F) % 32;
+                s32 b = (sample_index_base + 0x1E) % 32;
+                FUN_001f9a28_2215c8(&sample_delta, &hero.unk1B00[sample_index], &hero.unk1B00[b]);
             }
-            add_vector_xyz(&sum, &sum, &d);
+            add_vector_xyz(&sum, &sum, &sample_delta);
         }
-        scale_vector_xyz(&sum, &sum, 1.0f / (f32)n8);
+        scale_vector_xyz(&sum, &sum, 1.0f / (f32)sample_count);
         if (FUN_001f9af0_2215c8(&sum) < frame_time) {
             hero.unk1E2++;
             goto skip;
@@ -279,7 +279,7 @@ extern unsigned char D_0013E533[];
 
 void FUN_L00_00221b68(void) {
     char *q = (char *)D_0013E533 + 0xE1D;
-    char *p;
+    char *hero_base;
     char *r;
     float distance_error;
     float xy_distance;
@@ -297,25 +297,25 @@ void FUN_L00_00221b68(void) {
             *(short *)(r + 0x1EA) = s;
         }
     }
-    p = (char *)D_0013E533 + 0xE1D;
-    if (*(short *)(p + 0x1EA) != 0) {
-        xy_distance = vector_distance_xy(p + 0x80, p + 0x210);
-        lim = *(float *)(p + 0x234) * 0.9f;
+    hero_base = (char *)D_0013E533 + 0xE1D;
+    if (*(short *)(hero_base + 0x1EA) != 0) {
+        xy_distance = vector_distance_xy(hero_base + 0x80, hero_base + 0x210);
+        lim = *(float *)(hero_base + 0x234) * 0.9f;
         if (xy_distance < lim) {
-            ang = fast_arc_tan(*(float *)(p + 0x80) - *(float *)(p + 0x210),
-                               *(float *)(p + 0x84) - *(float *)(p + 0x214));
-            if (xy_distance < *(float *)(p + 0x234) * 0.05f) {
-                ang = *(float *)(p + 0x98);
+            ang = fast_arc_tan(*(float *)(hero_base + 0x80) - *(float *)(hero_base + 0x210),
+                               *(float *)(hero_base + 0x84) - *(float *)(hero_base + 0x214));
+            if (xy_distance < *(float *)(hero_base + 0x234) * 0.05f) {
+                ang = *(float *)(hero_base + 0x98);
             }
             distance_error = xy_distance - lim;
-            vendor_spring(&distance_error, (float *)(p + 0x244), 0.0f, frame_scale_sq * 0.03f, frame_scale_sq * 0.3f,
+            vendor_spring(&distance_error, (float *)(hero_base + 0x244), 0.0f, frame_scale_sq * 0.03f, frame_scale_sq * 0.3f,
                              frame_time * 2.8f);
-            *(float *)(p + 0xF0) = fast_cos(ang) * *(float *)(p + 0x244);
-            *(float *)(p + 0xF4) = fast_sin(ang) * *(float *)(p + 0x244);
-            *(float *)(p + 0xF8) = 0.0f;
+            *(float *)(hero_base + 0xF0) = fast_cos(ang) * *(float *)(hero_base + 0x244);
+            *(float *)(hero_base + 0xF4) = fast_sin(ang) * *(float *)(hero_base + 0x244);
+            *(float *)(hero_base + 0xF8) = 0.0f;
         }
     } else {
-        *(int *)(p + 0x244) = 0;
+        *(int *)(hero_base + 0x244) = 0;
     }
 }
 #define NOT_SDA
@@ -661,7 +661,12 @@ extern int hero_set_state(int, int) __asm__("FUN_L00_002223f8");
 extern char D_L00_0017BF20[];
 int hero_set_state(int a, int b) {
     enum {
+        HERO_STATE_GRAPPLE_TARGET_ENTRY = 0x24,
+        HERO_STATE_GRAPPLE_SWING_ENTRY = 0x2C,
         HERO_STATE_WATER_SURFACE_ENTRY = 0x37,
+        HERO_STATE_VEHICLE_MODE_1_IDLE = 0x43,
+        HERO_STATE_VEHICLE_MODE_3_IDLE = 0x53,
+        HERO_STATE_VEHICLE_MODE_2_IDLE = 0x5A,
         HERO_STATE_DROWN = 0x6A
     };
     int old2088;
@@ -1301,7 +1306,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x24: {
+    case HERO_STATE_GRAPPLE_TARGET_ENTRY: {
         struct Hero *p = &hero;
         p->state.control_mode = 0xD;
         p->unk2284 = 7;
@@ -1348,7 +1353,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0x30, 1, (float)scale_game_frames(5));
         break;
     }
-    case 0x2C: {
+    case HERO_STATE_GRAPPLE_SWING_ENTRY: {
         struct Hero *p = &hero;
         char *d;
         p->state.control_mode = 0xE;
@@ -2534,7 +2539,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0x11, 0, (float)scale_game_frames(8));
         break;
     }
-    case 0x43: {
+    case HERO_STATE_VEHICLE_MODE_1_IDLE: {
         struct Hero *p = &hero;
         p->state.control_mode = 0;
         p->unk2284 = 0;
@@ -2663,7 +2668,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0xC, 0, (float)scale_game_frames(6));
         break;
     }
-    case 0x5A: {
+    case HERO_STATE_VEHICLE_MODE_2_IDLE: {
         struct Hero *p = &hero;
         p->state.control_mode = 0;
         p->unk2284 = 0;
@@ -2758,7 +2763,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x53: {
+    case HERO_STATE_VEHICLE_MODE_3_IDLE: {
         struct Hero *p = &hero;
         p->state.control_mode = 0;
         p->unk2284 = 0;
@@ -3056,55 +3061,55 @@ float absolute_float(float input) __asm__("FUN_001f99c0");
 
 
 int FUN_L00_002279b0(void) {
-    struct Hero *p = &hero;
-    struct Hero *q;
+    struct Hero *hero_ptr = &hero;
+    struct Hero *hero_depth_check_ptr;
     struct Hero *u;
     int r;
     float ray_start[4];
     float ray_end[4];
-    float t;
+    float surface_height_tolerance;
     float scale;
-    if (p->state.current == 0x6A) {
+    if (hero_ptr->state.current == 0x6A) {
         return 0;
     }
     r = 0;
-    if (p->base_condition != 0) {
-        if (p->state.control_mode == 0x11) {
-            if (p->state.step != 1) {
-                if (0.0f < p->motion.displacement.f[2]) {
-                    if (p->water_surface_z - 0.4f < p->motion.pos.f[2]) {
+    if (hero_ptr->base_condition != 0) {
+        if (hero_ptr->state.control_mode == 0x11) {
+            if (hero_ptr->state.step != 1) {
+                if (0.0f < hero_ptr->motion.displacement.f[2]) {
+                    if (hero_ptr->water_surface_z - 0.4f < hero_ptr->motion.pos.f[2]) {
                         r = 1;
                     }
                 }
             }
-        } else if (p->state.control_mode != 0x12 && p->state.control_mode != 3) {
-            t = 0.2f;
-            if (t < absolute_float(p->motion.velocity.f[2]) + 0.07f) {
-                t = absolute_float(p->motion.velocity.f[2]) + 0.07f;
+        } else if (hero_ptr->state.control_mode != 0x12 && hero_ptr->state.control_mode != 3) {
+            surface_height_tolerance = 0.2f;
+            if (surface_height_tolerance < absolute_float(hero_ptr->motion.velocity.f[2]) + 0.07f) {
+                surface_height_tolerance = absolute_float(hero_ptr->motion.velocity.f[2]) + 0.07f;
             }
-            if (absolute_float(p->water_surface_z - (p->motion.pos.f[2] + 0.45f)) < t) {
-                if (p->state.control_mode != 4 || p->unk41E != 0) {
-                    if (0.8f < p->unk22A4 && p->motion.displacement.f[2] < 0.0f) {
+            if (absolute_float(hero_ptr->water_surface_z - (hero_ptr->motion.pos.f[2] + 0.45f)) < surface_height_tolerance) {
+                if (hero_ptr->state.control_mode != 4 || hero_ptr->unk41E != 0) {
+                    if (0.8f < hero_ptr->unk22A4 && hero_ptr->motion.displacement.f[2] < 0.0f) {
                         r = 1;
                     }
                 }
             }
-            q = &hero;
-            if (q->motion.pos.f[2] < q->water_surface_z - 0.8f) {
-                if (q->state.control_mode != 4 || q->unk41E != 0) {
+            hero_depth_check_ptr = &hero;
+            if (hero_depth_check_ptr->motion.pos.f[2] < hero_depth_check_ptr->water_surface_z - 0.8f) {
+                if (hero_depth_check_ptr->state.control_mode != 4 || hero_depth_check_ptr->unk41E != 0) {
                     r = 1;
                 }
             }
         }
     }
-    p = &hero;
-    t = 0.27f;
-    if (t < absolute_float(p->motion.velocity.f[2]) + 0.07f) {
-        t = absolute_float(p->motion.velocity.f[2]);
+    hero_ptr = &hero;
+    surface_height_tolerance = 0.27f;
+    if (surface_height_tolerance < absolute_float(hero_ptr->motion.velocity.f[2]) + 0.07f) {
+        surface_height_tolerance = absolute_float(hero_ptr->motion.velocity.f[2]);
     }
-    if (p->state.current == 0x12) {
-        if (p->unk41E != 0) {
-            if (p->motion.pos.f[2] < p->water_surface_z - 0.7f) {
+    if (hero_ptr->state.current == 0x12) {
+        if (hero_ptr->unk41E != 0) {
+            if (hero_ptr->motion.pos.f[2] < hero_ptr->water_surface_z - 0.7f) {
                 r = 1;
             }
         }

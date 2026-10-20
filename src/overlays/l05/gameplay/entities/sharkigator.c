@@ -423,7 +423,7 @@ void FUN_L05_002d1e30(char *moby) {
     char *spawned_effect;
     float opposite_heading;
     int i;
-    float *h;
+    float *spawn_height_ptr;
 
     data = *(char **)(moby + 0x78);
     if (tick_2d1e30(data + 0x84) == 0) {
@@ -435,8 +435,8 @@ void FUN_L05_002d1e30(char *moby) {
         fast_vec_scale(v, moby + 0xD0, rand_2d1e30(-0.5f, 0.5f));
         vadd_2d1e30(v, v, moby + 0x10);
         v[2] = D_L05_001612E8 + 0.05f;
-        h = &D_L05_001612E8;
-        spawned_effect = spawn_2d1e30(v, D_L05_0015F580_macro, h, rand_2d1e30(0.7f, 1.0f), i == 0 ? 2.0f : -2.0f);
+        spawn_height_ptr = &D_L05_001612E8;
+        spawned_effect = spawn_2d1e30(v, D_L05_0015F580_macro, spawn_height_ptr, rand_2d1e30(0.7f, 1.0f), i == 0 ? 2.0f : -2.0f);
         if (spawned_effect != 0) {
             *(short *)(spawned_effect + 0xA) = frames_2d1e30(15);
         }
@@ -512,7 +512,7 @@ void FUN_L05_002d6f48(unsigned char *moby);
 void FUN_L05_002d7020(char *moby) {
     char *v;
     int i;
-    int c;
+    int interpolated_glow_color;
     int current_frame;
     int k;
     int *last_queued_frame_ptr;
@@ -523,11 +523,11 @@ void FUN_L05_002d7020(char *moby) {
             moby_point_position(moby, i, v + 0x330 + i * 16);
         }
         *(float *)(v + 0x368) = rot_2d7020(*(float *)(v + 0x368), frame_time * 1.9198622f);
-        c = lerp_2d7020(sin_2d7020(*(float *)(v + 0x368)) * 0.5f + 0.5f, 0x1E1EB4, 0x1EB41E);
+        interpolated_glow_color = lerp_2d7020(sin_2d7020(*(float *)(v + 0x368)) * 0.5f + 0.5f, 0x1E1EB4, 0x1EB41E);
         current_frame = frame_number;
-        *(int *)(moby + 0x90) = c;
-        k = (c & 0xFF0000) | 0x30000000;
-        *(int *)(v + 0x360) = k | (c & 0xFF00) | (c & 0xFF);
+        *(int *)(moby + 0x90) = interpolated_glow_color;
+        k = (interpolated_glow_color & 0xFF0000) | 0x30000000;
+        *(int *)(v + 0x360) = k | (interpolated_glow_color & 0xFF00) | (interpolated_glow_color & 0xFF);
         if (current_frame != 0) {
             last_queued_frame_ptr = *(int **)(v + 0x364);
             if (current_frame != *last_queued_frame_ptr) {
@@ -924,9 +924,9 @@ void amoeboid_update(struct Moby *moby) {
         *(float *)(moby_data + 0x68) = 1.0f;
         {
             int r = truncate_float_to_s32_c(409.6f);
-            float f = frame_time * 4.0f;
+            float movement_speed_limit = frame_time * 4.0f;
             *(int *)(moby_data + 0x60) = r;
-            *(float *)(moby_data + 0x84) = f;
+            *(float *)(moby_data + 0x84) = movement_speed_limit;
         }
         break;
     case AMOEBOID_FOLLOW_PATH: {
@@ -1173,13 +1173,13 @@ void extermibot_update(unsigned char *moby) {
         moby_data[0x5A] = truncate_float_to_s32_c4(11.2f);
         FUN_L01_0026d930(moby_data + 0xD0);
         {
-        float q = D_L05_00161A98;
+        float movement_scale = D_L05_00161A98;
         *(float *)(moby_data + 0xDC) = 2.0f;
         *(float *)(moby_data + 0xD8) = 2.0f;
         {
-        int r0 = truncate_float_to_s32_c4(q * 409.6f);
+        int quantized_movement_scale = truncate_float_to_s32_c4(movement_scale * 409.6f);
         float e6 = D_0015ED6C * 6.0f;
-        *(int *)(moby_data + 0xD0) = r0;
+        *(int *)(moby_data + 0xD0) = quantized_movement_scale;
         *(float *)(moby_data + 0xF4) = e6;
         }
         }
@@ -1626,7 +1626,7 @@ extern Path_3047E8 *D_L05_001B0CB0_3047E8[] __asm__("D_L05_001B0930");
 extern char D_0013F420[];
 extern s32 D_001413D0_lui[] __asm__("D_001413D0") __attribute__((section(".data")));
 
-void FUN_L05_00303390(Moby *m) {
+void FUN_L05_00303390(Moby *moby) {
     enum {
         EXTERMIBOT_HIT_NO_RESPONSE = 0,
         EXTERMIBOT_HIT_LETHAL = 1,
@@ -1647,17 +1647,17 @@ void FUN_L05_00303390(Moby *m) {
     float dmg;
     float ang;
     float ang2;
-    Wing_3047E8 *d;
+    Wing_3047E8 *moby_data;
     Hit_3047E8 *r;
     int res;
     int k;
 
-    d = *(struct Wing_3047E8 **)&m->pvars;
-    func_001F9908_3047E8(&d->f2D4);
+    moby_data = *(struct Wing_3047E8 **)&moby->pvars;
+    func_001F9908_3047E8(&moby_data->f2D4);
     dmg = 0.0f;
-    r = func_L00_0025B478_3047E8(m, 0x330000, 0);
+    r = func_L00_0025B478_3047E8(moby, 0x330000, 0);
     if (r != 0) {
-        qcopy(working_vector, ((float *)&m->pos));
+        qcopy(working_vector, ((float *)&moby->pos));
         working_vector[2] = working_vector[2] + 0.5f;
         if (r->who != 0) {
             if (r->who->oclass == 0x47) {
@@ -1670,29 +1670,29 @@ void FUN_L05_00303390(Moby *m) {
         } else {
             qcopy(hit_test_endpoint, r->at);
         }
-        if (func_001F9D10_3047E8(working_vector, hit_test_endpoint) < 24.0f && collision_line(working_vector, hit_test_endpoint, 2, m, 0) != 0) {
+        if (func_001F9D10_3047E8(working_vector, hit_test_endpoint) < 24.0f && collision_line(working_vector, hit_test_endpoint, 2, moby, 0) != 0) {
             r = 0;
         }
     }
-    res = update_collision_l08(m, r, &d->hp, 0, &cnt, &dmg, 0, 4);
-    if (cnt != 1 && m->state != 14) {
-        d->hp = d->hp - dmg;
-        if (d->hp <= 0.0f) {
+    res = update_collision_l08(moby, r, &moby_data->hp, 0, &cnt, &dmg, 0, 4);
+    if (cnt != 1 && moby->state != 14) {
+        moby_data->hp = moby_data->hp - dmg;
+        if (moby_data->hp <= 0.0f) {
             res = 1;
         }
         k = func_001FA898_3047E8(D_L05_00161A98_gp * 409.6f);
-        d->f98 = D_L05_00161A98_gp * 0.4f;
-        d->f80 = D_L05_00161AD0 * D_0015ED70;
-        d->f90 = k;
-        d->f94 = 9;
-        d->bAD = 0;
+        moby_data->f98 = D_L05_00161A98_gp * 0.4f;
+        moby_data->f80 = D_L05_00161AD0 * D_0015ED70;
+        moby_data->f90 = k;
+        moby_data->f94 = 9;
+        moby_data->bAD = 0;
         switch (res) {
         case EXTERMIBOT_HIT_NO_RESPONSE:
         case EXTERMIBOT_HIT_NO_REACTION:
             break;
         case EXTERMIBOT_HIT_FLASH:
         case EXTERMIBOT_HIT_FLASH_ONLY:
-            d->b67 = 0xFA;
+            moby_data->b67 = 0xFA;
             break;
         case EXTERMIBOT_HIT_NONLETHAL_KNOCKBACK:
         case EXTERMIBOT_HIT_KNOCKBACK_AND_FLASH:
@@ -1700,79 +1700,79 @@ void FUN_L05_00303390(Moby *m) {
         case EXTERMIBOT_HIT_START_NONLETHAL_KNOCKBACK:
         case EXTERMIBOT_HIT_START_NONLETHAL_KNOCKBACK_AND_FLASH:
         case EXTERMIBOT_HIT_START_KNOCKBACK_WITH_FLASH:
-            d->fC0 = 5.0f;
-            d->f88 = D_L05_00161A88 * D_0015ED6C;
-            d->f8C = D_L05_00161A8C * D_0015ED6C;
-            d->fC4 = 10.0f;
-            ang = angle_atan2(m->pos.x - r->who->pos.x, m->pos.y - r->who->pos.y);
+            moby_data->fC0 = 5.0f;
+            moby_data->f88 = D_L05_00161A88 * D_0015ED6C;
+            moby_data->f8C = D_L05_00161A8C * D_0015ED6C;
+            moby_data->fC4 = 10.0f;
+            ang = angle_atan2(moby->pos.x - r->who->pos.x, moby->pos.y - r->who->pos.y);
             *(u128_3047E8 *)working_vector = r->dir;
-            trooper_knockback_arc(working_vector, &ang, &d->f88, &d->f8C);
-            trooper_start_knockback(m, d->f70, ang, 5, 1, 0);
-            m->state = 11;
-            d->b67 = 0x78;
+            trooper_knockback_arc(working_vector, &ang, &moby_data->f88, &moby_data->f8C);
+            trooper_start_knockback(moby, moby_data->f70, ang, 5, 1, 0);
+            moby->state = 11;
+            moby_data->b67 = 0x78;
             break;
         case EXTERMIBOT_HIT_LETHAL:
         case EXTERMIBOT_HIT_DEATH_KNOCKBACK:
-            m->flags &= 0xEFFF;
-            d->f80 = D_L05_00161AD4 * D_0015ED70;
-            d->f88 = D_L05_00161A90 * D_0015ED6C;
-            d->f8C = D_L05_00161A94 * D_0015ED6C;
-            d->fC0 = 5.5f;
-            d->fC4 = 11.0f;
-            ang2 = angle_atan2(m->pos.x - r->who->pos.x, m->pos.y - r->who->pos.y);
+            moby->flags &= 0xEFFF;
+            moby_data->f80 = D_L05_00161AD4 * D_0015ED70;
+            moby_data->f88 = D_L05_00161A90 * D_0015ED6C;
+            moby_data->f8C = D_L05_00161A94 * D_0015ED6C;
+            moby_data->fC0 = 5.5f;
+            moby_data->fC4 = 11.0f;
+            ang2 = angle_atan2(moby->pos.x - r->who->pos.x, moby->pos.y - r->who->pos.y);
             *(u128_3047E8 *)working_vector = r->dir;
-            trooper_knockback_arc(working_vector, &ang2, &d->f88, &d->f8C);
-            trooper_start_knockback(m, d->f70, ang2, 6, 1, 0);
-            m->state = 14;
-            d->b67 = 0xF0;
+            trooper_knockback_arc(working_vector, &ang2, &moby_data->f88, &moby_data->f8C);
+            trooper_start_knockback(moby, moby_data->f70, ang2, 6, 1, 0);
+            moby->state = 14;
+            moby_data->b67 = 0xF0;
             if (r->who != 0 && *(struct Moby **)&r->who->pclass != 0 && *(short *)((u8 *)((struct Moby *)r->who->pclass) + 0x46) == 5) {
-                stop_animation_l08(m, 0x800, -1);
+                stop_animation_l08(moby, 0x800, -1);
             } else {
-                stop_animation_l08(m, 0, -1);
+                stop_animation_l08(moby, 0, -1);
             }
             break;
         }
-        trooper_anim_update(m, d->f60);
+        trooper_anim_update(moby, moby_data->f60);
     }
-    m->hit_slot = 0xFF;
-    trooper_anim_finish(m, d->f60);
-    if (d->f38 != 0) {
-        d->f2B0 = func_001FA898_3047E8(scale_time(func_002140F8_3047E8(180.0f, 240.0f)));
-        d->f38 = 0;
+    moby->hit_slot = 0xFF;
+    trooper_anim_finish(moby, moby_data->f60);
+    if (moby_data->f38 != 0) {
+        moby_data->f2B0 = func_001FA898_3047E8(scale_time(func_002140F8_3047E8(180.0f, 240.0f)));
+        moby_data->f38 = 0;
     }
-    func_001F9908_3047E8(&d->f2B0);
-    if (d->f2B0 != 0) {
-        d->f2A0 = d->f29C + 20.0f;
+    func_001F9908_3047E8(&moby_data->f2B0);
+    if (moby_data->f2B0 != 0) {
+        moby_data->f2A0 = moby_data->f29C + 20.0f;
     } else {
-        d->f2A0 = d->f29C;
+        moby_data->f2A0 = moby_data->f29C;
     }
-    if (activate_effect_l08(d->f2A0, m, d->f120, 0, 0, D_L05_001B0CB0_3047E8[d->f2CC]->pts, D_L05_001B0CB0_3047E8[d->f2CC]->n) != 2) {
-        if (d->f2A0 < vector_distance(d->f270, d->f120) || 3.0f < func_001F9B88_3047E8(m->pos.z - d->f128)) {
-            d->f164 = 2;
+    if (activate_effect_l08(moby_data->f2A0, moby, moby_data->f120, 0, 0, D_L05_001B0CB0_3047E8[moby_data->f2CC]->pts, D_L05_001B0CB0_3047E8[moby_data->f2CC]->n) != 2) {
+        if (moby_data->f2A0 < vector_distance(moby_data->f270, moby_data->f120) || 3.0f < func_001F9B88_3047E8(moby->pos.z - moby_data->f128)) {
+            moby_data->f164 = 2;
         }
     }
-    if (d->f2C8 >= 0) {
-        Moby *t = func_L05_003053D8_3047E8(m, d->f2C8);
-        if (t != 0) {
-            if (d->f164 == 2 || vector_distance(((float *)&m->pos), ((float *)&t->pos)) < vector_distance(((float *)&m->pos), ((float *)&d->target->pos))) {
-                d->target = t;
-                d->f164 = 1;
+    if (moby_data->f2C8 >= 0) {
+        Moby *candidate_target = func_L05_003053D8_3047E8(moby, moby_data->f2C8);
+        if (candidate_target != 0) {
+            if (moby_data->f164 == 2 || vector_distance(((float *)&moby->pos), ((float *)&candidate_target->pos)) < vector_distance(((float *)&moby->pos), ((float *)&moby_data->target->pos))) {
+                moby_data->target = candidate_target;
+                moby_data->f164 = 1;
             }
         }
     }
-    if (d->target == 0) {
-        d->target = (*(Moby * *)D_001413D0_lui);
+    if (moby_data->target == 0) {
+        moby_data->target = (*(Moby * *)D_001413D0_lui);
     }
-    d->f2D8 = func_001FA748_3047E8(d->f2D8, D_0015ED6C * 9.424778f);
-    m->glow_color = fast_tween_color(D_L05_00161A74, D_L05_00161A78, (func_001F9FA8_3047E8(d->f2D8) + 1.0f) * 0.5f);
-    k = m->state;
+    moby_data->f2D8 = func_001FA748_3047E8(moby_data->f2D8, D_0015ED6C * 9.424778f);
+    moby->glow_color = fast_tween_color(D_L05_00161A74, D_L05_00161A78, (func_001F9FA8_3047E8(moby_data->f2D8) + 1.0f) * 0.5f);
+    k = moby->state;
     if (k < 10) {
-    if (k >= 4 && d->target == (*(Moby * *)D_001413D0_lui)) {
+    if (k >= 4 && moby_data->target == (*(Moby * *)D_001413D0_lui)) {
         float yaw, pitch;
-        func_001F9BF0_3047E8(working_vector, ((float *)&d->target->pos), ((float *)&m->pos));
-        yaw = func_001FA790_3047E8(angle_atan2(working_vector[0], working_vector[1]), m->rot.z);
+        func_001F9BF0_3047E8(working_vector, ((float *)&moby_data->target->pos), ((float *)&moby->pos));
+        yaw = func_001FA790_3047E8(angle_atan2(working_vector[0], working_vector[1]), moby->rot.z);
         pitch = -angle_atan2(func_001F9CE8_3047E8(working_vector), working_vector[2]);
-        if (m->flags & 0x8000) {
+        if (moby->flags & 0x8000) {
             yaw = -yaw;
         }
         if (1.5707964f < yaw) {
@@ -1785,13 +1785,13 @@ void FUN_L05_00303390(Moby *m) {
         } else if (pitch < -0.5235988f) {
             pitch = -0.5235988f;
         }
-        d->f1D4 = pitch;
-        d->f1D8 = yaw * 0.7f;
-        d->f258 = yaw * 0.3f;
+        moby_data->f1D4 = pitch;
+        moby_data->f1D8 = yaw * 0.7f;
+        moby_data->f258 = yaw * 0.3f;
     }
     }
-    update_joint_animation(m, d->f170, 1, frame_scale_sq * 0.04f, frame_scale_sq * 0.3f);
-    update_joint_animation(m, d->f1F0, 2, frame_scale_sq * 0.04f, frame_scale_sq * 0.3f);
+    update_joint_animation(moby, moby_data->f170, 1, frame_scale_sq * 0.04f, frame_scale_sq * 0.3f);
+    update_joint_animation(moby, moby_data->f1F0, 2, frame_scale_sq * 0.04f, frame_scale_sq * 0.3f);
 }
 #include "rnc/gameplay/entities/moby.h"
 
@@ -3220,14 +3220,14 @@ void water_update(struct Moby *moby) {
         WATER_RISE_COMPLETE = 7,
         WATER_TIMED_RISE = 8
     };
-    WaterVars_30ca80 *d = *(WaterVars_30ca80 **)&moby->pvars;
+    WaterVars_30ca80 *water_vars = *(WaterVars_30ca80 **)&moby->pvars;
 
     switch (moby->state) {
     case WATER_INITIALIZE:
-        if (d->record_index == 0) {
+        if (water_vars->record_index == 0) {
             int i;
             int j;
-            float a;
+            float light_direction_angle;
 
             water = moby->pos.z;
             rise_step = 0;
@@ -3242,9 +3242,9 @@ void water_update(struct Moby *moby) {
             light.f14 = 1.0f;
             light.f18 = 0.9f;
             light.f20 = 0.1f;
-            a = angle_atan2_30ca80(D_L05_00180340.f10, D_L05_00180340.f14);
-            light.dir_x = fast_cos_30ca80(a) * 0.57735002f;
-            light.dir_y = fast_sin_30ca80(a) * 0.57735002f;
+            light_direction_angle = angle_atan2_30ca80(D_L05_00180340.f10, D_L05_00180340.f14);
+            light.dir_x = fast_cos_30ca80(light_direction_angle) * 0.57735002f;
+            light.dir_y = fast_sin_30ca80(light_direction_angle) * 0.57735002f;
             light.dir_z = -0.57735002f;
             light.f28 = 0x29;
             light.f2C = 0x2A;
@@ -3262,7 +3262,7 @@ void water_update(struct Moby *moby) {
             D_L05_00161214 = 26.0f;
             for (i = 0; i < 0x30; i++) {
                 copy_slot_30ca80(&water_records_30ca80[i].x, D_L05_0020B440[i]);
-                water_records_30ca80[d->record_index].h1E = record_draw_values[d->record_index];
+                water_records_30ca80[water_vars->record_index].h1E = record_draw_values[water_vars->record_index];
             }
             for (j = 0; j < 0x30; j++) {
                 FUN_L05_0030d6a0_30ca80(j);
@@ -3270,8 +3270,8 @@ void water_update(struct Moby *moby) {
         }
         moby->draw_dist = 0;
         moby->flags |= 1;
-        if (d->rises != 0) {
-            if (d->f10 >= 0) {
+        if (water_vars->rises != 0) {
+            if (water_vars->f10 >= 0) {
                 moby->update_dist = 0xFF;
                 if (hero_hits >= 2) {
                     int k;
@@ -3290,69 +3290,69 @@ void water_update(struct Moby *moby) {
                 moby->pos.z = 44.0f;
             } else {
                 moby->state = 3;
-                d->timer = scale_game_frames_30ca80(0x3C);
-                if (moby->pos.z < d->lowered_z) {
-                    water_records_30ca80[d->record_index].h1E = 0;
+                water_vars->timer = scale_game_frames_30ca80(0x3C);
+                if (moby->pos.z < water_vars->lowered_z) {
+                    water_records_30ca80[water_vars->record_index].h1E = 0;
                 }
             }
         } else {
-            if (d->f10 < 0) {
+            if (water_vars->f10 < 0) {
                 float z = moby->pos.z;
-                d->lowered_z = z;
-                d->raised_z = z + 4.5f;
-                if (d->starts_raised != 0) {
+                water_vars->lowered_z = z;
+                water_vars->raised_z = z + 4.5f;
+                if (water_vars->starts_raised != 0) {
                     moby->state = 1;
-                    moby->pos.z = d->raised_z;
+                    moby->pos.z = water_vars->raised_z;
                 } else {
                     moby->state = 2;
-                    moby->pos.z = d->lowered_z;
+                    moby->pos.z = water_vars->lowered_z;
                 }
             } else {
                 moby->state = 2;
-                moby->pos.z = d->lowered_z;
+                moby->pos.z = water_vars->lowered_z;
             }
         }
-        if (d->record_index == 0x2F) {
+        if (water_vars->record_index == 0x2F) {
             *(int *)&moby->collision = 0;
         }
         break;
     case WATER_MOVE_TO_LOWERED_HEIGHT:
         if (moby->command & 4) {
-            d->moving = 1;
+            water_vars->moving = 1;
             FUN_L01_0026e0e0(moby->group, 1);
-        } else if (d->f10 >= 0) {
+        } else if (water_vars->f10 >= 0) {
             if (mission_states_30ca80[moby->mission + (current_level_index << 4)] == 0xFF) {
                 moby->state = 1;
-                moby->pos.z = d->raised_z;
+                moby->pos.z = water_vars->raised_z;
             }
         }
-        if (d->moving != 0) {
-            advance_accelerated_scalar_30ca80(&moby->pos.z, &d->speed, d->lowered_z, move_speed * D_0015ED70, move_speed * D_0015ED70, move_accel * D_0015ED6C_gp);
+        if (water_vars->moving != 0) {
+            advance_accelerated_scalar_30ca80(&moby->pos.z, &water_vars->speed, water_vars->lowered_z, move_speed * D_0015ED70, move_speed * D_0015ED70, move_accel * D_0015ED6C_gp);
             FUN_L05_0030d5c0((char *)moby);
         }
         moby->command = 1;
         if (random_integer_below_30ca80(0xC8) == 0) {
-            float x = water_records_30ca80[d->record_index].x + random_float_between_30ca80(-4.0f, 4.0f);
+            float x = water_records_30ca80[water_vars->record_index].x + random_float_between_30ca80(-4.0f, 4.0f);
             float r = random_float_between_30ca80(-4.0f, 4.0f);
-            WaterRecord_30ca80 *e = &water_records_30ca80[d->record_index];
+            WaterRecord_30ca80 *e = &water_records_30ca80[water_vars->record_index];
             pool_splash_30ca80(e, 1, 1, x, e->y + r, 1.0f, -0.05f);
         }
         break;
     case WATER_MOVE_TO_RAISED_HEIGHT:
         if (moby->command & 8) {
-            d->moving = 1;
+            water_vars->moving = 1;
             FUN_L01_0026e0e0(moby->group, 2);
         } else {
             moby->command = 2;
         }
-        if (d->moving != 0) {
-            advance_accelerated_scalar_30ca80(&moby->pos.z, &d->speed, d->raised_z, move_speed * D_0015ED70, move_speed * D_0015ED70, move_accel * D_0015ED6C_gp);
+        if (water_vars->moving != 0) {
+            advance_accelerated_scalar_30ca80(&moby->pos.z, &water_vars->speed, water_vars->raised_z, move_speed * D_0015ED70, move_speed * D_0015ED70, move_accel * D_0015ED6C_gp);
             FUN_L05_0030d5c0((char *)moby);
         }
         if (random_integer_below_30ca80(0xC8) == 0) {
-            float x = water_records_30ca80[d->record_index].x + random_float_between_30ca80(-4.0f, 4.0f);
+            float x = water_records_30ca80[water_vars->record_index].x + random_float_between_30ca80(-4.0f, 4.0f);
             float r = random_float_between_30ca80(-4.0f, 4.0f);
-            WaterRecord_30ca80 *e = &water_records_30ca80[d->record_index];
+            WaterRecord_30ca80 *e = &water_records_30ca80[water_vars->record_index];
             pool_splash_30ca80(e, 1, 1, x, e->y + r, 1.0f, -0.05f);
         }
         break;
@@ -3367,41 +3367,41 @@ void water_update(struct Moby *moby) {
                 }
             }
         }
-        if (d->f10 >= 0) {
+        if (water_vars->f10 >= 0) {
             if (vector_distance_30ca80(((float *)&moby->pos), hero.motion.pos.f) < 10.0f) {
                 Hero *h = &hero;
                 if (h->ground_moby != 0 && h->air_frames.s == 0 && h->ground_moby->oclass == 0x33E) {
-                    d->f1C = 0;
+                    water_vars->f1C = 0;
                     moby->state = 8;
                     rise_step = 0;
-                    d->timer = scale_game_frames_30ca80(rise_frames[0]);
+                    water_vars->timer = scale_game_frames_30ca80(rise_frames[0]);
                 }
             }
         }
         if (random_integer_below_30ca80(0x32) == 0) {
-            float x = water_records_30ca80[d->record_index].x + random_float_between_30ca80(-4.0f, 4.0f);
+            float x = water_records_30ca80[water_vars->record_index].x + random_float_between_30ca80(-4.0f, 4.0f);
             float r = random_float_between_30ca80(-4.0f, 4.0f);
-            WaterRecord_30ca80 *e = &water_records_30ca80[d->record_index];
+            WaterRecord_30ca80 *e = &water_records_30ca80[water_vars->record_index];
             pool_splash_30ca80(e, 1, 1, x, e->y + r, 1.0f, -0.01f);
         }
         break;
     case WATER_RISE_COMPLETE:
-        if (d->f10 >= 0) {
+        if (water_vars->f10 >= 0) {
             Hero *h = &hero;
             if (h->state.current == 0x6A && h->state_timer == 2) {
                 hero_hits++;
             }
-        } else if (d->raised_z < moby->pos.z) {
-            water_records_30ca80[d->record_index].h1E = 0;
+        } else if (water_vars->raised_z < moby->pos.z) {
+            water_records_30ca80[water_vars->record_index].h1E = 0;
             mark_moby_for_removal_30ca80(moby);
             return;
         }
         break;
     case WATER_TIMED_RISE:
-        if (func_001F9908_v(&d->timer) != 0) {
+        if (func_001F9908_v(&water_vars->timer) != 0) {
             if (rise_step < 5) {
                 rise_step++;
-                d->timer = scale_game_frames_30ca80(rise_frames[rise_step]);
+                water_vars->timer = scale_game_frames_30ca80(rise_frames[rise_step]);
             }
         }
         moby->pos.z += rise_speeds[rise_step] * D_0015ED6C_gp;
@@ -3423,7 +3423,7 @@ void water_update(struct Moby *moby) {
                 }
             }
         }
-        if (d->f10 >= 0) {
+        if (water_vars->f10 >= 0) {
             Hero *h = &hero;
             if (h->state.current == 0x6A && h->state_timer == 2) {
                 hero_hits++;
@@ -3434,28 +3434,28 @@ void water_update(struct Moby *moby) {
         }
         break;
     }
-    if (d->record_index >= 0) {
-        WaterRecord_30ca80 *e = &water_records_30ca80[d->record_index];
-        float t;
+    if (water_vars->record_index >= 0) {
+        WaterRecord_30ca80 *e = &water_records_30ca80[water_vars->record_index];
+        float restore_record_draw_value;
 
         e->z = moby->pos.z;
-        t = 0.0f;
+        restore_record_draw_value = 0.0f;
         if (FUN_L01_00275690_30ca80((char *)moby, 48.0f) != -1
-            && (!(moby->state >= 3 && moby->state <= 7) || (moby->pos.z > d->lowered_z && moby->pos.z < d->raised_z))) {
-            t = 1.0f;
+            && (!(moby->state >= 3 && moby->state <= 7) || (moby->pos.z > water_vars->lowered_z && moby->pos.z < water_vars->raised_z))) {
+            restore_record_draw_value = 1.0f;
         }
-        if (t == 0.0f) {
-            water_records_30ca80[d->record_index].h1E = 0;
+        if (restore_record_draw_value == 0.0f) {
+            water_records_30ca80[water_vars->record_index].h1E = 0;
         } else {
-            water_records_30ca80[d->record_index].h1E = record_draw_values[d->record_index];
+            water_records_30ca80[water_vars->record_index].h1E = record_draw_values[water_vars->record_index];
         }
-        if (d->record_index == 0) {
+        if (water_vars->record_index == 0) {
             finish_slots_30ca80((char *)water_records_30ca80, 0x30);
             enqueue_callback_list_1_30ca80(FUN_L05_0030d678_30ca80, moby);
         }
-        if (d->record_index == D_L05_00161D10) {
-            water_records_30ca80[d->record_index].h1E = D_L05_00161D14;
-            record_draw_values[d->record_index] = D_L05_00161D14;
+        if (water_vars->record_index == D_L05_00161D10) {
+            water_records_30ca80[water_vars->record_index].h1E = D_L05_00161D14;
+            record_draw_values[water_vars->record_index] = D_L05_00161D14;
         }
     }
 }

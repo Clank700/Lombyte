@@ -26,10 +26,10 @@ void jet_reset_camera(OvlQuad *saved_position, OvlQuad *b) {
     int i;
     char *saved_state;
     struct Hero *hero_state;
-    char *q;
+    char *saved_value_source;
     char *g;
     int lvl;
-    signed char c;
+    signed char saved_value_override;
     int v;
 
     copy_memory_aligned((int)&D_L00_001BB280, &D_L00_001BA620, 0x404);
@@ -49,7 +49,7 @@ void jet_reset_camera(OvlQuad *saved_position, OvlQuad *b) {
     qcopy(saved_state + 0x10, saved_position);
     qcopy(saved_state + 0x20, b);
     hero_state = &hero;
-    q = D_001516D0;
+    saved_value_source = D_001516D0;
     g = D_0013E550;
     {
         char *hero_moby = ((char *)hero_state->moby);
@@ -63,11 +63,11 @@ void jet_reset_camera(OvlQuad *saved_position, OvlQuad *b) {
         *(char *)(saved_state + 0x40) = *(unsigned char *)(g + 0x68);
         *(char *)(saved_state + 0x41) = *(unsigned char *)(g + 0x69);
         *(char *)(saved_state + 0x42) = *(unsigned char *)(g + 0x6A);
-        c = *(signed char *)(q + 0x22);
-        if (c != -1) {
-            *(int *)(saved_state + 0xC54) = c;
+        saved_value_override = *(signed char *)(saved_value_source + 0x22);
+        if (saved_value_override != -1) {
+            *(int *)(saved_state + 0xC54) = saved_value_override;
         } else {
-            *(int *)(saved_state + 0xC54) = *(short *)(q + 0x38);
+            *(int *)(saved_state + 0xC54) = *(short *)(saved_value_source + 0x38);
         }
     }
 }
@@ -147,7 +147,7 @@ void FUN_L00_00285008(void) {
 extern u8 *D_L00_0015FFD8;
 extern u8 *D_L00_0015FFDC;
 /* Finds the moby (0x100 bytes each) whose short at 0xB2 equals id; 0 when none. */
-u8 *FUN_L00_002851c0(s32 a, s32 id) {
+u8 *FUN_L00_002851c0(s32 unused_parameter, s32 id) {
     u8 *record_cursor;
     for (record_cursor = D_L00_0015FFD8; record_cursor != D_L00_0015FFDC; record_cursor += 0x100) {
         if (*(s16 *)(record_cursor + 0xB2) == id)

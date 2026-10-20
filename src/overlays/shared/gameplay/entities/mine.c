@@ -246,7 +246,7 @@ void mine_update(M910 *mine_moby) {
         MINE_DEBRIS_SHORT_LIVED = 2,
         MINE_DEBRIS_SPHERICAL_VELOCITY = 3
     };
-    B910 a = D_L00_001E9830;
+    B910 camera_blast_parameters = D_L00_001E9830;
     B910 b = D_L00_001E9880;
     U910 c;
     U910 old;
@@ -947,7 +947,7 @@ void mine_update(M910 *mine_moby) {
                 if (D_E910.b11 != 0) {
                     mine_camera_blast((char *)&b, (char *)&mine_moby->pos, 0, 0);
                 } else {
-                    mine_camera_blast((char *)&a, (char *)&mine_moby->pos, 0, 0);
+                    mine_camera_blast((char *)&camera_blast_parameters, (char *)&mine_moby->pos, 0, 0);
                 }
                 mine_spawn_drops(mine_moby, D_L00_001B07B0);
                 mark_moby_for_removal(mine_moby);
@@ -1092,7 +1092,7 @@ void FUN_L00_002acbf0(M_2acbf0_002acbf0 *moby) {
     PV_2acbf0_002acbf0 *pv = moby->pv;
     s32 i;
     s32 odd;
-    f32 polar_angle, t;
+    f32 polar_angle, rotation_angle_numerator;
     if (D_L00_0015F5C4_002acbf0 == 2) {
         return;
     }
@@ -1104,12 +1104,12 @@ void FUN_L00_002acbf0(M_2acbf0_002acbf0 *moby) {
         rot.f[2] = 0.0f;
         rot.f[3] = 0.0f;
         rz.f[0] = 0.0f;
-        t = FUN_001fa6c0_002acbf0(D_L00_0015F5CC_002acbf0 % FUN_001f96f8_002acbf0(180));
+        rotation_angle_numerator = FUN_001fa6c0_002acbf0(D_L00_0015F5CC_002acbf0 % FUN_001f96f8_002acbf0(180));
         {
             f32 scaled_rotation_period = i2f_2acbf0(180.0f);
             f32 r;
-            t *= 6.28318548f;
-            r = fast_normalize_angle(t / scaled_rotation_period);
+            rotation_angle_numerator *= 6.28318548f;
+            r = fast_normalize_angle(rotation_angle_numerator / scaled_rotation_period);
             if (odd) {
                 r = -r;
             }
@@ -1196,9 +1196,9 @@ unsigned char *spawn_bomb(int owner, void *pos) {
         qcopy(bomb_moby + 0x40, &u);
         a = FUN_002132a8_2ace70(D_0015ED6C_2ace70 * 1.0471976f, D_0015ED6C_2ace70 * 3.1415927f);
         {
-            float d = D_0015ED6C_2ace70;
+            float frame_time = D_0015ED6C_2ace70;
             *(float *)(v + 0x58) = a;
-            *(float *)(v + 0x5C) = FUN_002132a8_2ace70(d * 1.0471976f, d * 3.1415927f);
+            *(float *)(v + 0x5C) = FUN_002132a8_2ace70(frame_time * 1.0471976f, frame_time * 3.1415927f);
         }
         FUN_L00_00250df8_2ace70(bomb_moby);
     }
@@ -1664,7 +1664,7 @@ void bomb_update(BombMoby_2adb30 *bomb_moby) {
                     int p0;
                     int p1;
                     int n0;
-                    int n1;
+                    int spark_vertical_offset_scale;
                     int n2;
                     FUN_001f9a68_2adb30(&spark_velocity, d, *(float *)&D_L00_001613F4);
                     random_vector(random_velocity_offset.f, 0.0f, *(float *)&D_L00_001613F8 * D_0015ED6C_2adb30);
@@ -1675,10 +1675,10 @@ void bomb_update(BombMoby_2adb30 *bomb_moby) {
                     p0 = fast_tween_color(*(int *)&D_L00_0016141C, *(int *)&D_L00_00161420, FUN_002132a8_2adb30(0.0f, 1.0f));
                     p1 = fast_tween_color(*(int *)&D_L00_00161424, *(int *)&D_L00_00161428, FUN_002132a8_2adb30(0.0f, 1.0f));
                     n0 = FUN_001fa6d0_2adb30(FUN_001f96b0_2adb30((float)*(int *)&D_L00_001613FC * FUN_002132a8_2adb30(0.0f, 1.0f) + 1.0f));
-                    n1 = FUN_001fa6d0_2adb30(FUN_001f96b0_2adb30((float)*(int *)&D_L00_00161400 * (FUN_002132a8_2adb30(-*(float *)&D_L00_00161408, *(float *)&D_L00_00161408) + 1.0f)));
+                    spark_vertical_offset_scale = FUN_001fa6d0_2adb30(FUN_001f96b0_2adb30((float)*(int *)&D_L00_00161400 * (FUN_002132a8_2adb30(-*(float *)&D_L00_00161408, *(float *)&D_L00_00161408) + 1.0f)));
                     n2 = FUN_001fa6d0_2adb30(FUN_001f96b0_2adb30((float)*(int *)&D_L00_00161404 * (FUN_002132a8_2adb30(-*(float *)&D_L00_00161408, *(float *)&D_L00_00161408) + 1.0f)));
-                    v2.f[2] -= *(float *)&D_L00_001613F0 * frame_time_sq_macro * (float)n1;
-                    spawn_spark(&bomb_moby->pos, &spark_velocity, &v2, p0, p1, n0, n1, n2, *(int *)&D_L00_00161430);
+                    v2.f[2] -= *(float *)&D_L00_001613F0 * frame_time_sq_macro * (float)spark_vertical_offset_scale;
+                    spawn_spark(&bomb_moby->pos, &spark_velocity, &v2, p0, p1, n0, spark_vertical_offset_scale, n2, *(int *)&D_L00_00161430);
                 }
             }
         }
@@ -2007,7 +2007,7 @@ unsigned char *spawn_debris(void *pos, void *vel, int lifetime_frames, int flag,
     unsigned char *debris_moby = FUN_0020c4f8_2af450(0x7A);
     if (debris_moby) {
         unsigned char *v;
-        float a, d;
+        float rotation_x_increment, frame_time;
         v = *(unsigned char **)(debris_moby + 0x78);
         debris_moby[0x30] = 0xFF;
         *(short *)(debris_moby + 0x32) = 0xFF;
@@ -2016,10 +2016,10 @@ unsigned char *spawn_debris(void *pos, void *vel, int lifetime_frames, int flag,
         FUN_L00_002502f0_2af450(debris_moby, 0x7F, 0x7F, 0x7F);
         qcopy(debris_moby + 0x10, pos);
         qcopy(v, vel);
-        a = FUN_002132a8_2af450(D_0015ED6C_2af450 * 6.2831855f, D_0015ED6C_2af450 * 12.566371f);
-        d = D_0015ED6C_2af450;
-        *(float *)(v + 0x10) = a;
-        *(float *)(v + 0x14) = FUN_002132a8_2af450(d * 6.2831855f, d * 12.566371f);
+        rotation_x_increment = FUN_002132a8_2af450(D_0015ED6C_2af450 * 6.2831855f, D_0015ED6C_2af450 * 12.566371f);
+        frame_time = D_0015ED6C_2af450;
+        *(float *)(v + 0x10) = rotation_x_increment;
+        *(float *)(v + 0x14) = FUN_002132a8_2af450(frame_time * 6.2831855f, frame_time * 12.566371f);
         *(short *)(v + 0x18) = lifetime_frames;
         *(short *)(v + 0x1A) = lifetime_frames;
         if (flag == 0) {
@@ -2075,9 +2075,9 @@ void debris_update(unsigned char *debris_moby) {
             *(OvlQuad *)&v = *(OvlQuad *)&random_direction;
             scale_2af5b8(&v, &v, D_0015ED6C_2af5b8);
             if (debris_moby[0xBC] & 0xFE) {
-                int a = FUN_L00_0025c0e8_c(c.c[rndi_2af5b8(4)], debris_moby[0xBC] >> 1);
+                int adjusted_color = FUN_L00_0025c0e8_c(c.c[rndi_2af5b8(4)], debris_moby[0xBC] >> 1);
                 int b = FUN_L00_0025c0e8_c(0x4FFF, debris_moby[0xBC] >> 1);
-                FUN_L00_00269958(debris_moby + 0x10, &v, a, b, fr_2af5b8(0x2D), 0x32, 0x78, 1);
+                FUN_L00_00269958(debris_moby + 0x10, &v, adjusted_color, b, fr_2af5b8(0x2D), 0x32, 0x78, 1);
             } else {
                 FUN_L00_00269958(debris_moby + 0x10, &v, c.c[rndi_2af5b8(4)], 0x4FFF, fr_2af5b8(0x2D), 0x32, 0x78,
                             1);
@@ -2119,7 +2119,7 @@ unsigned char *spawn_crate_debris(unsigned char *owner, void *vel, void *pos, vo
 extern float g48_2afa48 __asm__("D_L00_00161448") __attribute__((sda));
 extern float g4c_2afa48 __asm__("D_L00_0016144C") __attribute__((sda));
 unsigned char *spawn_crate_debris(unsigned char *owner, void *vel, void *pos, void *rot, int type,
-                                int n, float lo, float hi) {
+                                int initial_bounce_count, float lo, float hi) {
     unsigned char *debris_moby = FUN_0020c4f8_2af8b0(type);
     if (debris_moby) {
         V_2af8b0 *v = *(V_2af8b0 **)(debris_moby + 0x78);
@@ -2148,7 +2148,7 @@ unsigned char *spawn_crate_debris(unsigned char *owner, void *vel, void *pos, vo
                  DEG_TO_RAD * D_0015ED6C_2af8b0;
         scale_multiplier = FUN_002132a8_2af8b0(lo, hi);
         *(float *)(debris_moby + 0x2C) *= scale_multiplier;
-        v->hc = n;
+        v->hc = initial_bounce_count;
         v->f8 = scale_multiplier * 0.25f;
         FUN_L00_00250df8_2af8b0(debris_moby);
     }
@@ -2381,7 +2381,7 @@ void FUN_L00_002affa8(char *self, O *out, char *skip) {
     VU v;
     VU lv;
     char *candidate_moby;
-    s32 p;
+    s32 candidate_aim_record_address;
     s32 i;
     s32 flag;
     f32 best, yaw, pitch, dist, ang, z, angh, angv;
@@ -2407,20 +2407,20 @@ void FUN_L00_002affa8(char *self, O *out, char *skip) {
         opos = candidate_moby + 0x10;
         if (40.0f < FUN_001f9b48(&v, spos))
             goto next;
-        p = FUN_002141f8_u(candidate_moby);
-        if (p == 0)
+        candidate_aim_record_address = FUN_002141f8_u(candidate_moby);
+        if (candidate_aim_record_address == 0)
             goto np;
-        if (p <= 0x100000)
+        if (candidate_aim_record_address <= 0x100000)
             goto np;
-        if (0x3FFFFF < p)
+        if (0x3FFFFF < candidate_aim_record_address)
             goto np;
         {
-            f32 pf = *(f32 *)(p + 0x10);
+            f32 pf = *(f32 *)(candidate_aim_record_address + 0x10);
             z = v.f[2] + pf;
         }
         goto zset;
     np:
-        p = 0;
+        candidate_aim_record_address = 0;
         z = v.f[2] + 0.5f;
     zset:
         v.f[2] = z;
@@ -2449,8 +2449,8 @@ void FUN_L00_002affa8(char *self, O *out, char *skip) {
         fast_vec_add(&lv, &lv, spos);
         z = fast_arc_sin(FUN_001f9b48(&lv, &v) / (dist + dist));
         ang = ang + 1.5707964f;
-        if (ang < z + z && p != 0) {
-            ang = convert_integer_to_float(*(u8 *)(p + 0xA) << 3) * 0.125f;
+        if (ang < z + z && candidate_aim_record_address != 0) {
+            ang = convert_integer_to_float(*(u8 *)(candidate_aim_record_address + 0xA) << 3) * 0.125f;
             fast_arc_sin(ang / dist);
         }
         flag = 1;
@@ -2466,8 +2466,8 @@ void FUN_L00_002affa8(char *self, O *out, char *skip) {
                 goto next;
             z = 0.5f;
             out->owner = candidate_moby;
-            if (p != 0)
-                z = *(f32 *)(p + 0x10);
+            if (candidate_aim_record_address != 0)
+                z = *(f32 *)(candidate_aim_record_address + 0x10);
             out->f2C = angh;
             out->w38 = flag;
             out->f30 = pitch;
@@ -2616,7 +2616,7 @@ extern void FUN_L00_0026a9f0(void *,void *,int,int,float,int,int,int,int,float);
 extern void FUN_L00_0026a4c8_c(void *,void *,int,int,float,int) __asm__("FUN_L00_0026a4c8");
 
 void gold_devastator_missile_update(M910 *m) __asm__("FUN_L00_002b03a0");
-void gold_devastator_missile_update(M910 *m) {
+void gold_devastator_missile_update(M910 *missile_moby) {
     B910 effect=D_L00_001E9950;
     B910 gold_effect=D_L00_001E99A0;
     V1688 camera_delta;
@@ -2636,7 +2636,7 @@ void gold_devastator_missile_update(M910 *m) {
     float rotation_part[4][4];
     M910 *skip=0;
     int reduced=0;
-    Missile1688 *d;
+    Missile1688 *missile_data;
     M910 *target;
     float size, yaw, pitch;
     normal.q=0;
@@ -2644,32 +2644,32 @@ void gold_devastator_missile_update(M910 *m) {
     blast_velocity.q=normal.q;
     normal.q=0;
     normal.f[2]=1.0f;
-    d=(Missile1688 *)m->v;
-    target=d->target;
+    missile_data=(Missile1688 *)missile_moby->v;
+    target=missile_data->target;
     if(D_L00_0015F5D0>0.9f || D_L00_0015F5D4>0.9f) reduced=1;
-    d->speed=d->speed+(d->desired_speed-d->speed)/10.0f*frame_scale_sq;
-    fast_dec_timer_s16(&d->turn_time);
+    missile_data->speed=missile_data->speed+(missile_data->desired_speed-missile_data->speed)/10.0f*frame_scale_sq;
+    fast_dec_timer_s16(&missile_data->turn_time);
     {
-        float turn=convert_integer_to_float(d->turn_time);
-        turn=turn/convert_integer_to_float(d->turn_period);
+        float turn=convert_integer_to_float(missile_data->turn_time);
+        turn=turn/convert_integer_to_float(missile_data->turn_period);
         add_vector_xyz(phase.collision.dir,&hero_motion1688.current,&hero_motion1688.previous);
         hero_velocity.q=phase.vectors.direction.q;
         scale_vector_xyz(&hero_velocity,&hero_velocity,turn);
     }
     size=convert_integer_to_float(D_0013E520.bB)+1.0f;
-    if(target && d->life<scale_game_frames_alt(300)-scale_game_frames_alt(5) && (signed char)target->state>=0) {
+    if(target && missile_data->life<scale_game_frames_alt(300)-scale_game_frames_alt(5) && (signed char)target->state>=0) {
         float time=0.0f;
         qcopy(&phase.vectors.target,&target->pos);
-        phase.vectors.target.f[2]+=d->target_height;
-        subtract_vector_xyz(phase.collision.dir,&phase.vectors.target,(&m->pos));
-        if(d->track_velocity) {
+        phase.vectors.target.f[2]+=missile_data->target_height;
+        subtract_vector_xyz(phase.collision.dir,&phase.vectors.target,(&missile_moby->pos));
+        if(missile_data->track_velocity) {
             float b,a,root,intercept_time_plus_root,intercept_time_minus_root,denominator,negative_b;
-            subtract_vector_xyz(&phase.vectors.relative,&phase.vectors.target,&d->previous_target);
+            subtract_vector_xyz(&phase.vectors.relative,&phase.vectors.target,&missile_data->previous_target);
             FUN_L00_001ff2c0_c(&predicted,&phase.vectors.relative,&hero_velocity);
-            qcopy(&d->previous_target,&phase.vectors.target);
+            qcopy(&missile_data->previous_target,&phase.vectors.target);
             a=FUN_L00_001ff430_c(&phase.vectors.relative);
             b=(phase.vectors.relative.f[0]*phase.collision.dir[0]+phase.vectors.relative.f[1]*phase.collision.dir[1]+phase.vectors.relative.f[2]*phase.collision.dir[2])*-2.0f;
-            a=d->speed*d->speed-a;
+            a=missile_data->speed*missile_data->speed-a;
             root=square_root_scalar(b*b-a*4.0f*-FUN_L00_001ff430_c(phase.collision.dir));
             negative_b=-b;
             denominator=a+a;
@@ -2696,26 +2696,26 @@ void gold_devastator_missile_update(M910 *m) {
             pitch=-fast_arc_tan(horizontal1688(phase.collision.dir),phase.collision.dir[2]);
         }
     } else {
-        if(d->life<scale_game_frames_alt(300)-scale_game_frames_alt(5)) {
-            yaw=d->yaw;
-            pitch=d->pitch;
+        if(missile_data->life<scale_game_frames_alt(300)-scale_game_frames_alt(5)) {
+            yaw=missile_data->yaw;
+            pitch=missile_data->pitch;
         } else {
-            yaw=m->rz;
-            pitch=m->ry;
+            yaw=missile_moby->rz;
+            pitch=missile_moby->ry;
         }
     }
     if(target) {
-        m->rz=chase1688(&d->yaw_velocity,m->rz,yaw,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*6.2831855f);
-        m->ry=chase1688(&d->pitch_velocity,m->ry,pitch,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*6.2831855f);
+        missile_moby->rz=chase1688(&missile_data->yaw_velocity,missile_moby->rz,yaw,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*6.2831855f);
+        missile_moby->ry=chase1688(&missile_data->pitch_velocity,missile_moby->ry,pitch,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*6.2831855f);
     } else {
-        m->rz=chase1688(&d->yaw_velocity,m->rz,yaw,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*4.71238899f);
-        m->ry=chase1688(&d->pitch_velocity,m->ry,pitch,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*4.71238899f);
+        missile_moby->rz=chase1688(&missile_data->yaw_velocity,missile_moby->rz,yaw,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*4.71238899f);
+        missile_moby->ry=chase1688(&missile_data->pitch_velocity,missile_moby->ry,pitch,D_0015ED70*6.2831855f,D_0015ED70*3.1415927f,D_0015ED6C*4.71238899f);
     }
-    build_spherical_offset_c(&motion,d->speed,m->rz,-m->ry);
+    build_spherical_offset_c(&motion,missile_data->speed,missile_moby->rz,-missile_moby->ry);
     normalize_vector_xyz(&impact1688.normal,&motion,1.0f);
     scale_vector_xyz(&impact1688.normal,&impact1688.normal,-1.0f);
     if(!reduced || !(D_L00_0015F5CC&1)) {
-        unsigned char *p;
+        unsigned char *smoke_particle;
         phase.vectors.relative.q=0;
         phase.vectors.relative.f[0]=random_float_between(-1.0f,1.0f);
         phase.vectors.relative.f[1]=random_float_between(-1.0f,1.0f);
@@ -2724,29 +2724,29 @@ void gold_devastator_missile_update(M910 *m) {
         normalize_vector_xyz(phase.collision.dir,phase.collision.dir,random_float_between(0.1f,0.2f)*D_0015ED6C);
         normalize_vector_xyz(&smoke_position,&motion,-random_float_between(D_0015ED6C*0.1f,D_0015ED6C));
         add_vector_xyz(phase.collision.dir,phase.collision.dir,&smoke_position);
-        normalize_vector_xyz(&smoke_position,&motion,random_float_between(0.0f,1.0f)*d->speed);
-        add_vector_xyz(&smoke_position,&smoke_position,(&m->pos));
-        p=smoke1688(&smoke_position,phase.collision.dir,scale_game_frames_alt(40),50,0x505050,3,40000.0f,1000.0f,1.0f,-0.0002f,0.0f);
-        if(p) { unsigned char texture=*D_L00_001B20DC; p[3]=0x44; p[2]=texture; }
-        smoke1688((&m->pos),phase.collision.dir,scale_game_frames_alt(7),127,0xB0B0B0,3,40000.0f,1000.0f,1.0f,-0.0004f,0.0f);
+        normalize_vector_xyz(&smoke_position,&motion,random_float_between(0.0f,1.0f)*missile_data->speed);
+        add_vector_xyz(&smoke_position,&smoke_position,(&missile_moby->pos));
+        smoke_particle=smoke1688(&smoke_position,phase.collision.dir,scale_game_frames_alt(40),50,0x505050,3,40000.0f,1000.0f,1.0f,-0.0002f,0.0f);
+        if(smoke_particle) { unsigned char texture=*D_L00_001B20DC; smoke_particle[3]=0x44; smoke_particle[2]=texture; }
+        smoke1688((&missile_moby->pos),phase.collision.dir,scale_game_frames_alt(7),127,0xB0B0B0,3,40000.0f,1000.0f,1.0f,-0.0004f,0.0f);
         phase.vectors.relative.q=0;
         phase.vectors.relative.f[2]=0.02f;
-        rotate1688(&phase.vectors.relative,&phase.vectors.relative,m->mtx);
-        axis_rotate1688(&phase.vectors.relative,&phase.vectors.relative,m->mtx,random_angle1688());
+        rotate1688(&phase.vectors.relative,&phase.vectors.relative,missile_moby->mtx);
+        axis_rotate1688(&phase.vectors.relative,&phase.vectors.relative,missile_moby->mtx,random_angle1688());
         {
             int color=FUN_L00_0025c0e8(0x4F007FFF,D_0013E520.bB);
             FUN_L00_0026cbb0(&smoke_position,&phase.vectors.relative,color,0x1FFFFFFF,scale_game_frames_alt(15),1,25000.0f);
         }
     }
-    qcopy(&previous,(&m->pos));
+    qcopy(&previous,(&missile_moby->pos));
     FUN_L00_001ff290_c(phase.collision.dir,&motion,&hero_velocity);
-    add_vector_xyz((&m->pos),(&m->pos),&motion);
-    if(m->pos.f[0]<0.0f || m->pos.f[1]<0.0f || m->pos.f[2]<0.0f) {
-        mine_spawn_drops(m,D_L00_001B0770);
-        mark_moby_for_removal(m);
+    add_vector_xyz((&missile_moby->pos),(&missile_moby->pos),&motion);
+    if(missile_moby->pos.f[0]<0.0f || missile_moby->pos.f[1]<0.0f || missile_moby->pos.f[2]<0.0f) {
+        mine_spawn_drops(missile_moby,D_L00_001B0770);
+        mark_moby_for_removal(missile_moby);
         return;
     }
-    phase.collision.moby=m;
+    phase.collision.moby=missile_moby;
     phase.collision.flags=0x830000;
     phase.collision.fC=3.0f;
     phase.collision.i10=1;
@@ -2755,26 +2755,26 @@ void gold_devastator_missile_update(M910 *m) {
     phase.collision.dir[2]=1.0f;
     phase.collision.dir[3]=5627.925f;
     phase.collision.b8=3;
-    phase.collision.cls=m->cls;
+    phase.collision.cls=missile_moby->cls;
     phase.collision.b9=1;
-    if(collision1688(&previous,(&m->pos),0,D_0013F350.cam,&phase.collision)) {
+    if(collision1688(&previous,(&missile_moby->pos),0,D_0013F350.cam,&phase.collision)) {
         Impact1688 *hit=&impact1688;
         V1688 *hit_normal;
         if(hit->moby) {
-            if(hit->moby!=(M910 *)D_0013F350.cam && hit->moby!=d->owner) {
-                m->bBC=2;
-                qcopy((&m->pos),&hit->position);
+            if(hit->moby!=(M910 *)D_0013F350.cam && hit->moby!=missile_data->owner) {
+                missile_moby->bBC=2;
+                qcopy((&missile_moby->pos),&hit->position);
                 subtract_vector_xyz(&surface_motion,&hit->velocity_end,&hit->velocity_start);
                 hit_normal=&hit->normal;
-                skip=m;
+                skip=missile_moby;
                 normalize_vector_xyz(&surface_motion,&surface_motion,1.0f);
                 FUN_L00_001ff660(&blast_velocity,&motion,hit_normal);
                 normalize_vector_xyz(&blast_velocity,&blast_velocity,D_0015ED6C+D_0015ED6C);
                 normalize_vector_xyz(&normal,hit_normal,1.0f);
             }
         } else if(hit->kind>0) {
-            m->bBC=1;
-            qcopy((&m->pos),&hit->position);
+            missile_moby->bBC=1;
+            qcopy((&missile_moby->pos),&hit->position);
             subtract_vector_xyz(&surface_motion,&hit->velocity_end,&hit->velocity_start);
             hit_normal=&hit->normal;
             normalize_vector_xyz(&surface_motion,&surface_motion,1.0f);
@@ -2782,28 +2782,28 @@ void gold_devastator_missile_update(M910 *m) {
             normalize_vector_xyz(&blast_velocity,&blast_velocity,D_0015ED6C+D_0015ED6C);
             normalize_vector_xyz(&normal,hit_normal,1.0f);
         }
-    } else if(tick_countdown_32_alt(&d->life) || d->limit<vector_distance((&m->pos),&D_0013F350.x80)) {
+    } else if(tick_countdown_32_alt(&missile_data->life) || missile_data->limit<vector_distance((&missile_moby->pos),&D_0013F350.x80)) {
         qcopy(&normal,&D_L00_00160680);
         qcopy(&surface_motion,&D_L00_00160660);
-        rotate1688(&surface_motion,&surface_motion,m->mtx);
-        rotate1688(&normal,&normal,m->mtx);
+        rotate1688(&surface_motion,&surface_motion,missile_moby->mtx);
+        rotate1688(&normal,&normal,missile_moby->mtx);
         if(!D_0013E520.bB) {
-            mine_spawn_drops(m,D_L00_001B0770);
-            mark_moby_for_removal(m);
+            mine_spawn_drops(missile_moby,D_L00_001B0770);
+            mark_moby_for_removal(missile_moby);
             return;
         }
-        m->bBC=1;
+        missile_moby->bBC=1;
         add_vector_xyz(&blast_velocity,&blast_velocity,&motion);
     }
-    if(m->bBC) {
+    if(missile_moby->bBC) {
         float distance, near_adjust;
         int particles;
         int particle_reduction;
         int i,j;
-        int hit=collect_mobies_in_sphere((&m->pos),16,m,0,(size+size));
+        int hit=collect_mobies_in_sphere((&missile_moby->pos),16,missile_moby,0,(size+size));
         particles=10;
-        predicted.q=m->pos.q;
-        FUN_L00_0025a9f8(m,&predicted,D_L00_00177F00,hit,(int)skip,0x830000,3,1,3.0f,1.0f,1.0f);
+        predicted.q=missile_moby->pos.q;
+        FUN_L00_0025a9f8(missile_moby,&predicted,D_L00_00177F00,hit,(int)skip,0x830000,3,1,3.0f,1.0f,1.0f);
         particle_reduction=0;
         basis[0][0]=0.0f;
         basis[1][0]=-normal.f[2];
@@ -2825,7 +2825,7 @@ void gold_devastator_missile_update(M910 *m) {
         if(reduced) { particle_reduction=1; particles/=3; }
         { int remaining;
         for(remaining=0;remaining<particles;remaining++) {
-            if(m->bBC==1) {
+            if(missile_moby->bBC==1) {
                 float a=random_angle1688();
                 FUN_L00_001ffd48_c(rotation_part,basis_squared,1.0f-fast_cos(a));
                 FUN_L00_001ffd48_c(diagonal,basis,fast_sin(a));
@@ -2849,7 +2849,7 @@ void gold_devastator_missile_update(M910 *m) {
                 if(vector_length_xyz(&predicted)>1.0f) normalize_vector_xyz(&predicted,&predicted,D_0015ED6C*8.0f);
                 particle_scale=size*40000.0f;
                 life=FUN_L00_00257b90(scale_game_frames_alt(60),scale_game_frames_alt(120))-particle_reduction*35;
-                FUN_L00_0026bb70((&m->pos),&predicted,color,fade,particle_scale,life,1,-1,-1);
+                FUN_L00_0026bb70((&missile_moby->pos),&predicted,color,fade,particle_scale,life,1,-1,-1);
             }
         }
         }
@@ -2860,14 +2860,14 @@ void gold_devastator_missile_update(M910 *m) {
             random.f[2]=random_float_between(-1.0f,1.0f);
             predicted.q=random.q;
         }
-        subtract_vector_xyz(&camera_delta,D_L00_00166DC0,(&m->pos));
+        subtract_vector_xyz(&camera_delta,D_L00_00166DC0,(&missile_moby->pos));
         distance=vector_length_xyz(&camera_delta);
         camera_delta.f[2]+=distance*0.5f;
         normalize_vector_xyz(&predicted,&predicted,distance/5.0f*D_0015ED6C*size);
         normalize_vector_xyz(&camera_delta,&camera_delta,(distance+distance)*D_0015ED6C);
         add_vector_xyz(&predicted,&predicted,&camera_delta);
         clamp_vector_length(&predicted,&predicted,D_0015ED6C*10.0f);
-        FUN_L00_002af450((char *)(&m->pos),(char *)&predicted,FUN_L00_00257b90(scale_game_frames_alt(60),scale_game_frames_alt(90)),0,0);
+        FUN_L00_002af450((char *)(&missile_moby->pos),(char *)&predicted,FUN_L00_00257b90(scale_game_frames_alt(60),scale_game_frames_alt(90)),0,0);
         if(distance<6.0f) j=truncate_float_to_s32(distance)/2;
         else j=3;
         near_adjust=0.0f;
@@ -2882,10 +2882,10 @@ void gold_devastator_missile_update(M910 *m) {
             int life=FUN_L00_00257b90(scale_game_frames_alt(15),scale_game_frames_alt(20))-particle_reduction*7;
             int end=FUN_L00_00257b90(scale_game_frames_alt(25),scale_game_frames_alt(30))-particle_reduction*10;
             int white_life, white_end;
-            FUN_L00_0026a9f0((&m->pos),&blast_velocity,c,f,400000.0f,life,end,0,0,speed);
+            FUN_L00_0026a9f0((&missile_moby->pos),&blast_velocity,c,f,400000.0f,life,end,0,0,speed);
             white_life=FUN_L00_00257b90(scale_game_frames_alt(5),scale_game_frames_alt(10))-particle_reduction*5;
             white_end=FUN_L00_00257b90(scale_game_frames_alt(15),scale_game_frames_alt(20))-particle_reduction*7;
-            FUN_L00_0026a9f0((&m->pos),&blast_velocity,0x7FFFFFFF,0xFFFFFF,400000.0f,white_life,white_end,0,0,speed*0.5f);
+            FUN_L00_0026a9f0((&missile_moby->pos),&blast_velocity,0x7FFFFFFF,0xFFFFFF,400000.0f,white_life,white_end,0,0,speed*0.5f);
         }
         for(i=0;i<particles;i++) {
             Colors1688 color=D_L00_001E99F0;
@@ -2905,54 +2905,54 @@ void gold_devastator_missile_update(M910 *m) {
             f=FUN_L00_0025c0e8(fade.colors[random_integer_below(6)],D_0013E520.bB);
             debris_scale=size*200000.0f;
             life=FUN_L00_00257b90(scale_game_frames_alt(20),scale_game_frames_alt(35))-particle_reduction*10;
-            FUN_L00_0026a4c8_c((&m->pos),&v,c,f,debris_scale,life);
+            FUN_L00_0026a4c8_c((&missile_moby->pos),&v,c,f,debris_scale,life);
         }
         if(D_L00_0015F5D0<0.95f && distance>9.0f) {
             int c=127,f=127;
             if(D_0013E520.bB) { c=60; f=60; }
-            spawn_glow_particle_u8(m,(&m->pos),&blast_velocity,size*4.0f,scale_game_frames_alt(15),c,127,f,32);
-            spawn_glow_particle_u8(m,(&m->pos),&blast_velocity,size*4.0f,scale_game_frames_alt(24),c,127,f,32);
+            spawn_glow_particle_u8(missile_moby,(&missile_moby->pos),&blast_velocity,size*4.0f,scale_game_frames_alt(15),c,127,f,32);
+            spawn_glow_particle_u8(missile_moby,(&missile_moby->pos),&blast_velocity,size*4.0f,scale_game_frames_alt(24),c,127,f,32);
         }
         { unsigned char color=127;
           int life;
           float flash_scale=size*4.0f;
           if(D_0013E520.bB) color=32;
           life=scale_game_frames_alt(20);
-          spawn_glow_particle_u8(m,(&m->pos),&blast_velocity,flash_scale,life,color,127,0,48);
+          spawn_glow_particle_u8(missile_moby,(&missile_moby->pos),&blast_velocity,flash_scale,life,color,127,0,48);
         }
-        if(!reduced) spawn_glow_particle_u8(m,(&m->pos),&blast_velocity,(size+size),scale_game_frames_alt(19),255,255,255,32);
+        if(!reduced) spawn_glow_particle_u8(missile_moby,(&missile_moby->pos),&blast_velocity,(size+size),scale_game_frames_alt(19),255,255,255,32);
         motion.f[0]=0.0f;
-        m->bBC=0;
+        missile_moby->bBC=0;
         D_L00_00166C80.f160=distance<20.0f ? 0.4f-distance*0.0175f : 0.4f-20.0f*0.0175f;
         D_L00_00166C80.i168=scale_game_frames_alt(25);
-        allocate_voice_for_target_entry_alt(0,0,(int)m);
+        allocate_voice_for_target_entry_alt(0,0,(int)missile_moby);
         if(!reduced) {
-            if(D_0013E520.bB) mine_camera_blast((char *)&gold_effect,(char *)(&m->pos),0,0);
-            else mine_camera_blast((char *)&effect,(char *)(&m->pos),0,0);
+            if(D_0013E520.bB) mine_camera_blast((char *)&gold_effect,(char *)(&missile_moby->pos),0,0);
+            else mine_camera_blast((char *)&effect,(char *)(&missile_moby->pos),0,0);
         }
-        d->bounce_count++;
-        if(!D_0013E520.bB || d->bounce_count==3) {
-            mine_spawn_drops(m,D_L00_001B0770);
-            mark_moby_for_removal(m);
+        missile_data->bounce_count++;
+        if(!D_0013E520.bB || missile_data->bounce_count==3) {
+            mine_spawn_drops(missile_moby,D_L00_001B0770);
+            mark_moby_for_removal(missile_moby);
             return;
         }
         { V1688 bounce[2];
-        d->target=0;
-        m->bBC=0;
+        missile_data->target=0;
+        missile_moby->bBC=0;
         normalize_vector_xyz(&impact1688.normal,&impact1688.normal,1.0f);
         FUN_L00_001ff660(&bounce[0],&motion,&impact1688.normal);
-        m->rz=fast_arc_tan(bounce[0].f[0],bounce[0].f[1]);
-        m->ry=-fast_arc_tan(horizontal1688(&bounce[0]),bounce[0].f[2]);
-        d->yaw_velocity=0.0f; d->pitch_velocity=0.0f;
+        missile_moby->rz=fast_arc_tan(bounce[0].f[0],bounce[0].f[1]);
+        missile_moby->ry=-fast_arc_tan(horizontal1688(&bounce[0]),bounce[0].f[2]);
+        missile_data->yaw_velocity=0.0f; missile_data->pitch_velocity=0.0f;
         normalize_vector_xyz(&bounce[1],&impact1688.normal,0.05f);
-        add_vector_xyz((&m->pos),(&m->pos),&bounce[1]);
-        if(impact1688.moby) d->owner=impact1688.moby;
-        if(!d->bounce_timer) d->bounce_timer=scale_game_frames_alt(90);
-        FUN_L00_002affa8((char *)m,(O *)d,(char *)impact1688.moby);
-        allocate_voice_for_target_entry_alt(1,0,(int)m);
+        add_vector_xyz((&missile_moby->pos),(&missile_moby->pos),&bounce[1]);
+        if(impact1688.moby) missile_data->owner=impact1688.moby;
+        if(!missile_data->bounce_timer) missile_data->bounce_timer=scale_game_frames_alt(90);
+        FUN_L00_002affa8((char *)missile_moby,(O *)missile_data,(char *)impact1688.moby);
+        allocate_voice_for_target_entry_alt(1,0,(int)missile_moby);
             }
     }
-    if(tick_countdown_32_alt(&d->bounce_timer)) d->bounce_count=0;
+    if(tick_countdown_32_alt(&missile_data->bounce_timer)) missile_data->bounce_count=0;
 }
 typedef struct {
     float f[4];
@@ -2982,7 +2982,7 @@ void FUN_L00_002b1af0(unsigned char *source_object) {
     V_2b1af0 emission_position;
     V_2b1af0 particle_velocity;
     int i, j;
-    int t;
+    int particle_byte_input_or_min_frames;
     if (source_object[0xBC] == 0)
         return;
     *(OvlQuad *)&a = 0;
@@ -3004,8 +3004,8 @@ void FUN_L00_002b1af0(unsigned char *source_object) {
         scale_2b1af0(&b, &D_0013F450.b, 0.7f);
         b.f[2] = 0.0f;
         add_2b1af0(&particle_velocity, &particle_velocity, &b);
-        t = trunc_2b1af0(rnd_2b1af0(0.0f, 6.0f));
-        spawn_particle(&emission_position, &particle_velocity, fr_2b1af0(0x1E), 0x7F, 0xFFFFFF, t, 25000.0f, 300.0f, 0.98f, 0.0f,
+        particle_byte_input_or_min_frames = trunc_2b1af0(rnd_2b1af0(0.0f, 6.0f));
+        spawn_particle(&emission_position, &particle_velocity, fr_2b1af0(0x1E), 0x7F, 0xFFFFFF, particle_byte_input_or_min_frames, 25000.0f, 300.0f, 0.98f, 0.0f,
                      0.85f);
     }
     for (j = 0; j >= 0; j--) {
@@ -3016,8 +3016,8 @@ void FUN_L00_002b1af0(unsigned char *source_object) {
         scale_2b1af0(&b, &D_0013F450.b, 0.55f);
         b.f[2] = 0.0f;
         add_2b1af0(&particle_velocity, &particle_velocity, &b);
-        t = fr_2b1af0(0x14);
-        spawn_burst(&emission_position, &particle_velocity, 0x4F007FFF, 0x1FFFFFFF, rndi_2b1af0(t, fr_2b1af0(0x28)), 1, 10000.0f);
+        particle_byte_input_or_min_frames = fr_2b1af0(0x14);
+        spawn_burst(&emission_position, &particle_velocity, 0x4F007FFF, 0x1FFFFFFF, rndi_2b1af0(particle_byte_input_or_min_frames, fr_2b1af0(0x28)), 1, 10000.0f);
     }
 }
 void build_look_at_matrix(void *, void *, void *, float) __asm__("FUN_00214890");
@@ -3026,10 +3026,10 @@ int random_bit_2b1de0(int) __asm__("FUN_00213260");
 
 extern V_2b1af0 D_0013F9B0;
 void FUN_L00_002b1de0(unsigned char *source_object) {
-    V_2b1af0 c;
+    V_2b1af0 particle_velocity;
     V_2b1af0 emission_offset;
     V_2b1af0 b;
-    V_2b1af0 d;
+    V_2b1af0 scaled_global_vector;
     int i;
     int j;
     int t;
@@ -3043,32 +3043,32 @@ void FUN_L00_002b1de0(unsigned char *source_object) {
     add_2b1af0(&b, source_object + 0x10, &emission_offset);
     for (i = 0; i < count_2b1de0(24.0f); i++) {
         angle = rnd_2b1af0(0.0f, 0.1308997f);
-        build_look_at_matrix(&c, &D_0013F9B0, (char *)&D_0013F9B0 - 0x20,
+        build_look_at_matrix(&particle_velocity, &D_0013F9B0, (char *)&D_0013F9B0 - 0x20,
                          (float)i * 0.2617994f + angle);
-        ff500_2b1af0(&c, &c, rndf_2b1af0(0.05f, 0.1f));
+        ff500_2b1af0(&particle_velocity, &particle_velocity, rndf_2b1af0(0.05f, 0.1f));
         t = rndi_2b1af0(0, 3);
         if (random_bit_2b1de0(2) != 0)
             t = -t;
         if (*(int *)((char *)&D_0013F9B0 - 0x360) != 0) {
-            scale_2b1af0(&d, (char *)&D_0013F9B0 - 0x560, 1.7f);
-            add_2b1af0(&c, &c, &d);
+            scale_2b1af0(&scaled_global_vector, (char *)&D_0013F9B0 - 0x560, 1.7f);
+            add_2b1af0(&particle_velocity, &particle_velocity, &scaled_global_vector);
         }
         {
             int low = fr_2b1af0(30);
             int high = fr_2b1af0(90);
-            spawn_particle(&b, &c, rndi_2b1af0(low, high), 30, 0xFFFFFF, t,
+            spawn_particle(&b, &particle_velocity, rndi_2b1af0(low, high), 30, 0xFFFFFF, t,
                          60000.0f, 3000.0f, 0.85f, -0.001f, 0.0f);
         }
     }
     for (j = 0; j < count_2b1de0(6.0f); j++) {
         angle = rndf_2b1af0(0.0f, 0.7853982f);
-        build_look_at_matrix(&c, &D_0013F9B0, (char *)&D_0013F9B0 - 0x20,
+        build_look_at_matrix(&particle_velocity, &D_0013F9B0, (char *)&D_0013F9B0 - 0x20,
                          (float)j * 1.0471976f + angle);
-        ff500_2b1af0(&c, &c, rndf_2b1af0(0.05f, 0.1f));
+        ff500_2b1af0(&particle_velocity, &particle_velocity, rndf_2b1af0(0.05f, 0.1f));
         {
             int low = fr_2b1af0(20);
             int high = fr_2b1af0(60);
-            spawn_burst(&b, &c, 0x4F007FFF, 0x1FFFFFFF,
+            spawn_burst(&b, &particle_velocity, 0x4F007FFF, 0x1FFFFFFF,
                          rndi_2b1af0(low, high), 1, 10000.0f);
         }
     }

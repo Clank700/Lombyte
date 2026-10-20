@@ -366,16 +366,16 @@ extern void multiply_matrix(void *, void *, void *) __asm__("FUN_001fa378");
 extern void matrix_to_euler(void *, void *) __asm__("FUN_00214598");
 
 /* Multiplies the 001fa050 matrices of (x, y, z) and of a+0x40, stored back by matrix_to_euler. */
-void FUN_L00_00262480(char *a, float x, float y, float z) {
+void FUN_L00_00262480(char *rotation_target, float x, float y, float z) {
     float in[3];
     float input_rotation_matrix[16], u[16];
     in[0] = x;
     in[1] = y;
     in[2] = z;
     euler_rotation_matrix(input_rotation_matrix, in);
-    euler_rotation_matrix(u, a + 0x40);
+    euler_rotation_matrix(u, rotation_target + 0x40);
     multiply_matrix(u, u, input_rotation_matrix);
-    matrix_to_euler(u, a + 0x40);
+    matrix_to_euler(u, rotation_target + 0x40);
 }
 #define NOT_SDA
 
@@ -420,7 +420,7 @@ typedef struct {
     s32 x138;
 } O00262528;
 E00262528 *create_moby(s32) __asm__("FUN_0020c4f8");
-void FUN_L00_00262528(O00262528 *history_state, s32 a, s32 b) {
+void FUN_L00_00262528(O00262528 *history_state, s32 initial_decay_value, s32 b) {
     E00262528 *spawned_moby;
     if (history_state->x138 == 4)
         return;
@@ -437,9 +437,9 @@ void FUN_L00_00262528(O00262528 *history_state, s32 a, s32 b) {
     spawned_moby->x94 = 0;
     if (spawned_moby->xa6 == 0)
         spawned_moby->x72 = 0;
-    spawned_moby->x23 = a;
+    spawned_moby->x23 = initial_decay_value;
     history_state->x110[history_state->x138] = b;
-    history_state->x100[history_state->x138] = a;
+    history_state->x100[history_state->x138] = initial_decay_value;
     history_state->x120[history_state->x138] = spawned_moby;
     history_state->x138++;
 }
@@ -497,14 +497,14 @@ void FUN_L00_00262608(S_262608 *history_state, int dec) {
     if (dec) {
         done = 1;
         for (i = 0; i < history_state->n; i++) {
-            unsigned char *q = (unsigned char *)*(int *)((char *)&history_state->w[i] + 0x10);
-            if (q) {
-                int v = q[0x23];
+            unsigned char *history_moby = (unsigned char *)*(int *)((char *)&history_state->w[i] + 0x10);
+            if (history_moby) {
+                int v = history_moby[0x23];
                 int a = v;
                 if (dec < v)
                     v = dec;
                 a -= v;
-                q[0x23] = a;
+                history_moby[0x23] = a;
                 if ((unsigned char)a)
                     done = 0;
             }
@@ -544,7 +544,7 @@ void FUN_L00_00259f50_2628d8(void *, void *) __asm__("FUN_L00_00259f50");
 void FUN_001f99f8_2628d8(void *) __asm__("FUN_001f99f8");
 
 void update_joint_animation(void *m, unsigned char *p, int c, float fa, float fb) __asm__("FUN_L00_002628d8");
-void update_joint_animation(void *moby, unsigned char *joint_animation_state, int c, float fa, float fb) {
+void update_joint_animation(void *moby, unsigned char *joint_animation_state, int joint_index, float fa, float fb) {
     unsigned char *previous_moby = *(unsigned char **)(joint_animation_state + 0x78);
     float uniform_scale;
     if (!previous_moby) {
@@ -568,7 +568,7 @@ void update_joint_animation(void *moby, unsigned char *joint_animation_state, in
     FUN_L00_0025bc98_2628d8(joint_animation_state + 0x44, joint_animation_state + 0x54, *(float *)(joint_animation_state + 0x64), fa, fb, 0.0f, 0);
     FUN_L00_0025bc98_2628d8(joint_animation_state + 0x48, joint_animation_state + 0x58, *(float *)(joint_animation_state + 0x68), fa, fb, 0.0f, 0);
     if (!joint_animation_state[1])
-        FUN_0020cb10_2628d8(moby, c, joint_animation_state);
+        FUN_0020cb10_2628d8(moby, joint_index, joint_animation_state);
     FUN_L00_00259f50_2628d8(joint_animation_state + 0x10, joint_animation_state + 0x40);
     uniform_scale = *(float *)(joint_animation_state + 0x70);
     *(float *)(joint_animation_state + 0x20) = uniform_scale;

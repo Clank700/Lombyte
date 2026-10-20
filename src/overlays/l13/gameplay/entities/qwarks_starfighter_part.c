@@ -853,8 +853,8 @@ void FUN_L13_002eb098(Moby388 *moby) {
             float flat_distance = vector_distance_xy(path + (i * 16 + 0x10), path + (((i + 3 >= n - 1) ? n - 1 : i + 3) * 16 + 0x10));
             Path388 *path2 = (Path388 *)walker_paths[data->paths[data->b13B]];
             int i2 = data->s9C;
-            int n2 = path2->n;
-            target_pitch = -fast_arc_tan(flat_distance, path2->pts[(i2 + 3 >= n2 - 1) ? n2 - 1 : i2 + 3][2] - path2->pts[i2][2]);
+            int path_point_count = path2->n;
+            target_pitch = -fast_arc_tan(flat_distance, path2->pts[(i2 + 3 >= path_point_count - 1) ? path_point_count - 1 : i2 + 3][2] - path2->pts[i2][2]);
         }
         FUN_L00_00258278(moby, &data->fA8, target_yaw, frame_time_sq * 3.1415927f, frame_time_sq * 6.2831855f, frame_time * 6.2831855f);
         moby->rot[1] = FUN_L00_00258110(&data->fA4, moby->rot[1], target_pitch, frame_time_sq * 3.1415927f, frame_time_sq * 6.2831855f, frame_time * 6.2831855f);
@@ -1319,7 +1319,7 @@ void forcefield_update(unsigned char *moby) {
         FORCEFIELD_STATE_REMOVE = 3
     };
     char *forcefield_data = *(char **)(moby + 0x78);
-    int a;
+    int wrap_adjusted_step;
     switch (moby[0x20]) {
     case FORCEFIELD_STATE_INITIALIZE:
         moby[0x20] = 1;
@@ -1359,16 +1359,16 @@ void forcefield_update(unsigned char *moby) {
         mark_moby_for_removal(moby);
         return;
     }
-    a = 0xC0;
+    wrap_adjusted_step = 0xC0;
     *(short *)(forcefield_data + 0xC) += 0xC0;
     if (*(short *)(forcefield_data + 0xC) > 0x1000) {
         *(short *)(forcefield_data + 0xC) -= 0x1000;
-        a = -0xF40;
+        wrap_adjusted_step = -0xF40;
     } else if (*(short *)(forcefield_data + 0xC) < 0) {
         *(short *)(forcefield_data + 0xC) += 0x1000;
-        a = 0x10C0;
+        wrap_adjusted_step = 0x10C0;
     }
-    FUN_L00_0024efb0_c(*(void **)(moby + 0x24), a, 0);
+    FUN_L00_0024efb0_c(*(void **)(moby + 0x24), wrap_adjusted_step, 0);
 }
 #define NOT_SDA
 
@@ -1436,9 +1436,9 @@ void FUN_L13_002f3778(struct Moby *moby) {
             p = menu_item_enabled_115 + 0xB9;
             if (p[0xB] != 0 || p[0xD] != 0) {
                 unsigned char *q = ((char *)&D_00141968);
-                unsigned int h = *(unsigned short *)(q + 0x378);
-                if (h <= 0xFFFE) {
-                    *(unsigned short *)(q + 0x378) = h + 1;
+                unsigned int saturating_count = *(unsigned short *)(q + 0x378);
+                if (saturating_count <= 0xFFFE) {
+                    *(unsigned short *)(q + 0x378) = saturating_count + 1;
                 }
                 if (scale_game_frames(D_0015EEA4) / 600 > *(unsigned short *)(q + 0x37A)) {
                     *(unsigned short *)(q + 0x37A) = scale_game_frames(D_0015EEA4) / 600;

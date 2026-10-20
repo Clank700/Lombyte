@@ -1014,21 +1014,21 @@ void FUN_L14_002b2f60(char *moby) {
         switch (result) {
         case HIT_REACTION_STAGGER: case 4: case 5: case 6: case 7: case 8: case 9: case 10:
         {
-            char *p60 = state + 0x60;
-            int t;
-            float e, g, k;
+            char *reaction_motion_state = state + 0x60;
+            int stagger_duration_frames;
+            float frame_duration, g, k;
             FUN_L00_002e2040(moby);
             moby[0x20] = 0xA;
-            t = scale_game_frames(0x3C);
-            e = frame_time;
-            g = D_L14_001614C8 * e;
-            k = e * 8.0f;
-            *(short *)(state + 0x26) = t;
+            stagger_duration_frames = scale_game_frames(0x3C);
+            frame_duration = frame_time;
+            g = D_L14_001614C8 * frame_duration;
+            k = frame_duration * 8.0f;
+            *(short *)(state + 0x26) = stagger_duration_frames;
             *(float *)(state + 0x78) = k;
             *(float *)(state + 0x7C) = g;
             *(float *)(state + 0xB0) = 11.0f;
             *(float *)(state + 0xB4) = 29.0f;
-            func_L00_0025D5B0_i(moby, p60, fast_arc_tan(*(float *)(hit_info + 0x10), *(float *)(hit_info + 0x14)), 7, 1, 0);
+            func_L00_0025D5B0_i(moby, reaction_motion_state, fast_arc_tan(*(float *)(hit_info + 0x10), *(float *)(hit_info + 0x14)), 7, 1, 0);
         }
             ((unsigned char *)state)[0xC7] = 0xFA;
             break;
@@ -1041,13 +1041,13 @@ void FUN_L14_002b2f60(char *moby) {
             }
             *(unsigned short *)(moby + 0x34) &= 0xEFFF;
             {
-                int r80 = truncate_float_to_s32(*(float *)(state + 0x88) * 1024.0f);
+                int scaled_previous_motion_parameter = truncate_float_to_s32(*(float *)(state + 0x88) * 1024.0f);
                 float k = frame_time * 10.0f;
                 *(float *)(state + 0x88) = 0.3f;
                 *(float *)(state + 0x78) = k;
                 *(float *)(state + 0x7C) = k;
                 *(float *)(state + 0xB0) = 9.0f;
-                *(int *)(state + 0x80) = r80;
+                *(int *)(state + 0x80) = scaled_previous_motion_parameter;
                 *(float *)(state + 0xB4) = 15.0f;
             }
             y = fast_arc_tan(*(float *)(hit_info + 0x10), *(float *)(hit_info + 0x14));
@@ -1087,15 +1087,15 @@ int FUN_L14_002b3418(char *moby) {
                               D_L14_001614D8 * frame_time * *(float *)(data + 0x27C));
     float ang;
     float k;
-    float m;
+    float turn_step_limit;
     qcopy(b, moby + 0x10);
     vendor_spring((float *)(moby + 0x10), (float *)(data + 0x254), path_target_position[0], 0.01f, 0.2f, 0.0f);
     vendor_spring((float *)(moby + 0x14), (float *)(data + 0x258), path_target_position[1], 0.01f, 0.2f, 0.0f);
     subtract_vector_xyz_c(target_offset, path_target_position, b);
     ang = fast_arc_tan(target_offset[0], target_offset[1]);
     k = frame_time_sq * 12.566371f;
-    m = frame_time * 6.2831855f;
-    func_L00_0025CE58_2B4668((float *)(moby + 0x48), ang, (float *)(data + 0x23C), k, k, m);
+    turn_step_limit = frame_time * 6.2831855f;
+    func_L00_0025CE58_2B4668((float *)(moby + 0x48), ang, (float *)(data + 0x23C), k, k, turn_step_limit);
     return reached != 0;
 }
 /* Ported from rac1-decomp (src/overlays/shared/vendor_002B2A28.c: func_L14_002B4828), where it is exact; names translated to the US level program. */
@@ -1762,7 +1762,7 @@ void FUN_L14_002e03b8(Moby *moby) {
     Vec4_2E17B8 off;
     Vars_2E17B8 *pv;
     Particle_2E17B8 *particle;
-    Particle_2E17B8 *e;
+    Particle_2E17B8 *spawned_particle;
     ParticleFade_2E17B8 *fade;
     int i;
     int n;
@@ -1826,15 +1826,15 @@ void FUN_L14_002e03b8(Moby *moby) {
     size = func_002140F8_2E17B8(60000.0f, 140000.0f);
     color_intensity = func_L00_00258BC8_2E17B8(0x30, 0xFF);
     alpha = 0x60000000;
-    e = func_L00_0026DEA0_2E17B8(&pos, 0.025f, 1.0f, 1.0f, n, &vel, size, color_intensity | ((color_intensity << 16) | ((color_intensity << 8) | alpha)));
-    if (e != 0) {
+    spawned_particle = func_L00_0026DEA0_2E17B8(&pos, 0.025f, 1.0f, 1.0f, n, &vel, size, color_intensity | ((color_intensity << 16) | ((color_intensity << 8) | alpha)));
+    if (spawned_particle != 0) {
         ParticleFade_2E17B8 *ef;
-        ef = &e->fade;
-        e->b3 = 0x44;
-        e->frames = func_001F9850_2E17B8(0x3C);
+        ef = &spawned_particle->fade;
+        spawned_particle->b3 = 0x44;
+        spawned_particle->frames = func_001F9850_2E17B8(0x3C);
         ef->i4 = 2;
         ef->bA = 0x60;
-        ef->bB = e->frames;
+        ef->bB = spawned_particle->frames;
     }
 }
 /* Exhaust puffs from the moby's nozzle: two coloured sparks and three white puffs of shrinking size. */
@@ -1856,7 +1856,7 @@ void FUN_L14_002feca8(unsigned char *moby) {
     float pos[4];
     int i;
     int j;
-    int n;
+    int signed_particle_variation;
     int life;
     float size;
     scale_y(off, moby + 0xC0, D_L14_00161FCC);
@@ -1866,8 +1866,8 @@ void FUN_L14_002feca8(unsigned char *moby) {
     for (i = 0; i < 2; i++) {
         P_eca8 *part;
         T_eca8 *tail;
-        n = below_y(0x10);
-        part = puff_y(pos, 0.2f, 1.0f, 0.9f, below_y(2) == 0 ? n : -n, D_L14_0015F580_y, 100000.0f, D_L14_00161FE4);
+        signed_particle_variation = below_y(0x10);
+        part = puff_y(pos, 0.2f, 1.0f, 0.9f, below_y(2) == 0 ? signed_particle_variation : -signed_particle_variation, D_L14_0015F580_y, 100000.0f, D_L14_00161FE4);
         if (part) {
             tail = &part->tail;
             part->hA = frames_y(0xC);
@@ -1880,13 +1880,13 @@ void FUN_L14_002feca8(unsigned char *moby) {
     add_y(pos, moby + 0x10, off);
     scale_y(off, moby + 0xE0, D_L14_00161FD8);
     add_y(pos, pos, off);
-    n = 0x10;
+    signed_particle_variation = 0x10;
     life = frames_y(2);
     size = 80000.0f;
     for (j = 0; j < 3; j++) {
         P_eca8 *part;
         T_eca8 *tail;
-        part = puff_y(pos, 0.05f, 1.0f, 1.0f, n, D_L14_0015F580_y, size, 0x7FFFFFFF);
+        part = puff_y(pos, 0.05f, 1.0f, 1.0f, signed_particle_variation, D_L14_0015F580_y, size, 0x7FFFFFFF);
         if (part) {
             tail = &part->tail;
             part->hA = life;
@@ -1895,7 +1895,7 @@ void FUN_L14_002feca8(unsigned char *moby) {
             tail->bA = 0x7F;
             tail->bB = part->hA;
         }
-        n = -n;
+        signed_particle_variation = -signed_particle_variation;
         size -= 20000.0f;
         life *= 2;
     }

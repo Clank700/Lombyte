@@ -1110,17 +1110,17 @@ extern void *func_L00_0026DEA0_x(void *, float, float, float, int, void *, float
 
 float D_L12_00161920[4] __attribute__((section(".sdata"))) = {-1.5f, 0.8f, -0.5f, 0.0f};
 void FUN_L12_002e3948(struct Moby *moby) {
-    float a[4];
+    float emission_direction[4];
     float b[4];
     float emission_position[4];
     float mirrored_emission_position[4];
     float z[4];
     if (moby->visible == 0) return;
     clear_u64_value_c(z);
-    a[0] = -random_float_between(0.0f, frame_time * 5.0f);
-    a[1] = random_float_between(-(frame_time * 2.0f), frame_time * 2.0f);
-    a[2] = random_float_between(-(frame_time * 2.0f), frame_time * 2.0f);
-    transform_vector_by_basis(a, a, &moby->rot_row0);
+    emission_direction[0] = -random_float_between(0.0f, frame_time * 5.0f);
+    emission_direction[1] = random_float_between(-(frame_time * 2.0f), frame_time * 2.0f);
+    emission_direction[2] = random_float_between(-(frame_time * 2.0f), frame_time * 2.0f);
+    transform_vector_by_basis(emission_direction, emission_direction, &moby->rot_row0);
     transform_vector_by_basis(emission_position, &D_L12_00161920, &moby->rot_row0);
     add_vector_xyz_c(emission_position, emission_position, &moby->pos);
     b[0] = -random_float_between(0.0f, frame_time);
@@ -1131,9 +1131,9 @@ void FUN_L12_002e3948(struct Moby *moby) {
     mirrored_emission_position[1] = -mirrored_emission_position[1];
     transform_vector_by_basis(mirrored_emission_position, mirrored_emission_position, &moby->rot_row0);
     add_vector_xyz_c(mirrored_emission_position, mirrored_emission_position, &moby->pos);
-    FUN_L00_0026cbb0(emission_position, a, 0x4F007FFF, 0x1FFFFFFF, FUN_L00_00257b90(scale_game_frames(8), scale_game_frames(0x11)), 1, 10000.0f);
+    FUN_L00_0026cbb0(emission_position, emission_direction, 0x4F007FFF, 0x1FFFFFFF, FUN_L00_00257b90(scale_game_frames(8), scale_game_frames(0x11)), 1, 10000.0f);
     func_L00_0026DEA0_x(emission_position, 0.05f, 1.01f, 1.03f, 6, b, 30000.0f, 0x404040);
-    FUN_L00_0026cbb0(mirrored_emission_position, a, 0x4F007FFF, 0x1FFFFFFF, FUN_L00_00257b90(scale_game_frames(8), scale_game_frames(0x11)), 1, 10000.0f);
+    FUN_L00_0026cbb0(mirrored_emission_position, emission_direction, 0x4F007FFF, 0x1FFFFFFF, FUN_L00_00257b90(scale_game_frames(8), scale_game_frames(0x11)), 1, 10000.0f);
     func_L00_0026DEA0_x(mirrored_emission_position, 0.05f, 1.01f, 1.03f, 6, b, 30000.0f, 0x404040);
 }
 /* Steers the moby toward a target point, speeding up or braking, and turns it toward the given angles. */
@@ -1501,9 +1501,9 @@ void platform_update(Moby *moby) {
         }
         break;
     case PLATFORM_TRACK_REFERENCED_MOBY_HEIGHT: {
-        Moby *o = (Moby *)((char *)(*(Moby * *)&D_L12_0015FFD8_p) + (data->fF0 << 8));
+        Moby *height_reference_moby = (Moby *)((char *)(*(Moby * *)&D_L12_0015FFD8_p) + (data->fF0 << 8));
         qcopy(angles, (*(float (*)[4])&moby->pos));
-        angles[2] = (*(float (*)[4])&o->pos)[2];
+        angles[2] = (*(float (*)[4])&height_reference_moby->pos)[2];
         clear_u64_value_c2(goal);
         goal[2] = (*(float (*)[4])&moby->rot)[2];
         if (FUN_L01_00277fb8(moby)) {
@@ -3103,14 +3103,14 @@ void FUN_L12_002ebca8(struct Moby *moby, int flag) {
     char *moby_vars = (char *)moby->pvars;
     float explosion_position[4];
     float b[4];
-    unsigned char *q;
+    unsigned char *help_message_state;
     if (find_moby_hit(moby, 0xA30000, 0) != 0) {
         if (hero.state.current != 0x32) {
             D_0015EE04 += 1;
             if (D_0015EE04 >= 5) {
-                q = (unsigned char *)(D_0013D408);
-                if (q[0x15] == 0) {
-                    q[0x15] = 1;
+                help_message_state = (unsigned char *)(D_0013D408);
+                if (help_message_state[0x15] == 0) {
+                    help_message_state[0x15] = 1;
                     allocate_voice_for_bank_entry(1, 0, 0);
                     FUN_L00_00263d40(0x53D6, -1);
                 }
@@ -3204,16 +3204,16 @@ void helicopter_update(char *moby) {
             int node_count = *(int *)tbl;
             int prev = (cur + node_count - step) % node_count;
             int next = (cur + node_count + step) % node_count;
-            float h;
+            float segment_heading_delta;
             float ang;
             qcopy(A, tbl + prev * 16 + 0x10);
             qcopy(B, tbl + cur * 16 + 0x10);
             qcopy(C, tbl + next * 16 + 0x10);
             subtract_vector_xyz_c(A, B, A);
             subtract_vector_xyz_c(B, C, B);
-            h = fast_arc_tan(A[0], A[1]);
-            h = fast_subtract_rotations(h, fast_arc_tan(B[0], B[1]));
-            ang = h / vector_length_xyz_c(A);
+            segment_heading_delta = fast_arc_tan(A[0], A[1]);
+            segment_heading_delta = fast_subtract_rotations(segment_heading_delta, fast_arc_tan(B[0], B[1]));
+            ang = segment_heading_delta / vector_length_xyz_c(A);
             *(float *)(moby + 0x40) = fast_add_rotations_c(*(float *)(moby + 0x40),
                 fast_subtract_rotations(ang * D_L12_001619AC, *(float *)(moby + 0x40)) / D_L12_001619B0);
             if (distance_xyz(moby + 0x10, C) < D_L12_001619A8 * D_0015ED6C) {

@@ -285,7 +285,7 @@ extern f32 FUN_001f99c0_215b68(f32) __asm__("FUN_001f99c0");
 #define X D_L00_0017A680_215b68
 
 void FUN_L00_00215b68(void) {
-    f32 t, r, n, v, clamp_bound, u, a, b, d;
+    f32 t, r, n, v, clamp_bound, u, unclamped_negated_value, b, unclamped_magnitude;
     s32 st;
 
     if (hero.state.current == 0x44) {
@@ -315,11 +315,11 @@ void FUN_L00_00215b68(void) {
             t = 1.25f;
         else if (t < -1.25f)
             t = -1.25f;
-        a = -t * 0.52f;
-        X.f1240 = a;
-        if (0.28f < a)
+        unclamped_negated_value = -t * 0.52f;
+        X.f1240 = unclamped_negated_value;
+        if (0.28f < unclamped_negated_value)
             X.f1240 = 0.28f;
-        else if (a < -0.28f)
+        else if (unclamped_negated_value < -0.28f)
             X.f1240 = -0.28f;
         b = t * 1.7f;
         X.f1198 = b;
@@ -328,13 +328,13 @@ void FUN_L00_00215b68(void) {
             X.f1198 = 0.7f;
         else if (b < -0.7f)
             X.f1198 = -0.7f;
-        d = FUN_001f99c0_215b68(t) * 0.2f;
-        X.f1194 = d;
+        unclamped_magnitude = FUN_001f99c0_215b68(t) * 0.2f;
+        X.f1194 = unclamped_magnitude;
         clamp_bound = 0.2f;
-        if (clamp_bound < d)
+        if (clamp_bound < unclamped_magnitude)
             goto st94;
         clamp_bound = -0.2f;
-        if (d < clamp_bound) {
+        if (unclamped_magnitude < clamp_bound) {
         st94:
             X.f1194 = clamp_bound;
         }
@@ -449,8 +449,8 @@ void xform_216130(void *, void *, void *) __asm__("FUN_001f9d20");
 float smooth_216130(float *, void *, float, float, float, float, int) __asm__("FUN_L00_0025bc98");
 void set_216130(void *, void *) __asm__("FUN_00214598");
 void FUN_L00_00216130(V_216130 *v, M_216130 *working_matrix, void *rotation_output, float a, float b, float c) {
-    M_216130 m0;
-    M_216130 m1;
+    M_216130 y_rotation_matrix;
+    M_216130 z_rotation_matrix;
     V_216130 r;
     V_216130 x;
     float smoothed_pitch;
@@ -471,16 +471,16 @@ void FUN_L00_00216130(V_216130 *v, M_216130 *working_matrix, void *rotation_outp
         r.f[0] = 0.0f;
         r.f[1] = 0.0f;
         r.f[2] = -roll;
-        fun_001fa070(&m1, &r);
-        mmul_216130(working_matrix, &m1, working_matrix);
-        xform_216130(&x, &x, &m1);
+        fun_001fa070(&z_rotation_matrix, &r);
+        mmul_216130(working_matrix, &z_rotation_matrix, working_matrix);
+        xform_216130(&x, &x, &z_rotation_matrix);
         yaw = atan2_216130(x.f[2], x.f[0]);
         r.f[0] = 0.0f;
         r.f[2] = 0.0f;
         r.f[1] = -yaw;
-        fun_001fa070(&m0, &r);
-        mmul_216130(working_matrix, &m0, working_matrix);
-        xform_216130(&x, &x, &m0);
+        fun_001fa070(&y_rotation_matrix, &r);
+        mmul_216130(working_matrix, &y_rotation_matrix, working_matrix);
+        xform_216130(&x, &x, &y_rotation_matrix);
     } else {
         roll = 0.0f;
         yaw = roll;
@@ -494,16 +494,16 @@ void FUN_L00_00216130(V_216130 *v, M_216130 *working_matrix, void *rotation_outp
         r.f[2] = smoothed_pitch;
     }
     r.f[1] = 0.0f;
-    fun_001fa070(&m1, &r);
-    mmul_216130(working_matrix, &m1, working_matrix);
+    fun_001fa070(&z_rotation_matrix, &r);
+    mmul_216130(working_matrix, &z_rotation_matrix, working_matrix);
     r.f[1] = yaw;
     r.f[2] = 0.0f;
-    fun_001fa070(&m0, &r);
-    mmul_216130(working_matrix, &m0, working_matrix);
+    fun_001fa070(&y_rotation_matrix, &r);
+    mmul_216130(working_matrix, &y_rotation_matrix, working_matrix);
     r.f[2] = roll;
     r.f[1] = 0.0f;
-    fun_001fa070(&m1, &r);
-    mmul_216130(working_matrix, &m1, working_matrix);
+    fun_001fa070(&z_rotation_matrix, &r);
+    mmul_216130(working_matrix, &z_rotation_matrix, working_matrix);
     if (rotation_output)
         set_216130(working_matrix, rotation_output);
     else
@@ -544,7 +544,7 @@ void FUN_L00_002163f0(void) {
     V_2163f0 reference_vector;
     V_2163f0 b;
     V_2163f0 transformed_position_offset;
-    float s;
+    float pitch_smoothing_parameter;
 
     reference_vector.q = 0;
     b.q = 0;
@@ -552,7 +552,7 @@ void FUN_L00_002163f0(void) {
     reference_vector.f[2] = 1.0f;
     b.f[2] = 0.8f;
     transformed_position_offset.f[2] = 0.8f;
-    s = frame_scale_sq * 0.3f;
+    pitch_smoothing_parameter = frame_scale_sq * 0.3f;
     FUN_001f9d20_2163f0(&b, &b, &P);
     reference_vector.q = P.v270.q;
     if (P.b20B3 == 2) {
@@ -564,9 +564,9 @@ void FUN_L00_002163f0(void) {
         }
     }
     if (P.s30E != 0 && P.s1F8 != 0) {
-        s = frame_scale_sq * 0.001f;
+        pitch_smoothing_parameter = frame_scale_sq * 0.001f;
     }
-    FUN_L00_00216130_2163f0(&reference_vector, working_matrix, s, s, 0.0f, 0);
+    FUN_L00_00216130_2163f0(&reference_vector, working_matrix, pitch_smoothing_parameter, pitch_smoothing_parameter, 0.0f, 0);
     if (P.b20B3 == 1 && P.s30E != 0) {
         FUN_001f9d20_2163f0(&transformed_position_offset, &transformed_position_offset, working_matrix);
         subtract_vector_xyz(&P.v80, &P.v80, &transformed_position_offset);
@@ -662,8 +662,8 @@ extern void FUN_L00_00212318(s32);
 extern f32 FUN_001f99c0(f32);
 
 void FUN_L00_002167d0(void) {
-    struct Hero *m;
-    struct Hero *q;
+    struct Hero *hero_state;
+    struct Hero *slope_hero_state;
     Vec4 *r;
     V4 target_velocity, target_velocity_before_impulse, saved_move_impulse, xy_velocity_scratch, slope_velocity_delta;
     f32 f20, f21, f22, impulse_step_factor, b, base_impulse_step, frame_duration, e, target_speed_y, k;
@@ -745,14 +745,14 @@ void FUN_L00_002167d0(void) {
     }
     r = &hero.motion.velocity;
     FUN_001f9a10_c(r, &hero.motion.unk130, &xy_velocity_scratch);
-    q = &hero;
-    if (0.0872664601f < q->ground_slope.f) {
-        f21 = FUN_001f9e90_c(q->unk270.f[0], q->unk270.f[1]);
+    slope_hero_state = &hero;
+    if (0.0872664601f < slope_hero_state->ground_slope.f) {
+        f21 = FUN_001f9e90_c(slope_hero_state->unk270.f[0], slope_hero_state->unk270.f[1]);
         f20 = frame_time;
         f20 = f20 * 8.0f;
-        f20 = f20 * q->ground_slope.f;
+        f20 = f20 * slope_hero_state->ground_slope.f;
         f20 = f20 / 0.785398185f;
-        f22 = frame_time_sq * 8.5f * q->ground_slope.f / 0.785398185f;
+        f22 = frame_time_sq * 8.5f * slope_hero_state->ground_slope.f / 0.785398185f;
         xy_velocity_scratch.f[0] = fast_cos(f21) * f20;
         xy_velocity_scratch.f[1] = fast_sin(f21) * f20;
         xy_velocity_scratch.f[2] = 0.0f;
@@ -765,15 +765,15 @@ void FUN_L00_002167d0(void) {
     }
     qcopy(&xy_velocity_scratch, &hero.motion.velocity);
     xy_velocity_scratch.f[2] = 0.0f;
-    m = &hero;
-    m->unk3B0 = fast_vec_dot(&xy_velocity_scratch, &target_velocity);
+    hero_state = &hero;
+    hero_state->unk3B0 = fast_vec_dot(&xy_velocity_scratch, &target_velocity);
     k = fast_vec_length(&target_velocity);
     if (0.0f < k) {
-        m->unk3B0 = m->unk3B0 / (k * (frame_time * 5.9f));
+        hero_state->unk3B0 = hero_state->unk3B0 / (k * (frame_time * 5.9f));
     }
     FUN_L00_00212318(0);
-    if (m->unk3B4.f < DEG_TO_RAD && 0.0872664601f < m->ground_pitch.f) {
-        fast_vec_scale(&hero.motion.velocity, &hero.motion.velocity, fast_cos(m->ground_pitch.f));
+    if (hero_state->unk3B4.f < DEG_TO_RAD && 0.0872664601f < hero_state->ground_pitch.f) {
+        fast_vec_scale(&hero.motion.velocity, &hero.motion.velocity, fast_cos(hero_state->ground_pitch.f));
     }
     hero.unk3B4.f = hero.ground_pitch.f;
     if (FUN_001f99c0(hero.motion.pos.f[2] - hero.ground_z.f) < 0.15f) {
@@ -835,7 +835,7 @@ void FUN_L00_00216e48(int idx, int a, int b) {
 
 void FUN_L00_00216ec0_00216ec0(s32, s32, s32) __asm__("FUN_L00_00216ec0");
 
-void FUN_L00_00216ec0_00216ec0(s32 a, s32 b, s32 c) {
+void FUN_L00_00216ec0_00216ec0(s32 voice_entry_index, s32 b, s32 c) {
     struct Hero *base;
     s16 *current_slot;
     s32 slots_examined = 0;
@@ -847,7 +847,7 @@ void FUN_L00_00216ec0_00216ec0(s32 a, s32 b, s32 c) {
             current_slot[0] = 1;
             current_slot[3] = c;
             current_slot[2] = b;
-            current_slot[1] = a;
+            current_slot[1] = voice_entry_index;
             return;
         }
         current_slot = current_slot + 4;
@@ -862,13 +862,13 @@ extern int FUN_L00_00216de8();
 /* For each of eight timers that fast_dec_timer reports as 2, clears a field and calls 00216de8. */
 void FUN_L00_00216f10(void) {
     char *slot_timer_base = (char *)&hero.unk21D8[0][2];
-    short *q = (short *)(&hero.unk21D8[0][3]);
+    short *slot_voice_argument_base = (short *)(&hero.unk21D8[0][3]);
     int i;
 
     for (i = 0; i < 8; i++) {
         if (fast_dec_timer_s16(slot_timer_base + i * 8) == 2) {
-            q[i * 4 - 3] = 0;
-            FUN_L00_00216de8(q[i * 4 - 2], q[i * 4]);
+            slot_voice_argument_base[i * 4 - 3] = 0;
+            FUN_L00_00216de8(slot_voice_argument_base[i * 4 - 2], slot_voice_argument_base[i * 4]);
         }
     }
 }
@@ -948,8 +948,8 @@ int FUN_L00_001efc70_217118(void *, void *, int, void *, int) __asm__("FUN_L00_0
 float FUN_L00_00233d30_217118(void *) __asm__("FUN_L00_00233d30");
 void FUN_L00_00213de8_217118(float) __asm__("FUN_L00_00213de8");
 
-void FUN_L00_00217118(float a, float b) {
-    OvlQuad t[1];
+void FUN_L00_00217118(float velocity_scale, float b) {
+    OvlQuad collision_query_position[1];
     OvlQuad u[1];
     unsigned char *P = (&hero.motion.velocity);
     unsigned char *G;
@@ -966,17 +966,17 @@ void FUN_L00_00217118(float a, float b) {
     if (*(short *)(Q + 0x30E))
         return;
     if (*(int *)(Q + 0x2084) == 0x20)
-        a = 2.0f;
+        velocity_scale = 2.0f;
     Q += 0xE0;
-    FUN_001f9a68_217118(t, a, Q);
-    if (0.0f < b && gravity_length_xy(t) < b) {
-        FUN_L00_00233ba0_217118(t, t, 0.0f);
-        FUN_L00_00233708_217118(t, t, b);
+    FUN_001f9a68_217118(collision_query_position, velocity_scale, Q);
+    if (0.0f < b && gravity_length_xy(collision_query_position) < b) {
+        FUN_L00_00233ba0_217118(collision_query_position, collision_query_position, 0.0f);
+        FUN_L00_00233708_217118(collision_query_position, collision_query_position, b);
     }
-    gravity_set_z(t, t, 0.0f);
-    FUN_001f9a10_217118(t, t, (&hero.motion.pos));
-    qcopy(u, t);
-    FUN_L00_00233810_217118(t, t, 0.3f);
+    gravity_set_z(collision_query_position, collision_query_position, 0.0f);
+    FUN_001f9a10_217118(collision_query_position, collision_query_position, (&hero.motion.pos));
+    qcopy(u, collision_query_position);
+    FUN_L00_00233810_217118(collision_query_position, collision_query_position, 0.3f);
     P = ((char *)&hero);
     k = -0.2f;
     if (*(int *)(P + 0x2084) == 0x20)
@@ -985,7 +985,7 @@ void FUN_L00_00217118(float a, float b) {
         k = -0.7f;
     FUN_L00_00233810_217118(u, u, k);
     r = 1.0f;
-    if (FUN_L00_001efc70_217118(t, u, 4, *(void **)(P + 0x2080), 0)) {
+    if (FUN_L00_001efc70_217118(collision_query_position, u, 4, *(void **)(P + 0x2080), 0)) {
         collision_hit_data = coll_hit;
         if (*(int *)(collision_hit_data + 0x1C) > 0 && FUN_L00_00233d30_217118(collision_hit_data + 0x40) <= 0.87266463f)
             r = 0.0f;
@@ -1000,13 +1000,13 @@ extern int *D_L00_00177F00[];
 extern void FUN_L00_002336e8(float *dst, float *src, float h);
 extern void FUN_L00_002a7e20(void *, int);
 
-void FUN_L00_00217368(int a, int entry_count) {
+void FUN_L00_00217368(int voice_target, int entry_count) {
     if (entry_count != 0) {
-        char *d = D_0013E533 + 0xE1D;
+        char *hero_base = D_0013E533 + 0xE1D;
         int i;
-        if (*(int *)(d + 0xA64) == 0) {
-            allocate_voice_for_target_entry(1, 0, a);
-            *(int *)(d + 0xA64) = 1;
+        if (*(int *)(hero_base + 0xA64) == 0) {
+            allocate_voice_for_target_entry(1, 0, voice_target);
+            *(int *)(hero_base + 0xA64) = 1;
         }
         for (i = 0; i < entry_count; i++) {
             int *m = D_L00_00177F00[i];
@@ -1043,7 +1043,7 @@ void FUN_L00_00217450(void) {
     char *position_source;
     char *g;
     int a, b;
-    float s, ang, e, r;
+    float vector_magnitude, ang, elevation_angle, r;
 
     scaled_frame_count = FUN_001f96f8_217450(0x28);
     position_source = D_0013F3D0;
@@ -1052,16 +1052,16 @@ void FUN_L00_00217450(void) {
     do {
         a = truncate_float_to_s32(random_float_between(4200.0f, 7350.0f) / 1000.0f);
         b = truncate_float_to_s32(random_float_between(21000.0f, 31500.002f) / 1000.0f);
-        s = random_float_between(frame_time * 0.15f, frame_time * 0.7f);
+        vector_magnitude = random_float_between(frame_time * 0.15f, frame_time * 0.7f);
         qcopy(pos, position_source);
         if (current_level_index != 6) {
             pos[0].f[2] = *(float *)(g + 0x2F4);
         }
         i--;
         ang = random_angle_radians();
-        e = random_float_between(0.34906584f, 1.3962634f);
+        elevation_angle = random_float_between(0.34906584f, 1.3962634f);
         r = random_float_between(0.05f, *(float *)(g + 0x234) + 0.2f);
-        FUN_00214db0_217450(&out, s, ang, e);
+        FUN_00214db0_217450(&out, vector_magnitude, ang, elevation_angle);
         pos[0].f[0] += FUN_001f9dc8_217450(ang) * r;
         pos[0].f[1] += FUN_001f9de0_217450(ang) * r;
         FUN_L00_00269958(pos, &out, 0x7000C0F0, 0x70F0, scaled_frame_count, a, b, 1);

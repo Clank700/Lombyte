@@ -530,7 +530,7 @@ void FUN_L08_002d3d78(char *moby) {
     float lim = frame_time * 3.0f;
     float target_height;
     float vertical_step;
-    float tmp[4];
+    float probe_position_or_correction[4];
     float *v;
     if (lim < movement_length) {
         movement_length = lim;
@@ -556,18 +556,18 @@ void FUN_L08_002d3d78(char *moby) {
         }
     }
     *(float *)(data + 0x48) = vertical_step;
-    qcopy(tmp, (float *)(moby + 0x10));
-    tmp[2] += 0.5f;
-    if (FUN_L08_002025d0(tmp, 0x190, 0, moby, 0)) {
+    qcopy(probe_position_or_correction, (float *)(moby + 0x10));
+    probe_position_or_correction[2] += 0.5f;
+    if (FUN_L08_002025d0(probe_position_or_correction, 0x190, 0, moby, 0)) {
         float z;
-        subtract_vector_xyz(tmp, D_L08_00174670, (float *)(moby + 0x10));
+        subtract_vector_xyz(probe_position_or_correction, D_L08_00174670, (float *)(moby + 0x10));
         z = frame_time * 3.0f;
-        if (z < tmp[2]) {
-            tmp[2] = z;
-        } else if (tmp[2] < -z) {
-            tmp[2] = -z;
+        if (z < probe_position_or_correction[2]) {
+            probe_position_or_correction[2] = z;
+        } else if (probe_position_or_correction[2] < -z) {
+            probe_position_or_correction[2] = -z;
         }
-        add_vector_xyz((float *)(moby + 0x10), (float *)(moby + 0x10), tmp);
+        add_vector_xyz((float *)(moby + 0x10), (float *)(moby + 0x10), probe_position_or_correction);
     }
 }
 #define NOT_SDA
@@ -939,7 +939,7 @@ extern int truncate_float_to_s32(float) __asm__("FUN_001fa6d0");
 extern int func_001FA898_r(float) __asm__("FUN_001fa6d0");
 
 void FUN_L08_002f0f68(int **tabs, int table_count, int *counts, int flat, float r, float g, float b,
-                      float a) {
+                      float alpha_scale) {
     int i, j;
     for (i = 0; i < table_count; i++) {
         for (j = 0; j < counts[i]; j++) {
@@ -953,12 +953,12 @@ void FUN_L08_002f0f68(int **tabs, int table_count, int *counts, int flat, float 
                 fr = r * convert_integer_to_float(c0);
                 fg = g * convert_integer_to_float(c1);
                 fb = b * convert_integer_to_float(c2);
-                fa = a * convert_integer_to_float(c3);
+                fa = alpha_scale * convert_integer_to_float(c3);
             } else {
                 fr = r * 255.0f;
                 fg = g * 255.0f;
                 fb = b * 255.0f;
-                fa = a * convert_integer_to_float(c3);
+                fa = alpha_scale * convert_integer_to_float(c3);
             }
             tabs[i][j] = (func_001FA898_r(fa) << 24) + (func_001FA898_r(fb) << 16) +
                          (func_001FA898_r(fg) << 8) + func_001FA898_r(fr);

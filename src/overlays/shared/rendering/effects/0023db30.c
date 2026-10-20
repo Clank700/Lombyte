@@ -185,12 +185,12 @@ void FUN_L00_0023e008(void *moby) {
     for (i = 3; i >= 0; i--) {
         float particle_size_scale = rndf_23e008(0.15f, 0.5f);
         int k = rndi_23e008(2);
-        float a, b;
+        float azimuth_angle, b;
         if (k == 0)
             k--;
-        a = rnda_23e008();
+        azimuth_angle = rnda_23e008();
         b = rndf_23e008(0.34906584f, 1.53588974f);
-        dir_23e008(dir, rndf_23e008(0.05f, 0.2f) * frame_scale, a, b);
+        dir_23e008(dir, rndf_23e008(0.05f, 0.2f) * frame_scale, azimuth_angle, b);
         qcopy(old, pos);
         pos[0] += rnd_23e008(0.0f, 0.15f);
         pos[1] += rnd_23e008(0.0f, 0.15f);
@@ -287,7 +287,7 @@ extern T_0023e738 D_L00_001804C0_0023e738[] __asm__("D_L00_001804C0");
 extern P_0023e738 D_L00_001802C0_0023e738[] __asm__("D_L00_001802C0");
 void FUN_001f9810_0023e738(void *, int) __asm__("FUN_001f9810");
 int FUN_L00_0023e738(u128 *v, float a, float b_0023e738, float c, float d, float e);
-int FUN_L00_0023e738(u128 *v, float a, float b_0023e738, float c, float d, float e) {
+int FUN_L00_0023e738(u128 *v, float position_w, float b_0023e738, float c, float d, float e) {
     int i;
     T_0023e738 *slot_state;
     P_0023e738 *parameter_entry;
@@ -301,7 +301,7 @@ int FUN_L00_0023e738(u128 *v, float a, float b_0023e738, float c, float d, float
     slot_state = &D_L00_001804C0_0023e738[i];
     parameter_entry = &D_L00_001802C0_0023e738[i];
     qcopy(&parameter_entry->pos, v);
-    parameter_entry->pos.f[3] = a;
+    parameter_entry->pos.f[3] = position_w;
     parameter_entry->x = c;
     parameter_entry->y = d;
     parameter_entry->z = e;

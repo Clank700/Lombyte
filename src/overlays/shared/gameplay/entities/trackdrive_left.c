@@ -781,7 +781,7 @@ extern void FUN_L02_0020bc88(void *, void *, void *, s64, s32);
 extern void clear_vector(void *);
 extern int func_001FA898_r(float) __asm__("FUN_001fa6d0");
 
-void FUN_L02_002da6c0(int p0, int p1, int sel, float angle, float radial_distance) {
+void FUN_L02_002da6c0(int unused_texture, int p1, int sel, float angle, float radial_distance) {
     enum {
         ARROW_STYLE_NEWLY_REACHED = 0,
         ARROW_STYLE_OCCUPIED = 1,
@@ -882,14 +882,14 @@ void FUN_L02_002da938(void *unused, f32 angle, f32 b, f32 end_distance, s32 colo
     u64_t packed_vertices[4];
     s32 vertex_colors[4];
     s32 vertex_uvs[4];
-    s32 t;
+    s32 unwrapped_uv_scroll;
     s32 off;
     s32 tex;
     f32 f24, f25, f26, f27, f28, f29, f30, f31;
     f32 trig_value;
 
-    t = truncate_float_to_s32((f32)D_L02_0015F5CC * D_L02_00161B60);
-    off = (t % 512) << 16;
+    unwrapped_uv_scroll = truncate_float_to_s32((f32)D_L02_0015F5CC * D_L02_00161B60);
+    off = (unwrapped_uv_scroll % 512) << 16;
     vertex_colors[3] = color;
     vertex_colors[2] = color;
     vertex_colors[1] = color;
@@ -1433,7 +1433,7 @@ void FUN_L02_002ea8b0(char *moby) {
     float d[4] __attribute__((aligned(16)));
     float e[4] __attribute__((aligned(16)));
     int i, col;
-    float f;
+    float timer_elapsed_fraction;
 
     *(float *)(moby + 0x18) += 0.5f;
     func_001F9BF0_ea8b0(d, D_L02_00167440_ea8b0, moby + 0x10);
@@ -1442,19 +1442,19 @@ void FUN_L02_002ea8b0(char *moby) {
     func_001F9BD8_ea8b0(d, d, moby + 0x10);
     *(float *)(moby + 0x18) -= 0.5f;
     for (i = 0; i < 4; i++) {
-        float h = sprite_data->a[i] + sprite_data->b[i];
-        sprite_data->a[i] = h;
-        if (255.0f <= h) {
-            sprite_data->a[i] = h - 255.0f;
-        } else if (h <= 0.0f) {
-            sprite_data->a[i] = h + 255.0f;
+        float unwrapped_sprite_value = sprite_data->a[i] + sprite_data->b[i];
+        sprite_data->a[i] = unwrapped_sprite_value;
+        if (255.0f <= unwrapped_sprite_value) {
+            sprite_data->a[i] = unwrapped_sprite_value - 255.0f;
+        } else if (unwrapped_sprite_value <= 0.0f) {
+            sprite_data->a[i] = unwrapped_sprite_value + 255.0f;
         }
         if (func_001F9908_ea8b0(&sprite_data->c[i])) {
             sprite_data->c[i] = func_001F9850_ea8b0(0xFF);
         }
-        f = convert_integer_to_float(func_001F9850_ea8b0(0xFF) - sprite_data->c[i]);
-        f = f / (float)func_001F9850_ea8b0(0xFF);
-        col = func_001FA8A8_2ebce8_ea8b0(0x4040FFFF, 0x1040FFFF, func_001F9B88_ea8b0(0.5f - f));
+        timer_elapsed_fraction = convert_integer_to_float(func_001F9850_ea8b0(0xFF) - sprite_data->c[i]);
+        timer_elapsed_fraction = timer_elapsed_fraction / (float)func_001F9850_ea8b0(0xFF);
+        col = func_001FA8A8_2ebce8_ea8b0(0x4040FFFF, 0x1040FFFF, func_001F9B88_ea8b0(0.5f - timer_elapsed_fraction));
         func_L00_00273E08_ea8b0(d, col, func_001FA898_2ebce8_ea8b0(sprite_data->a[i]) & 0xFF, 0x35, 1, 2, 0,
                                 sprite_data->d[i]);
         func_001F9BD8_ea8b0(d, d, e);
@@ -1560,9 +1560,9 @@ void FUN_L02_002d93e8(char *moby) {
     ctx.texture = get_effect_texture(0x10);
     FUN_L02_002dae88_c();
     {
-        int n, *q;
-        for (n = 11, q = markers->slot; n >= 0; --n, ++q) {
-            if (*q != 0) *q = 1;
+        int n, *marker_cursor;
+        for (n = 11, marker_cursor = markers->slot; n >= 0; --n, ++marker_cursor) {
+            if (*marker_cursor != 0) *marker_cursor = 1;
         }
     }
     first_step = 0; second_step = 0; third_step = 0;

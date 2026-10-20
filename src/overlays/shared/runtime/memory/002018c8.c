@@ -101,9 +101,13 @@ void level_draw_dialog_text(void) {
     enum {
         FREEZE_DIALOG_TIMER_GATED_CENTERED_BUTTON = 2,
         FREEZE_DIALOG_CONDITIONAL_PAIRED_BUTTONS = 3,
+        FREEZE_DIALOG_SHARED_CONDITIONAL_PAIRED_BUTTONS = 4,
         FREEZE_DIALOG_FORMATTED_BODY_CENTERED_BUTTON = 5,
+        FREEZE_DIALOG_BODY_ONLY = 10,
+        FREEZE_DIALOG_SHARED_BODY_ONLY = 11,
         FREEZE_DIALOG_FLAG_GATED_PAIRED_BUTTONS = 12,
         FREEZE_DIALOG_UNCONDITIONAL_PAIRED_BUTTONS = 13,
+        FREEZE_DIALOG_PLAIN_BODY_CENTERED_BUTTON = 17,
         FREEZE_DIALOG_CONDITIONAL_FORMATTED_BODY = 19,
         FREEZE_DIALOG_PLAIN_BODY_PAIRED_BUTTONS = 23,
         FREEZE_DIALOG_FORMATTED_BODY_PAIRED_BUTTONS = 24
@@ -192,8 +196,8 @@ void level_draw_dialog_text(void) {
             right = 0x524B;
             text = get_help_message_text(0x4FAD);
             break;
-        case 10:
-        case 11:
+        case FREEZE_DIALOG_BODY_ONLY:
+        case FREEZE_DIALOG_SHARED_BODY_ONLY:
             text = get_help_message_text(0x4FC1);
             break;
         case 7:
@@ -204,7 +208,7 @@ void level_draw_dialog_text(void) {
         case 15:
             text = get_help_message_text(0x4FB8);
             break;
-        case 17:
+        case FREEZE_DIALOG_PLAIN_BODY_CENTERED_BUTTON:
             mid = 0x524A;
             text = get_help_message_text(0x4FBA);
             break;
@@ -253,7 +257,7 @@ void level_draw_dialog_text(void) {
             text = get_help_message_text(0x4FB1);
             break;
         case FREEZE_DIALOG_CONDITIONAL_PAIRED_BUTTONS:
-        case 4:
+        case FREEZE_DIALOG_SHARED_CONDITIONAL_PAIRED_BUTTONS:
             if (D_L00_0015F5A8 != 0 && (mode_freeze_flags & 2)) {
                 left = 0x524E;
                 right = 0x524B;

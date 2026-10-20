@@ -73,7 +73,7 @@ float approach_angle(float *cur, float *vel, float target, float lim, float acce
     float angle_error;
     float v;
     float stop;
-    float t;
+    float target_angular_speed;
 
     angle_error = FUN_001fa5c8_25be00(target, *cur);
     v = *vel;
@@ -88,14 +88,14 @@ float approach_angle(float *cur, float *vel, float target, float lim, float acce
                 FUN_00213ed8_25be00(0.0f, accel * 1.1f, vel);
             }
         } else {
-            t = FUN_001f9988_25be00((accel + accel) * angle_error);
-            if (maxv < t) {
-                t = maxv;
+            target_angular_speed = FUN_001f9988_25be00((accel + accel) * angle_error);
+            if (maxv < target_angular_speed) {
+                target_angular_speed = maxv;
             }
             if (angle_error < 0.0f) {
-                FUN_L00_0025bc00_25be00(vel, 0, -t, lim);
+                FUN_L00_0025bc00_25be00(vel, 0, -target_angular_speed, lim);
             } else {
-                FUN_L00_0025bc00_25be00(vel, 0, t, lim);
+                FUN_L00_0025bc00_25be00(vel, 0, target_angular_speed, lim);
             }
         }
         maxv = FUN_001f99c0_25be00(angle_error);
@@ -161,16 +161,16 @@ extern void FUN_L00_0025c088(int *, int *, int *, int);
 unsigned FUN_L00_0025c0e8(unsigned c, int mask);
 unsigned FUN_L00_0025c0e8(unsigned c, int mask) {
     int v[3];
-    unsigned a;
+    unsigned preserved_high_byte;
     unsigned repacked_color;
     if (mask == 0)
         return c;
     v[0] = c & 0xFF;
     v[1] = ((int)(c & 0xFF00)) >> 8;
     v[2] = (c >> 16) & 0xFF;
-    a = c >> 24;
+    preserved_high_byte = c >> 24;
     FUN_L00_0025c088(&v[0], &v[1], &v[2], mask);
-    repacked_color = (a << 24) | (v[2] << 16);
+    repacked_color = (preserved_high_byte << 24) | (v[2] << 16);
     repacked_color |= v[1] << 8;
     return repacked_color | v[0];
 }

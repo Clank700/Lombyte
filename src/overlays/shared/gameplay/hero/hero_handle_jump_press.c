@@ -100,7 +100,7 @@ void FUN_L00_0025f730_002293a8(void *, f32) __asm__("FUN_L00_0025f730");
 s32 FUN_L00_00205000_002293a8(s32) __asm__("FUN_L00_00205000");
 void FUN_L00_002293a8(void) {
     u8 *b, *hero_run_base, *hero_stop_idle_base;
-    s32 n;
+    s32 animation_frames_or_id;
     b = D_0013F350_002293a8;
     *(s32 *)(b + 0x2284) = 0;
     if (b[0x12E2] != 0 && frame_time * 0.5f < *(f32 *)(b + 0x164)) {
@@ -122,10 +122,10 @@ void FUN_L00_002293a8(void) {
         }
         if (hero_set_state(HERO_STATE_RUN, 0)) {
             *(s32 *)(hero_run_base + 0x2088) = 1;
-            n = FUN_001f96f8_002293a8(8);
+            animation_frames_or_id = FUN_001f96f8_002293a8(8);
             if (FUN_001f96f8_002293a8(5) < *(s32 *)(hero_run_base + 0x418))
-                n = FUN_001f96f8_002293a8(14);
-            FUN_L00_002323b8_002293a8(4, D_L00_0015F6DC, (f32)n);
+                animation_frames_or_id = FUN_001f96f8_002293a8(14);
+            FUN_L00_002323b8_002293a8(4, D_L00_0015F6DC, (f32)animation_frames_or_id);
             *(s16 *)(hero_run_base + 0x3BC) = 1;
         }
         return;
@@ -143,8 +143,8 @@ void FUN_L00_002293a8(void) {
     if (FUN_001f96f8_002293a8(12) < *(s32 *)(hero_stop_idle_base + 0x418) || (*(s32 *)(hero_stop_idle_base + 0xA98) & 2)) {
         if (hero_set_state(HERO_STATE_IDLE, 0)) {
             if (FUN_L00_00205000_002293a8(0) == 0x54) {
-                n = FUN_L00_00205000_002293a8(0);
-                FUN_L00_002323b8_002293a8(n, 0, (f32)FUN_001f96f8_002293a8(15));
+                animation_frames_or_id = FUN_L00_00205000_002293a8(0);
+                FUN_L00_002323b8_002293a8(animation_frames_or_id, 0, (f32)FUN_001f96f8_002293a8(15));
             } else if (*(s32 *)(hero_stop_idle_base + 0xA98) & 2) {
                 FUN_L00_002323b8_002293a8(FUN_L00_00205000_002293a8(0), 0, -2.0f);
             }
@@ -164,7 +164,7 @@ extern void hero_set_state_2(int, int) __asm__("FUN_L00_002223f8");
 
 int hero_handle_jump_press(void) __asm__("FUN_L00_00229660");
 int hero_handle_jump_press(void) {
-    int n, t, a;
+    int n, t, jump_press_history_limit;
     int next_state;
 
     if (hero.state.current == 0xE)
@@ -178,9 +178,9 @@ int hero_handle_jump_press(void) {
         hero_set_state(next_state, 1);
         return 1;
     }
-    a = FUN_001f96f8_229660(9);
+    jump_press_history_limit = FUN_001f96f8_229660(9);
     if (FUN_001f96f8_229660(6) < hero.state_timer) {
-        if (!FUN_L00_00266d60_229660(0x40, a, 0))
+        if (!FUN_L00_00266d60_229660(0x40, jump_press_history_limit, 0))
             return 0;
         if (FUN_L00_0020d498_229660(3) == 2 && D_0013D4C2_229660 != 0 && hero.unk22D8 == 0) {
             if ((2.5f < hero.wall_probe_distance || hero.unk250 < 0.7853982f) && 0.7f < hero.unk229C &&

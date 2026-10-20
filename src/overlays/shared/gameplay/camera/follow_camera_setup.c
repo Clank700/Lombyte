@@ -144,25 +144,25 @@ extern void follow_camera_set_lateral_spring(f32, f32) __asm__("FUN_L00_002e8590
 /* Per-frame follow camera adjustments driven by the hero's state: sway, zoom and lookat tweaks, then the shake timers in m->h12/h14/h16. */
 void follow_camera_apply_overrides(O_2e6000 *o) __asm__("FUN_L00_002e6000");
 void follow_camera_apply_overrides(O_2e6000 *camera_moby) {
-    S220_2e6000 *s;
+    S220_2e6000 *camera_override_state;
     S40_2e6000 *q;
-    S1D0_2e6000 *t;
+    S1D0_2e6000 *camera_spring_state;
     M_2e6000 *m;
     A_2e6000 *player_camera_state;
     A_2e6000 *x;
     f32 v[4];
-    f32 f, sum;
+    f32 rotation_or_blend_value, sum;
     s32 flag = 0;
     s32 nearby_moby_count, i;
     s16 k;
     s32 *lp;
-    u8 *e;
+    u8 *aim_height_data;
 
-    s = (S220_2e6000 *)((u8 *)camera_moby->m + 0x220);
-    if (hero.unk2284 == 0xD && s->i10 != 0x14D) {
-        f = fast_add_rotations(hero.unk4E4, 3.14159265f);
-        v[0] = fast_cos(f);
-        v[1] = fast_sin(f);
+    camera_override_state = (S220_2e6000 *)((u8 *)camera_moby->m + 0x220);
+    if (hero.unk2284 == 0xD && camera_override_state->i10 != 0x14D) {
+        rotation_or_blend_value = fast_add_rotations(hero.unk4E4, 3.14159265f);
+        v[0] = fast_cos(rotation_or_blend_value);
+        v[1] = fast_sin(rotation_or_blend_value);
         v[2] = 0.0f;
         FUN_L00_002e8918(v, 0.20943952f, v[2]);
         follow_camera_start_slide();
@@ -186,7 +186,7 @@ void follow_camera_apply_overrides(O_2e6000 *camera_moby) {
     }
     if (hero.state.control_mode == 0x10) camera_moby->m->fF0 = 0.25f;
     if (hero.vehicle_mode == 1) {
-        if (s->i0 == 0) {
+        if (camera_override_state->i0 == 0) {
             q = (S40_2e6000 *)((u8 *)camera_moby->m + 0x40);
             follow_camera_set_distance(1, 3.0f, 0.003f);
             if (flag == 0) {
@@ -197,15 +197,15 @@ void follow_camera_apply_overrides(O_2e6000 *camera_moby) {
         *(f32 *)((u8 *)camera_moby->m + 0x20C) = 0.6f;
     }
     if (hero.vehicle_mode == 2) {
-        if (s->i10 < 2) {
+        if (camera_override_state->i10 < 2) {
             follow_camera_set_offset_scale(0, D_L00_00161D98, 0.005f);
             follow_camera_set_distance(1, D_L00_00161D9C, 0.003f);
             follow_camera_set_height(D_L00_00161DA0, 0.003f);
         }
         FUN_L00_002e8620();
-        t = (S1D0_2e6000 *)((u8 *)camera_moby->m + 0x1D0);
-        t->f3C = D_L00_00161DA8;
-        t->f44 = D_L00_00161DA4;
+        camera_spring_state = (S1D0_2e6000 *)((u8 *)camera_moby->m + 0x1D0);
+        camera_spring_state->f3C = D_L00_00161DA8;
+        camera_spring_state->f44 = D_L00_00161DA4;
     }
     if (hero.unk20AA != 0 && hero.state.control_mode != 0xF) {
         FUN_L00_002e8568(0);
@@ -215,7 +215,7 @@ void follow_camera_apply_overrides(O_2e6000 *camera_moby) {
     x = &player_camera[1];
     if (x->fn != 0) x->fn();
     player_camera_state = &player_camera[0];
-    if (player_camera_state->p25C != 0 && s->i10 < 2) {
+    if (player_camera_state->p25C != 0 && camera_override_state->i10 < 2) {
         if ((s8)player_camera_state->p25C[0x20] < 0) {
             player_camera_state->p25C = 0;
         } else {
@@ -225,18 +225,18 @@ void follow_camera_apply_overrides(O_2e6000 *camera_moby) {
             x = &player_camera[0];
             x->i260++;
             if (scale_game_frames(400) < x->i260) x->i260 = scale_game_frames(400);
-            f = convert_integer_to_float(x->i260) / convert_integer_to_float(scale_game_frames(400));
-            FUN_L00_002e8970(x->p25C + 0x10, f * 0.20943952f, 0.0f);
+            rotation_or_blend_value = convert_integer_to_float(x->i260) / convert_integer_to_float(scale_game_frames(400));
+            FUN_L00_002e8970(x->p25C + 0x10, rotation_or_blend_value * 0.20943952f, 0.0f);
         }
     }
-    s->i10 = 0;
+    camera_override_state->i10 = 0;
     nearby_moby_count = collect_mobies_in_sphere(&D_0013F3D0_2e6000, 1, D_0013F3D0_2e6000.i2000, 0, 15.0f);
     if (nearby_moby_count > 0) {
         lp = D_L00_00177F00;
         for (i = 0; i < nearby_moby_count; lp++, i++) {
-            e = suck_get_aim_height(*lp);
-            if (e != 0 && (f32)e[0xD] != 0.0f) {
-                s->i10 = 1;
+            aim_height_data = suck_get_aim_height(*lp);
+            if (aim_height_data != 0 && (f32)aim_height_data[0xD] != 0.0f) {
+                camera_override_state->i10 = 1;
                 break;
             }
         }
@@ -277,15 +277,15 @@ void follow_camera_apply_overrides(O_2e6000 *camera_moby) {
         follow_camera_start_slide();
         k = ++m->h16;
         if (scale_game_frames(0x1E) < k) m->h16 = scale_game_frames(0x1E);
-        f = convert_integer_to_float(m->h16) / convert_integer_to_float(scale_game_frames(0x1E));
-        follow_camera_set_lateral_spring((D_L00_00161D88 - 0.015f) * f + 0.015f, 0.2f);
+        rotation_or_blend_value = convert_integer_to_float(m->h16) / convert_integer_to_float(scale_game_frames(0x1E));
+        follow_camera_set_lateral_spring((D_L00_00161D88 - 0.015f) * rotation_or_blend_value + 0.015f, 0.2f);
         D_L00_0015EF40 = 0.0f;
     } else if (m->h14 != 0) {
         fast_dec_timer_s16(&m->h14);
-        f = convert_integer_to_float(m->h14) / convert_integer_to_float(scale_game_frames(0x2D));
-        f *= -0.75f;
-        f += 0.75f;
-        D_L00_0015EF40 = f;
+        rotation_or_blend_value = convert_integer_to_float(m->h14) / convert_integer_to_float(scale_game_frames(0x2D));
+        rotation_or_blend_value *= -0.75f;
+        rotation_or_blend_value += 0.75f;
+        D_L00_0015EF40 = rotation_or_blend_value;
         m->h16 = 0;
     } else {
         m->h16 = 0;
@@ -652,7 +652,7 @@ void follow_camera_setup(Moby_2E8210 *camera_moby) {
     Cam_2E8210 *camera_state;
     Cam_2E8210 *e;
     CamE_2E8210 *f;
-    Cam_2E8210 *d;
+    Cam_2E8210 *camera_state_base;
     CamG_2E8210 *g;
     char *q1;
     char *q2;
@@ -745,9 +745,9 @@ void follow_camera_setup(Moby_2E8210 *camera_moby) {
     ((Cam220_2E8210 *)q3)->f8 = b->f2C;
     ((Cam220_2E8210 *)q3)->fC = D_L00_00161D1C_gp;
 
-    d = camera_moby->cam;
+    camera_state_base = camera_moby->cam;
     r = scale_game_frames(0x7D0);
-    g = &d->g;
+    g = &camera_state_base->g;
     g->f30 = 0.0f;
     g->h3A = 0;
     g->h36 = 0;
@@ -758,7 +758,7 @@ void follow_camera_setup(Moby_2E8210 *camera_moby) {
     g->f3C = D_L00_00161CE4_gp;
     g->f40 = D_L00_00161CE0_gp;
     g->i48 = D_L00_0015EF60;
-    clear_u64_value(d->g.v10);
+    clear_u64_value(camera_state_base->g.v10);
 
     p240 = &camera_moby->cam->p240;
     p240->h28 = 0;
@@ -807,7 +807,7 @@ float absolute_float(float) __asm__("FUN_001f99c0");
 short FUN_001f96f8_2e7138(int) __asm__("FUN_001f96f8");
 
 extern float D_L00_00161CB8 __attribute__((sda));
-int FUN_L00_002e7138(unsigned char *camera_moby, void *b, int c, int d) {
+int FUN_L00_002e7138(unsigned char *camera_moby, void *b, int c, int sphere_collision_found) {
     unsigned char *camera_state = *(unsigned char **)(camera_moby + 0x70);
     unsigned char *A = camera_state + 0x130;
     unsigned char *B = camera_state + 0x1D0;
@@ -818,10 +818,10 @@ int FUN_L00_002e7138(unsigned char *camera_moby, void *b, int c, int d) {
     subtract_vector_xyz(A, b, camera_state + 0x90);
     if (*(short *)(B + 0x38)) {
         FUN_L00_001ff500_2e7138(A, A, *(float *)(A + 0x2C) - *(float *)(B + 0x30));
-        return d;
+        return sphere_collision_found;
     }
     dist = FUN_001f9af0_2e7138(A);
-    if (hero.vehicle_mode != 2 && absolute_float(D_0013CA40_2e7138) > 0.05f && d) {
+    if (hero.vehicle_mode != 2 && absolute_float(D_0013CA40_2e7138) > 0.05f && sphere_collision_found) {
         dist -= D_L00_00161CB8 * frame_scale;
         *(short *)(B + 0x34) = FUN_001f96f8_2e7138(0x884);
     }
@@ -829,7 +829,7 @@ int FUN_L00_002e7138(unsigned char *camera_moby, void *b, int c, int d) {
     if (!c && hero.state.control_mode != 2 && len < dist) {
         scale_vector_xyz(A, A, len / dist);
         *(float *)(B + 0x30) = *(float *)(A + 0x2C) - len;
-        return d;
+        return sphere_collision_found;
     }
     if (dist < k) {
         if (dist <= 1e-4f)
@@ -1069,7 +1069,7 @@ int FUN_L00_002e7a30(unsigned char *camera_moby) {
     V_2e7a30 ndir;
     V_2e7a30 step;
     V_2e7a30 save;
-    V_2e7a30 d;
+    V_2e7a30 position_delta;
     unsigned char *base;
     unsigned char *orbit;
     unsigned char *e;
@@ -1101,9 +1101,9 @@ int FUN_L00_002e7a30(unsigned char *camera_moby) {
                 if (FUN_L00_002e7618_2e7a30(camera_moby, pos, i, dist, spd)) {
                     found = 1;
                     if (g->vehicle_mode != 2 && absolute_float(D_0013CA40_2e7a30) > 0.05f) {
-                        subtract_vector_xyz(d, step, save);
-                        FUN_001f9bf8_2e7a30(d, d, 1.0f);
-                        if (absolute_float(FUN_001f9ab0_2e7a30(D_L00_00166E40_2e7a30, d)) <
+                        subtract_vector_xyz(position_delta, step, save);
+                        FUN_001f9bf8_2e7a30(position_delta, position_delta, 1.0f);
+                        if (absolute_float(FUN_001f9ab0_2e7a30(D_L00_00166E40_2e7a30, position_delta)) <
                             0.75f) {
                             float lim;
                             float cf;
@@ -1118,8 +1118,8 @@ int FUN_L00_002e7a30(unsigned char *camera_moby) {
                             }
                         }
                     }
-                    subtract_vector_xyz(d, pos, target + 0x50);
-                    FUN_001f9bf8_2e7a30(orbit, d, *(float *)(orbit + 0x2C) - *(float *)(e + 0x30));
+                    subtract_vector_xyz(position_delta, pos, target + 0x50);
+                    FUN_001f9bf8_2e7a30(orbit, position_delta, *(float *)(orbit + 0x2C) - *(float *)(e + 0x30));
                     FUN_001f9bf8_2e7a30(ndir, orbit, 1.0f);
                 }
             }
@@ -1190,7 +1190,7 @@ void make_hit_descriptor(void *, void *, s32, void *, f32) __asm__("FUN_L00_0025
 void FUN_L00_00259a88(s32, void *);
 void init_camera_system(void) __asm__("FUN_L00_001ed280");
 
-#define AF_2e7d20(o) (*(f32 *)(a + (o)))
+#define AF_2e7d20(o) (*(f32 *)(orbit_state + (o)))
 #define BF_2e7d20(o) (*(f32 *)(b + (o)))
 #define BH_2e7d20(o) (*(s16 *)(b + (o)))
 #define BI_2e7d20(o) (*(s32 *)(b + (o)))
@@ -1203,14 +1203,14 @@ void follow_camera_avoid_mobies(u8 *camera_moby) {
     V_2e7d20 probe_center, moby_offset_or_camera_endpoint, v20, planar_moby_direction, orbit_side_direction;
     W_2e7d20 w;
     u8 *x;
-    u8 *a;
+    u8 *orbit_state;
     u8 *b;
     s32 hit, cnt, any;
     s32 j;
     u8 *nearby_moby;
     s32 nearby_moby_count;
     s32 i;
-    s32 t;
+    s32 nearby_moby_type_id;
     s32 s;
     f32 probe_diameter;
     f32 f;
@@ -1220,7 +1220,7 @@ void follow_camera_avoid_mobies(u8 *camera_moby) {
 
     base = D_L00_00166E10_2e7d20;
     x = *(u8 **)(camera_moby + 0x70);
-    a = x + 0x130;
+    orbit_state = x + 0x130;
     b = x + 0x1D0;
     hit = 0;
     cnt = 0;
@@ -1242,8 +1242,8 @@ void follow_camera_avoid_mobies(u8 *camera_moby) {
             if (FUN_L00_00259830(nearby_moby) && !any) {
                 goto next;
             }
-            t = *(s16 *)(nearby_moby + 0xA6);
-            if (t != 0x72 && t != 0xB && t != 0x2C && t != 0x9A && t != 0xFF && t != 0x392 && t != 0x452 && t != 0x353) {
+            nearby_moby_type_id = *(s16 *)(nearby_moby + 0xA6);
+            if (nearby_moby_type_id != 0x72 && nearby_moby_type_id != 0xB && nearby_moby_type_id != 0x2C && nearby_moby_type_id != 0x9A && nearby_moby_type_id != 0xFF && nearby_moby_type_id != 0x392 && nearby_moby_type_id != 0x452 && nearby_moby_type_id != 0x353) {
                 D_L00_001E75C0[cnt] = nearby_moby;
                 cnt++;
                 *(s32 *)(nearby_moby + 0x94) = 0;
@@ -1253,15 +1253,15 @@ void follow_camera_avoid_mobies(u8 *camera_moby) {
             FUN_001f9a68_2e7d20(&v20, base + 0x30, FUN_001f9ab0_2e7d20(base + 0x30, &moby_offset_or_camera_endpoint));
             FUN_001f9a28_2e7d20(&planar_moby_direction, &moby_offset_or_camera_endpoint, &v20);
             FUN_001f9bf8_2e7d20(&planar_moby_direction, &planar_moby_direction, 1.0f);
-            f = FUN_001f9ab0_2e7d20(&planar_moby_direction, a);
+            f = FUN_001f9ab0_2e7d20(&planar_moby_direction, orbit_state);
             f = fast_arc_sin(f / (AF_2e7d20(0x2C) - BF_2e7d20(0x30)));
             if (FUN_001f99c0_2e7d20(1.5707964f - f) < 0.43633232f) {
-                fast_vec_cross(&orbit_side_direction, a, base + 0x30);
+                fast_vec_cross(&orbit_side_direction, orbit_state, base + 0x30);
                 FUN_001f9bf8_2e7d20(&orbit_side_direction, &orbit_side_direction, 1.0f);
                 if (0.0f < FUN_001f9ab0_2e7d20(&orbit_side_direction, &moby_offset_or_camera_endpoint)) {
-                    build_look_at_matrix(a, a, base + 0x20, -0.017453292f);
+                    build_look_at_matrix(orbit_state, orbit_state, base + 0x20, -0.017453292f);
                 } else {
-                    build_look_at_matrix(a, a, base + 0x20, 0.017453292f);
+                    build_look_at_matrix(orbit_state, orbit_state, base + 0x20, 0.017453292f);
                 }
             }
         next:
@@ -1315,8 +1315,8 @@ slow:
         BH_2e7d20(0x34) = FUN_001f96f8_2e7d20(2000);
     }
 move:
-    FUN_001f9bf8_2e7d20(a, a, AF_2e7d20(0x2C) - BF_2e7d20(0x30));
-    FUN_001f9a10_2e7d20(&moby_offset_or_camera_endpoint, a, (x + 0x90));
+    FUN_001f9bf8_2e7d20(orbit_state, orbit_state, AF_2e7d20(0x2C) - BF_2e7d20(0x30));
+    FUN_001f9a10_2e7d20(&moby_offset_or_camera_endpoint, orbit_state, (x + 0x90));
     if (D_0013F350_2e7d20.i2084 == 0x7F) {
         goto clear;
     }

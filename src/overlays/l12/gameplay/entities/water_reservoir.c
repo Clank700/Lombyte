@@ -149,7 +149,7 @@ void FUN_L12_002ecac0(struct Moby *moby) {
     Quad quad;
     float rotation_matrix[12];
     float pos[4];
-    float a, b;
+    float segment_start_y, b;
     int i, col;
     copy_matrix_rotation(rotation_matrix, &moby->rot_row0);
     qcopy(pos, &moby->pos);
@@ -169,17 +169,17 @@ void FUN_L12_002ecac0(struct Moby *moby) {
         quad.c[i] = col;
         qcopy(&quad.v[i * 4], D_L12_001F5B20 + i * 16);
     }
-    for (a = -0.4f; a < 0.36f; a += 0.1f) {
-        b = a + 0.1f;
-        quad.v[9] = a;
-        quad.v[1] = a;
+    for (segment_start_y = -0.4f; segment_start_y < 0.36f; segment_start_y += 0.1f) {
+        b = segment_start_y + 0.1f;
+        quad.v[9] = segment_start_y;
+        quad.v[1] = segment_start_y;
         quad.v[13] = b;
         quad.v[5] = b;
         if (moby->command & 1) {
-            quad.v[2] = -fast_cos(a * *(float *)&D_L12_00161A24) + 2.0f;
+            quad.v[2] = -fast_cos(segment_start_y * *(float *)&D_L12_00161A24) + 2.0f;
             quad.v[6] = -fast_cos(b * *(float *)&D_L12_00161A24) + 2.0f;
         } else {
-            quad.v[2] = fast_cos(a * *(float *)&D_L12_00161A24);
+            quad.v[2] = fast_cos(segment_start_y * *(float *)&D_L12_00161A24);
             quad.v[6] = fast_cos(b * *(float *)&D_L12_00161A24);
         }
         draw_geometry_quad(&quad, rotation_matrix, 0);
@@ -410,10 +410,10 @@ void FUN_L12_002ed280(struct Moby *moby) {
                     *(unsigned int *)(g + 0x374) = *(unsigned int *)(g + 0x374) | (1 << current_level_index) | 0x80000000;
                 }
                 {
-                    int a = scale_game_frames_c(0x1C20);
+                    int help_threshold_step_frames = scale_game_frames_c(0x1C20);
                     int b = scale_game_frames_c(0x708);
                     char *k = D_00141968_h;
-                    if (*(unsigned short *)(k + 0x370) * a + b < moby_vars[1]) {
+                    if (*(unsigned short *)(k + 0x370) * help_threshold_step_frames + b < moby_vars[1]) {
                         help_request(0x2EE4, 0x6E);
                     }
                 }

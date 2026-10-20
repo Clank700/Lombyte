@@ -33,20 +33,20 @@ float FUN_001fa5c8_001eb328(float, float) __asm__("FUN_001fa5c8");
 float FUN_001f99c0_001eb328(float) __asm__("FUN_001f99c0");
 float FUN_001fa580_001eb328(float, float) __asm__("FUN_001fa580");
 float rope_spring_turn(float *p, float a, float b, float c, float d, float lim) __asm__("FUN_L00_001eb328");
-float rope_spring_turn(float *spring_state, float a, float b, float response_gain, float damping_factor, float lim) {
-    float t = FUN_001fa5c8_001eb328(b, a);
-    *spring_state = *spring_state + (response_gain * t - damping_factor * *spring_state);
+float rope_spring_turn(float *spring_state, float current_angle, float b, float response_gain, float damping_factor, float lim) {
+    float angle_difference = FUN_001fa5c8_001eb328(b, current_angle);
+    *spring_state = *spring_state + (response_gain * angle_difference - damping_factor * *spring_state);
     if (lim != 0.0f) {
         if (*spring_state > lim)
             *spring_state = lim;
         else if (*spring_state < -lim)
             *spring_state = -lim;
     }
-    if (*spring_state > FUN_001f99c0_001eb328(t))
-        *spring_state = FUN_001f99c0_001eb328(t);
-    else if (*spring_state < -FUN_001f99c0_001eb328(t))
-        *spring_state = -FUN_001f99c0_001eb328(t);
-    return FUN_001fa580_001eb328(a, *spring_state);
+    if (*spring_state > FUN_001f99c0_001eb328(angle_difference))
+        *spring_state = FUN_001f99c0_001eb328(angle_difference);
+    else if (*spring_state < -FUN_001f99c0_001eb328(angle_difference))
+        *spring_state = -FUN_001f99c0_001eb328(angle_difference);
+    return FUN_001fa580_001eb328(current_angle, *spring_state);
 }
 typedef struct {
     char pad[0x7D];
@@ -107,7 +107,7 @@ void camera_run_setup_to_new_cam(struct Moby *cam) __asm__("FUN_001ebec8");
 void init_camera_system(void) __asm__("FUN_L00_001ed280");
 void init_camera_system(void) {
     char *g = (char *)&D_L00_00166C80_c;
-    float *s, *d, *t, *u;
+    float *camera_vector_snapshot, *camera_record_vector_destination, *t, *u;
     char *current_camera_record;
     if (*(char **)(g + 0x180) != 0) {
         *(short *)(*(char **)(g + 0x180) + 0x8E) = 0;
@@ -122,12 +122,12 @@ void init_camera_system(void) {
     camera_run_setup_to_new_cam(*(char **)(g + 0x180));
     backup_current_cam();
     current_camera_record = *(char **)(g + 0x180);
-    s = (float *)(g + 0x140);
-    qcopy(s, current_camera_record + 0x30);
-    d = (float *)(current_camera_record + 0x64);
-    d[0] = s[0];
-    d[1] = s[1];
-    d[2] = s[2];
+    camera_vector_snapshot = (float *)(g + 0x140);
+    qcopy(camera_vector_snapshot, current_camera_record + 0x30);
+    camera_record_vector_destination = (float *)(current_camera_record + 0x64);
+    camera_record_vector_destination[0] = camera_vector_snapshot[0];
+    camera_record_vector_destination[1] = camera_vector_snapshot[1];
+    camera_record_vector_destination[2] = camera_vector_snapshot[2];
     t = (float *)(D_0013E533 + 0xE9D);
     u = (float *)(g + 0x190);
     u[0] = t[0];

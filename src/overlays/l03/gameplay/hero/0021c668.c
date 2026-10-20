@@ -138,7 +138,10 @@ void FUN_L03_0021c668(void) {
         HERO_STATE_LEDGE_SHIMMY_POSITIVE_YAW_OFFSET = 26,
         HERO_STATE_LEDGE_SHIMMY_NEGATIVE_YAW_OFFSET = 27,
         HERO_STATE_JUMP_FROM_LEDGE = 28,
+        HERO_STATE_LOOK_ALT = 30,
+        HERO_STATE_FALL_ALT = 45,
         HERO_STATE_TARGET_POSE_APPROACH = 101,
+        HERO_STATE_TARGET_POSE_APPROACH_ANIMATION_WAIT = 102,
         HERO_STATE_TARGET_POSE_REACHED = 103,
         HERO_STATE_WATER_DEATH = 106,
         HERO_STATE_LOW_ALTITUDE_RESPAWN = 119
@@ -891,7 +894,7 @@ void FUN_L03_0021c668(void) {
                     }
                     FUN_L00_00228c18();
                     break;
-                case 102:
+                case HERO_STATE_TARGET_POSE_APPROACH_ANIMATION_WAIT:
                     if (hero.unkA98 & 2) {
                         hero_set_state(0x65, 1);
                     }
@@ -1224,7 +1227,7 @@ void FUN_L03_0021c668(void) {
                     hero_set_state(HERO_STATE_IDLE, 1);
                     break;
                 case HERO_STATE_FALL:
-                case 45:
+                case HERO_STATE_FALL_ALT:
                     if (hero.state.step == 0) {
                         if (!(scale_game_frames(0x12) > hero.state_timer) ||
                             hero.ground_distance > 1.75f) {
@@ -1940,7 +1943,7 @@ void FUN_L03_0021c668(void) {
                         hero_set_state(0x53, 0);
                     }
                     break;
-                case 30:
+                case HERO_STATE_LOOK_ALT:
                     if (hero.vehicle_mode == 0) {
                         if (hero.unk20AA == 0 || hero.unk20A5 != 0) {
                             if (controller_state.held & 0xA) {

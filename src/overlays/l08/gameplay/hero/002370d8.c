@@ -145,9 +145,11 @@ extern int func_001F9908_r(int *) __asm__("FUN_001f9740");
 int r1_repeat_timer __asm__("D_L08_0015F678") = 0;
 void FUN_L08_002370d8(void) {
     enum {
+        HERO_STATE_LEDGE_HANG_ENTRY = 24,
         HERO_STATE_LEDGE_HANG = 25,
         HERO_STATE_LEDGE_SHIMMY_POSITIVE_YAW_OFFSET = 26,
         HERO_STATE_LEDGE_SHIMMY_NEGATIVE_YAW_OFFSET = 27,
+        HERO_STATE_LEDGE_JUMP = 28,
         HERO_STATE_GRIND_JUMP = 41,
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
@@ -1298,16 +1300,16 @@ void FUN_L08_002370d8(void) {
                         }
                         if (hero.unk5BC != 0) {
                             if (hero.unk5C0 != 0) {
-                                float h;
+                                float rail_jump_velocity_z;
                                 float t;
 
                                 hero_set_state(0x29, 1);
                                 hero.unk5C4 = 1;
-                                h = FUN_L00_0025abf0(hero.motion.pos.f, hero.unk550.f, 0,
+                                rail_jump_velocity_z = FUN_L00_0025abf0(hero.motion.pos.f, hero.unk550.f, 0,
                                                      hero.motion.unk164, -hero.unk4A0);
                                 *(OvlQuad *)v1 = 0;
                                 *(OvlQuad *)v0 = 0;
-                                v1[2] = h;
+                                v1[2] = rail_jump_velocity_z;
                                 t = FUN_L00_00259468(v0, v1, 0, hero.unk4A0);
                                 hero.unk48C = t + 0.05f;
                                 hero.unk430 = t;
@@ -1492,7 +1494,7 @@ void FUN_L08_002370d8(void) {
                         }
                     }
                     break;
-                case 24:
+                case HERO_STATE_LEDGE_HANG_ENTRY:
                     if (13.5f < hero.anim_frame) {
                         hero_set_state(0x19, 0);
                     }
@@ -1862,7 +1864,7 @@ void FUN_L08_002370d8(void) {
                 case HERO_STATE_PACK_LONG_JUMP:
                 case 17:
                 case 18:
-                case 28:
+                case HERO_STATE_LEDGE_JUMP:
                 case 60:
                 case 105:
                     if (hero.unk4AE != 0) {

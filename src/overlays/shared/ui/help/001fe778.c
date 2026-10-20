@@ -16,7 +16,7 @@ extern Rec D_L15_0017A0C0[];
 extern int hero_slot_item_id(int) __asm__("FUN_L00_0020d498");
 
 /* Same routine as FUN_L06_0021d0a0, with case 2 in place of case 1. */
-int FUN_L15_001fe778(int a) {
+int FUN_L15_001fe778(int allow_item_lookup) {
     struct Hero *g = &hero;
     switch (g->vehicle_mode) {
     case 2:
@@ -29,7 +29,7 @@ int FUN_L15_001fe778(int a) {
         if (g2->health.hp == 1) {
             return 0x54;
         }
-        if (a == 0) {
+        if (allow_item_lookup == 0) {
             return 0;
         }
         if (g2->unk20A8 == 0) {
@@ -105,7 +105,7 @@ void FUN_L15_0020a7a0(void) {
     s32 r;
     s32 i;
     f32 surface_probe_angle;
-    u8 *p;
+    u8 *aim_height_data;
 
     s32 k;
     f32 g;
@@ -170,8 +170,8 @@ void FUN_L15_0020a7a0(void) {
         if (FUN_L00_0025e3b8(HH.moby)) {
             hero.unk30A = 1;
         }
-        p = suck_get_aim_height(HH.moby);
-        if (p != 0 && (*(u16 *)(p + 0x1E) & 8)) {
+        aim_height_data = suck_get_aim_height(HH.moby);
+        if (aim_height_data != 0 && (*(u16 *)(aim_height_data + 0x1E) & 8)) {
             hero.unk30A = 1;
         }
     }

@@ -135,7 +135,9 @@ extern float D_L06_00167558_lui __asm__("D_L06_00167558") __attribute__((section
 void FUN_L06_0023b440(void) {
     enum {
         HERO_STATE_DOUBLE_JUMP = 14,
+        HERO_STATE_LEDGE_HANG_ENTRY = 24,
         HERO_STATE_LEDGE_HANG = 25,
+        HERO_STATE_LEDGE_JUMP = 28,
         HERO_STATE_GRIND_JUMP = 41,
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
@@ -144,6 +146,9 @@ void FUN_L06_0023b440(void) {
         HERO_STATE_TARGET_POSE_APPROACH_TRANSITION = 102,
         HERO_STATE_TARGET_POSE_REACHED = 103,
         HERO_STATE_DEATH_FALL = 119
+    };
+    enum {
+        HERO_VEHICLE_MODE_NORMAL = 0
     };
     unsigned char *moby;
     int prevSub;
@@ -186,7 +191,7 @@ void FUN_L06_0023b440(void) {
                     (hero.unk20AC == 0 || hero.vehicle_mode == 1 || hero.unk1B2 != 0) &&
                     (hero.unk20A7 == 0 || hero.vehicle_mode == 1 || hero.unk1B2 != 0)) {
                     switch (hero.vehicle_mode) {
-                    case 0:
+                    case HERO_VEHICLE_MODE_NORMAL:
                     case 3: {
                         int id;
 
@@ -1271,7 +1276,7 @@ void FUN_L06_0023b440(void) {
                         }
                     }
                     break;
-                case 24:
+                case HERO_STATE_LEDGE_HANG_ENTRY:
                     if (13.5f < hero.anim_frame) {
                         hero_set_state(0x19, 0);
                     }
@@ -1642,7 +1647,7 @@ void FUN_L06_0023b440(void) {
                 case HERO_STATE_PACK_LONG_JUMP:
                 case 17:
                 case 18:
-                case 28:
+                case HERO_STATE_LEDGE_JUMP:
                 case 60:
                 case 105:
                     if (hero.unk4AE != 0) {

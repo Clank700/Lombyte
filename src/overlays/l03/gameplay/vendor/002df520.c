@@ -55,7 +55,7 @@ void FUN_L03_002df520(u8 *moby) {
         TUTORIAL_HINTS_UPDATE = 1
     };
     s32 *data = *(s32 **)(moby + 0x78);
-    struct Moby *m;
+    struct Moby *candidate_moby;
     s32 count;
     s32 i;
     s32 t;
@@ -120,9 +120,9 @@ void FUN_L03_002df520(u8 *moby) {
             }
         }
         count = 0;
-        for (m = D_L03_0015FFE4; m != 0; m = m->next) {
-            if (m->pclass != 0 && *(s16 *)((u8 *)m->pclass + 0x46) == 5 &&
-                vector_distance(&m->pos, &hero.motion.pos) < 8.0f) {
+        for (candidate_moby = D_L03_0015FFE4; candidate_moby != 0; candidate_moby = candidate_moby->next) {
+            if (candidate_moby->pclass != 0 && *(s16 *)((u8 *)candidate_moby->pclass + 0x46) == 5 &&
+                vector_distance(&candidate_moby->pos, &hero.motion.pos) < 8.0f) {
                 count++;
             }
         }
@@ -296,7 +296,7 @@ extern void subtract_vector_xyz(void *out, void *a, void *b) __asm__("FUN_001f9a
 /* places the camera behind the hero and rebuilds its orientation axes */
 void FUN_L03_002eb7e0(char *camera) {
     char *camera_data = *(char **)(camera + 0x70);
-    float *a = (float *)(camera_data + 0xB0);
+    float *camera_target_data = (float *)(camera_data + 0xB0);
     float *b = (float *)(camera_data + 0xF0);
     float *camera_look_direction = (float *)(camera_data + 0x100);
     float back[4];
@@ -309,7 +309,7 @@ void FUN_L03_002eb7e0(char *camera) {
     normalize_vector_xyz(back, b, -*(float *)(camera_data + 0xD0));
     add_vector_xyz(pos, &hero.motion.pos, side);
     add_vector_xyz(camera + 0x30, pos, back);
-    normalize_vector_xyz(look, &hero.gravity_dir, -a[5]);
+    normalize_vector_xyz(look, &hero.gravity_dir, -camera_target_data[5]);
     add_vector_xyz(look, &hero.motion.pos, look);
     subtract_vector_xyz(dir, look, camera + 0x30);
     normalize_vector_xyz(camera_look_direction, dir, 1.0f);
@@ -327,14 +327,14 @@ extern s32 D_L03_00167074 NOT_SDA;
 /* vendor camera init: aims the camera data at the hero, resets its blend state and places it (FUN_L03_002eb7e0) */
 void FUN_L03_002eb978(void *arg) {
     char *camera = arg;
-    char *e = *(char **)((char *)D_L03_0015EF50 + *(s16 *)(camera + 0x84) * 32 + 0x1C);
+    char *camera_config = *(char **)((char *)D_L03_0015EF50 + *(s16 *)(camera + 0x84) * 32 + 0x1C);
     char *target;
     char *pos;
     char *camera_data;
     char *timer;
     char *ang;
     int tbl;
-    float *p;
+    float *camera_parameter_values;
     int i;
     float f;
     float mtx[12];
@@ -346,11 +346,11 @@ void FUN_L03_002eb978(void *arg) {
     qcopy(target, &hero.motion.pos);
     *(s32 *)(target + 0xC) = 0;
     camera_data = *(char **)(camera + 0x70);
-    p = (float *)(camera_data + 0xD0);
-    f = *(float *)(e + 0x20);
-    p[2] = f;
+    camera_parameter_values = (float *)(camera_data + 0xD0);
+    f = *(float *)(camera_config + 0x20);
+    camera_parameter_values[2] = f;
     *(float *)(camera_data + 0xD0) = f;
-    p[4] = *(float *)(e + 0x24);
+    camera_parameter_values[4] = *(float *)(camera_config + 0x24);
     pos = *(char **)(camera + 0x70);
     *(s32 *)(pos + 0x28) = 0;
     *(float *)(pos + 0x20) = 0.01f;
@@ -369,10 +369,10 @@ void FUN_L03_002eb978(void *arg) {
     *(s32 *)(ang + 0x24) = 0;
     i = (*(s16 *)(camera + 0x84) << 5) + tbl;
     i += 0x10;
-    p = (float *)i;
-    v[0] = p[0];
-    v[1] = p[1];
-    v[2] = p[2];
+    camera_parameter_values = (float *)i;
+    v[0] = camera_parameter_values[0];
+    v[1] = camera_parameter_values[1];
+    v[2] = camera_parameter_values[2];
     v[3] = 0.0f;
     euler_rotation_basis(mtx, v);
     qcopy(ang, mtx);
@@ -387,7 +387,7 @@ extern void func_001F9BD8_ebb00(void *, void *, void *) __asm__("FUN_001f9a10");
 void FUN_L03_002ebb00(void *arg) {
     char *camera = arg;
     char *camera_data = *(char **)(camera + 0x70);
-    char *a = camera_data + 0xD0;
+    char *camera_offset_params = camera_data + 0xD0;
     char *b = camera_data + 0xF0;
     struct Hero *g = &hero;
     float camera_back_offset[4];
@@ -397,8 +397,8 @@ void FUN_L03_002ebb00(void *arg) {
     if (g->unk2284 != 0x50 || g->state.current == 0x11) {
         *(float *)(b + 0x34) = g->motion.pos.f[2];
     }
-    func_L00_001FF4B0_ebb00(gravity_offset, &hero.gravity_dir, -*(float *)(a + 0x10));
-    func_L00_001FF4B0_ebb00(camera_back_offset, b, -*(float *)a);
+    func_L00_001FF4B0_ebb00(gravity_offset, &hero.gravity_dir, -*(float *)(camera_offset_params + 0x10));
+    func_L00_001FF4B0_ebb00(camera_back_offset, b, -*(float *)camera_offset_params);
     hero_ptr = &hero;
     *(float *)camera_data =
         func_001EC120_ebb00(camera_data + 0x10, *(float *)camera_data, hero_ptr->motion.pos.f[0], *(float *)(camera_data + 0x20),
@@ -433,14 +433,14 @@ f32 cam_interp_values(void *p, f32 to, f32 stiffness, f32 damping, f32 max,
 void FUN_L03_002ebc58(void *arg) {
     char *camera = arg;
     char *camera_data = *(char **)(camera + 0x70);
-    float *p = (float *)(camera_data + 0xB0);
+    float *camera_target_data = (float *)(camera_data + 0xB0);
     float look_direction[4];
     float b[4];
     float look_offset[4];
     qcopy(b, camera_data);
-    p[2] = cam_interp_values(camera_data + 0xBC, p[2], hero.motion.pos.f[2],
+    camera_target_data[2] = cam_interp_values(camera_data + 0xBC, camera_target_data[2], hero.motion.pos.f[2],
                              *(float *)&D_L03_00161E70, *(float *)&D_L03_00161E74, 0.0f);
-    normalize_vector_xyz(look_offset, D_L03_00166F40, p[5]);
+    normalize_vector_xyz(look_offset, D_L03_00166F40, camera_target_data[5]);
     add_vector_xyz(b, look_offset, b);
     subtract_vector_xyz(look_direction, b, camera + 0x30);
     normalize_vector_xyz(camera, look_direction, 1.0f);

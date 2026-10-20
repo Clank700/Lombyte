@@ -650,7 +650,7 @@ void taxi_update(struct Moby *moby) {
     struct Hero *g;
     struct Hero *g2;
     float z;
-    char *m;
+    char *matched_moby;
     char *voice_slot_base;
     L16PickupPose *tab;
     float *qa;
@@ -676,12 +676,12 @@ void taxi_update(struct Moby *moby) {
                 FUN_L05_00319690(moby);
                 if ((*(int *)(D_0013CAE4) & 0x10) && *(int *)&D_L16_0015F594 == 8) {
                     moby->state = 3;
-                    m = FUN_L05_00319598(moby, *(short *)(taxi_data + 0xAE));
-                    if (m != 0) {
-                        m[0x20] = 2;
-                        *(unsigned short *)(m + 0x34) |= 1;
-                        m[0x31] = 0;
-                        *(int *)(m + 0x94) = 0;
+                    matched_moby = FUN_L05_00319598(moby, *(short *)(taxi_data + 0xAE));
+                    if (matched_moby != 0) {
+                        matched_moby[0x20] = 2;
+                        *(unsigned short *)(matched_moby + 0x34) |= 1;
+                        matched_moby[0x31] = 0;
+                        *(int *)(matched_moby + 0x94) = 0;
                     }
                 }
             }
@@ -826,7 +826,7 @@ void FUN_L16_002e4a58(struct Moby *moby) {
     };
     char *taxi_data = (char *)moby->pvars;
     char *selected_path;
-    float inv, a, b, r;
+    float inv, frame_scaled_travel_step, b, r;
     switch (*(short *)(taxi_data + 0xAC)) {
     case TAXI_DEPART_FROM_FIRST_STOP:
         *(char **)(taxi_data + 0xA4) = D_L16_001B0930[*(int *)(taxi_data + 0x90)];
@@ -843,12 +843,12 @@ void FUN_L16_002e4a58(struct Moby *moby) {
     }
     selected_path = *(char **)(taxi_data + 0xA4);
     r = FUN_001f9b48(selected_path + 0x10, selected_path + 0x20);
-    a = frame_time * 20.0f;
+    frame_scaled_travel_step = frame_time * 20.0f;
     b = frame_time_sq * 5.0f;
     inv = 1.0f / (r * (float)**(int **)(taxi_data + 0xA4));
     *(int *)(taxi_data + 0xB4) = 0;
     *(int *)(taxi_data + 0xB0) = 0;
-    *(float *)(taxi_data + 0xC4) = a * inv;
+    *(float *)(taxi_data + 0xC4) = frame_scaled_travel_step * inv;
     *(float *)(taxi_data + 0xC8) = b * inv;
 }
 /* Moves the moby through its trigger states and checks its local bounds. */
@@ -1120,7 +1120,7 @@ extern int func_001FA898_caa18(float) __asm__("FUN_001fa6d0");
 
 short D_L16_00161E48 = 0;
 void chomper_update(struct Moby *m) __asm__("FUN_L16_002e5e08");
-void chomper_update(struct Moby *m) {
+void chomper_update(struct Moby *chomper_moby) {
     enum {
         CHOMPER_INITIALIZE = 0,
         CHOMPER_WAIT_TO_APPROACH_TARGET = 1,
@@ -1129,84 +1129,84 @@ void chomper_update(struct Moby *m) {
         CHOMPER_RETURN_HOME = 6,
         CHOMPER_KNOCKBACK = 8
     };
-    char *d = (char *)m->pvars;
-    FUN_L16_002e6208(m);
-    FUN_L00_00263ac8(2.1f, (int)m, 1, (unsigned char *)(d + 0x220));
-    if (m->visible != 0 && FUN_001f9b48(&m->pos, D_L16_001671C0) < 29.0f) {
-        FUN_L00_0025a120(m);
-        m->shadow_range = 23;
+    char *chomper_data = (char *)chomper_moby->pvars;
+    FUN_L16_002e6208(chomper_moby);
+    FUN_L00_00263ac8(2.1f, (int)chomper_moby, 1, (unsigned char *)(chomper_data + 0x220));
+    if (chomper_moby->visible != 0 && FUN_001f9b48(&chomper_moby->pos, D_L16_001671C0) < 29.0f) {
+        FUN_L00_0025a120(chomper_moby);
+        chomper_moby->shadow_range = 23;
     }
-    switch (m->state) {
+    switch (chomper_moby->state) {
     case CHOMPER_INITIALIZE:
-        if (*(int *)(d + 0x1F0) == -1) {
-            mark_moby_for_removal_u(m);
+        if (*(int *)(chomper_data + 0x1F0) == -1) {
+            mark_moby_for_removal_u(chomper_moby);
             return;
         }
-        *(unsigned short *)(d + 0x24) = 1;
-        *(unsigned char *)(d + 0x28) = 0;
-        *(float *)(d + 0x20) = 1.0f;
-        *(int *)(d + 0xD0) = (int)&D_L16_00161E48;
+        *(unsigned short *)(chomper_data + 0x24) = 1;
+        *(unsigned char *)(chomper_data + 0x28) = 0;
+        *(float *)(chomper_data + 0x20) = 1.0f;
+        *(int *)(chomper_data + 0xD0) = (int)&D_L16_00161E48;
         if (rand() & 1)
-            m->flags |= 0x8000;
-        qcopy(d + 0x1D0, &m->pos);
-        m->state = 1;
-        if (m->prev_seq != 2)
-            blend_moby_animation_u(m, 2, 0, scale_game_frames(20));
-        *(unsigned char *)(d + 0x58) = func_001FA898_caa18(8.0f);
-        *(unsigned char *)(d + 0x5A) = func_001FA898_caa18(3.2f);
+            chomper_moby->flags |= 0x8000;
+        qcopy(chomper_data + 0x1D0, &chomper_moby->pos);
+        chomper_moby->state = 1;
+        if (chomper_moby->prev_seq != 2)
+            blend_moby_animation_u(chomper_moby, 2, 0, scale_game_frames(20));
+        *(unsigned char *)(chomper_data + 0x58) = func_001FA898_caa18(8.0f);
+        *(unsigned char *)(chomper_data + 0x5A) = func_001FA898_caa18(3.2f);
         break;
     case CHOMPER_WAIT_TO_APPROACH_TARGET:
-        if (*(int *)(d + 0x1C4) != 2) {
-            m->state = 4;
-            if (m->prev_seq != 0)
-                blend_moby_animation_u(m, 0, 0, scale_game_frames(20));
+        if (*(int *)(chomper_data + 0x1C4) != 2) {
+            chomper_moby->state = 4;
+            if (chomper_moby->prev_seq != 0)
+                blend_moby_animation_u(chomper_moby, 0, 0, scale_game_frames(20));
         }
         break;
     case 2:
     case 3:
         break;
     case CHOMPER_APPROACH_TARGET:
-        if (FUN_L16_002e6428_u(m, d + 0x180) < 1.25f) {
-            m->state = 5;
-            if (m->prev_seq != 1)
-                blend_moby_animation_u(m, 1, 0, scale_game_frames(20));
-        } else if (*(int *)(d + 0x1C4) == 2)
-            m->state = 6;
+        if (FUN_L16_002e6428_u(chomper_moby, chomper_data + 0x180) < 1.25f) {
+            chomper_moby->state = 5;
+            if (chomper_moby->prev_seq != 1)
+                blend_moby_animation_u(chomper_moby, 1, 0, scale_game_frames(20));
+        } else if (*(int *)(chomper_data + 0x1C4) == 2)
+            chomper_moby->state = 6;
         break;
     case CHOMPER_FACE_TARGET: {
-        float *yaw = &m->rot.z;
-        float angle = fast_arc_tan(*(float *)(d + 0x180) - m->pos.x,
-                                   *(float *)(d + 0x184) - m->pos.y);
-        approach_angle(yaw, (float *)(d + 0x1F4), angle, frame_time_sq * 12.566371f,
+        float *yaw = &chomper_moby->rot.z;
+        float angle = fast_arc_tan(*(float *)(chomper_data + 0x180) - chomper_moby->pos.x,
+                                   *(float *)(chomper_data + 0x184) - chomper_moby->pos.y);
+        approach_angle(yaw, (float *)(chomper_data + 0x1F4), angle, frame_time_sq * 12.566371f,
                          frame_time_sq * 12.566371f, frame_time * 12.566371f);
-        if (is_value_within_interpolated_window(m, 13.0f)) {
-            FUN_L00_002599e8(m, 0, 1, 0.333f, 1.0f, 1.0f, 0, 1, 0);
-        } else if ((m->anim_flags & 2) && FUN_001f9b48(&m->pos, d + 0x180) > 1.5f) {
-            m->state = 4;
-            if (m->prev_seq != 0)
-                blend_moby_animation_u(m, 0, 0, scale_game_frames(20));
+        if (is_value_within_interpolated_window(chomper_moby, 13.0f)) {
+            FUN_L00_002599e8(chomper_moby, 0, 1, 0.333f, 1.0f, 1.0f, 0, 1, 0);
+        } else if ((chomper_moby->anim_flags & 2) && FUN_001f9b48(&chomper_moby->pos, chomper_data + 0x180) > 1.5f) {
+            chomper_moby->state = 4;
+            if (chomper_moby->prev_seq != 0)
+                blend_moby_animation_u(chomper_moby, 0, 0, scale_game_frames(20));
         }
         break;
     }
     case CHOMPER_RETURN_HOME:
-        if (FUN_L16_002e6428_u(m, d + 0x1D0) < 1.0f) {
-            m->state = 1;
-            if (m->prev_seq != 2)
-                blend_moby_animation_u(m, 2, 0, scale_game_frames(20));
-        } else if (*(int *)(d + 0x1C4) != 2)
-            m->state = 4;
+        if (FUN_L16_002e6428_u(chomper_moby, chomper_data + 0x1D0) < 1.0f) {
+            chomper_moby->state = 1;
+            if (chomper_moby->prev_seq != 2)
+                blend_moby_animation_u(chomper_moby, 2, 0, scale_game_frames(20));
+        } else if (*(int *)(chomper_data + 0x1C4) != 2)
+            chomper_moby->state = 4;
         break;
     case 7:
-        if (FUN_L00_002dc9f0(m, d + 0x120)) {
-            m->state = 1;
-            *(unsigned short *)(d + 0xC8) = 0;
+        if (FUN_L00_002dc9f0(chomper_moby, chomper_data + 0x120)) {
+            chomper_moby->state = 1;
+            *(unsigned short *)(chomper_data + 0xC8) = 0;
         }
         break;
     case CHOMPER_KNOCKBACK:
-        if (mine_fall(m, d + 0x120) & 0x140) {
-            cart_burst(m, &m->pos, 6, 0.5f, 13.0f);
-            FUN_L00_00257470(m, 0, -1);
-            mark_moby_for_removal_u(m);
+        if (mine_fall(chomper_moby, chomper_data + 0x120) & 0x140) {
+            cart_burst(chomper_moby, &chomper_moby->pos, 6, 0.5f, 13.0f);
+            FUN_L00_00257470(chomper_moby, 0, -1);
+            mark_moby_for_removal_u(chomper_moby);
         }
         break;
     }
@@ -1284,17 +1284,17 @@ extern void trooper_anim_finish(void *, void *) __asm__("FUN_L00_0025d538");
 float absolute_float(float input) __asm__("func_001F99C0");
 
 void FUN_L16_002e6208(void *arg) {
-    L16PursuitMoby *m = arg;
-    L16PursuitData *pursuit_data = m->data;
+    L16PursuitMoby *chomper_moby = arg;
+    L16PursuitData *pursuit_data = chomper_moby->data;
     char *hit;
-    int a;                      /* the reaction kind, later the path */
+    int reaction_kind_or_path_address;                      /* the reaction kind, later the path */
     int b;                      /* the reaction flags, later the path's slot in the table */
     float scratch[8];           /* [0..3] where the hit came from, [4] the heading that gives */
 
-    if (m->state == 0) {
+    if (chomper_moby->state == 0) {
         return;
     }
-    hit = find_moby_hit(m, 0x330000, 0);
+    hit = find_moby_hit(chomper_moby, 0x330000, 0);
     if (hit) {
         b = 0x200;
         pursuit_data->flags = b;
@@ -1303,28 +1303,28 @@ void FUN_L16_002e6208(void *arg) {
         pursuit_data->acceleration = D_L16_00161E58 * frame_time_sq;
         pursuit_data->jump_speed = D_L16_00161E60 * frame_time;
         pursuit_data->turn_speed = D_L16_00161E5C * frame_time;
-        a = 0x29;
-        pursuit_data->kind = a;
+        reaction_kind_or_path_address = 0x29;
+        pursuit_data->kind = reaction_kind_or_path_address;
         pursuit_data->pending = 0;
         pursuit_data->timer = frame_time * 2.0f;
-        m->flags &= ~0x1000;
+        chomper_moby->flags &= ~0x1000;
         *(OvlQuad *)scratch = *(OvlQuad *)(hit + 0x10);
         trooper_knockback_arc(scratch, scratch + 4, &pursuit_data->jump_speed, &pursuit_data->turn_speed);
-        trooper_start_knockback(m, pursuit_data->knock, 5, 1, 0, scratch[4]);
+        trooper_start_knockback(chomper_moby, pursuit_data->knock, 5, 1, 0, scratch[4]);
         pursuit_data->f170 = 8.0f;
         pursuit_data->f174 = 16.0f;
-        m->state = 8;
-        m->i94 = 0;
+        chomper_moby->state = 8;
+        chomper_moby->i94 = 0;
         pursuit_data->reaction_time = 0x78;
-        trooper_anim_update(m, pursuit_data->reaction);
+        trooper_anim_update(chomper_moby, pursuit_data->reaction);
     }
-    m->bA4 = 0xFF;
-    trooper_anim_finish(m, pursuit_data->reaction);
+    chomper_moby->bA4 = 0xFF;
+    trooper_anim_finish(chomper_moby, pursuit_data->reaction);
     b = (int)&D_L16_001B0930[pursuit_data->path];
-    a = *(int *)b;
-    if (FUN_L00_0025ff38(m, pursuit_data->target, 16.0f, 0, 0, (void *)(a + 0x10), *(int *)a) != 2) {
+    reaction_kind_or_path_address = *(int *)b;
+    if (FUN_L00_0025ff38(chomper_moby, pursuit_data->target, 16.0f, 0, 0, (void *)(reaction_kind_or_path_address + 0x10), *(int *)reaction_kind_or_path_address) != 2) {
         if (vector_distance(pursuit_data->home, pursuit_data->target) > 16.0f ||
-            absolute_float(m->position[2] - pursuit_data->target[2]) > 3.0f) {
+            absolute_float(chomper_moby->position[2] - pursuit_data->target[2]) > 3.0f) {
             pursuit_data->i1C4 = 2;
         }
     }
@@ -1491,7 +1491,7 @@ extern char D_00141968[];
 extern L16ChallengePlayer D_0013E633_challenge __asm__("D_0013E533");
 
 void gadgetron_ceo_update(L16ChallengeMoby *m) __asm__("FUN_L16_002e6808");
-void gadgetron_ceo_update(L16ChallengeMoby *m) {
+void gadgetron_ceo_update(L16ChallengeMoby *ceo_moby) {
     enum {
         GADGETRON_CEO_INITIALIZE_DIALOGUE = 0,
         GADGETRON_CEO_POLL_DIALOGUE = 1,
@@ -1500,37 +1500,37 @@ void gadgetron_ceo_update(L16ChallengeMoby *m) {
         GADGETRON_CEO_WAIT_TO_SAVE = 4
     };
     L16ChallengeScratch scratch;
-    L16ChallengeData *d = m->data;
-    L16ChallengeActivation *activation = (L16ChallengeActivation *)d->activation;
+    L16ChallengeData *ceo_data = ceo_moby->data;
+    L16ChallengeActivation *activation = (L16ChallengeActivation *)ceo_data->activation;
     float rate, head_rate;
     int tracking;
-    if (m->visible && FUN_001f9b48(m->position, D_L16_001671C0) < 28.0f) {
-        FUN_L00_0025a120(m);
-        m->distance_class = 22;
+    if (ceo_moby->visible && FUN_001f9b48(ceo_moby->position, D_L16_001671C0) < 28.0f) {
+        FUN_L00_0025a120(ceo_moby);
+        ceo_moby->distance_class = 22;
     }
-    FUN_L02_002e0cd8(m);
-    switch (m->state) {
+    FUN_L02_002e0cd8(ceo_moby);
+    switch (ceo_moby->state) {
     case GADGETRON_CEO_INITIALIZE_DIALOGUE:
-        m->opacity = 255;
-        m->state = 1;
-        initialize_npc_dialogue(m, activation);
-        *(float *)((char *)d + 0x2C) = 3.7f;
-        d->initial_yaw = m->yaw;
+        ceo_moby->opacity = 255;
+        ceo_moby->state = 1;
+        initialize_npc_dialogue(ceo_moby, activation);
+        *(float *)((char *)ceo_data + 0x2C) = 3.7f;
+        ceo_data->initial_yaw = ceo_moby->yaw;
         if (*(int *)(D_0013D408 + 0x814) == 0)
-            m->yaw = fast_add_rotations(m->yaw, 3.14159265f);
-        FUN_L16_002e7168((char *)m);
+            ceo_moby->yaw = fast_add_rotations(ceo_moby->yaw, 3.14159265f);
+        FUN_L16_002e7168((char *)ceo_moby);
         break;
     case GADGETRON_CEO_POLL_DIALOGUE: {
         if (((L16ChallengePlayer *)((char *)&D_0013E633_challenge + 0xE1D))->mode != 15)
             D_L16_0015F638 = 115.0f;
         else
             D_L16_0015F638 = 100.0f;
-        if (update_npc_dialogue(m, (char *)d + 0x20)) {
-            m->yaw = d->initial_yaw;
-            begin_dialogue_camera_transition(3.5f, m);
-            m->state = 2;
+        if (update_npc_dialogue(ceo_moby, (char *)ceo_data + 0x20)) {
+            ceo_moby->yaw = ceo_data->initial_yaw;
+            begin_dialogue_camera_transition(3.5f, ceo_moby);
+            ceo_moby->state = 2;
         }
-        if (!D_0013D4DE && vector_distance(&hero.motion.pos, m->position) < 3.5f) {
+        if (!D_0013D4DE && vector_distance(&hero.motion.pos, ceo_moby->position) < 3.5f) {
             int elapsed, period;
             char *statistics;
             elapsed = scale_game_frames(freeze_stats_score_ref_b[14]);
@@ -1553,35 +1553,35 @@ void gadgetron_ceo_update(L16ChallengeMoby *m) {
             activation->previous = (unsigned short)activation->mode;
             activation->mode = 2;
             activation->pending = pending;
-            m->event = 0;
+            ceo_moby->event = 0;
             pose = D_L16_001D9840;
             FUN_L00_00216f90(pose, pose + 0x10, 0, 1);
             camera = (char *)hero.unk1D00;
             qcopy(camera, pose + 0x20);
             qcopy(camera + 0x10, pose + 0x30);
-            m->state = 3;
-            FUN_L16_002e70c0((char *)m);
+            ceo_moby->state = 3;
+            FUN_L16_002e70c0((char *)ceo_moby);
         }
         if (((L16ChallengePlayer *)((char *)&D_0013E633_challenge + 0xE1D))->mode == 22) {
-            m->state = 3;
-            FUN_L16_002e70c0((char *)m);
+            ceo_moby->state = 3;
+            FUN_L16_002e70c0((char *)ceo_moby);
         }
         break;
     }
     case GADGETRON_CEO_WAIT_AFTER_DIALOGUE:
         if (*(int *)&D_L16_0015F5C4 != 2) {
             int previous;
-            m->state = 1;
+            ceo_moby->state = 1;
             previous = activation->previous;
             if (previous == 4) {
                 FUN_L16_002923d0(0);
-                m->state = previous;
+                ceo_moby->state = previous;
             }
         }
         break;
     case GADGETRON_CEO_WAIT_TO_SAVE:
         if (*(int *)&D_L16_0015F5C4 == 0) {
-            m->state = 1;
+            ceo_moby->state = 1;
             FUN_L00_00260860(31, 1);
             memcard_save_data(0, -1);
         }
@@ -1601,14 +1601,14 @@ void gadgetron_ceo_update(L16ChallengeMoby *m) {
                 D_0015EE6C_p = player->points;
         }
         if (((L16ChallengePlayer *)((char *)&D_0013E633_challenge + 0xE1D))->mode == 0) {
-            m->state = 1;
-            FUN_L16_002e7168((char *)m);
+            ceo_moby->state = 1;
+            FUN_L16_002e7168((char *)ceo_moby);
         }
-        event = m->event;
+        event = ceo_moby->event;
         if (event == 1) {
-            m->state = event;
+            ceo_moby->state = event;
             FUN_L00_00216f90(D_L16_001D9860, D_L16_001D9860 + 0x10, 0, 1);
-            m->event = 0;
+            ceo_moby->event = 0;
             if (!D_0013D507) {
                 int pending;
                 unsigned short previous;
@@ -1619,18 +1619,18 @@ void gadgetron_ceo_update(L16ChallengeMoby *m) {
                 activation->pending = pending;
                 activation->flag = event;
             }
-            FUN_L16_002e7168((char *)m);
+            FUN_L16_002e7168((char *)ceo_moby);
         }
-        if (m->event == 2) {
-            m->state = 1;
+        if (ceo_moby->event == 2) {
+            ceo_moby->state = 1;
             FUN_L00_00216f90(D_L16_001D9860, D_L16_001D9860 + 0x10, 0, 1);
-            m->event = 0;
-            FUN_L16_002e7168((char *)m);
+            ceo_moby->event = 0;
+            FUN_L16_002e7168((char *)ceo_moby);
         }
-        if (m->event == 3) {
+        if (ceo_moby->event == 3) {
             char *camera;
             char *pose = D_L16_001D9840;
-            m->event = 0;
+            ceo_moby->event = 0;
             FUN_L00_00216f90(pose, pose + 0x10, 0, 1);
             camera = (char *)hero.unk1D00;
             qcopy(camera, pose + 0x20);
@@ -1642,50 +1642,50 @@ void gadgetron_ceo_update(L16ChallengeMoby *m) {
     rate = 0.02f;
     head_rate = 0.3f;
     tracking = 0;
-    if (m->animation == 0) {
+    if (ceo_moby->animation == 0) {
         char *player = (char *)&D_0013E633_challenge + 0xE9D;
         tracking = 1;
-        if (vector_distance(m->position, player) < 8.0f &&
+        if (vector_distance(ceo_moby->position, player) < 8.0f &&
             FUN_001f9e90_cf(
-                m->yaw,
+                ceo_moby->yaw,
                 FUN_001fa688_cf(
                     ((L16ChallengePlayer *)((char *)&D_0013E633_challenge + 0xE1D))->aim[0] -
-                        m->position[0],
+                        ceo_moby->position[0],
                     ((L16ChallengePlayer *)((char *)&D_0013E633_challenge + 0xE1D))->aim[1] -
-                        m->position[1])) < 1.5707964f) {
+                        ceo_moby->position[1])) < 1.5707964f) {
             if (vector_length_xyz(player + 0x80) > 0.01f)
-                d->moving_timer = scale_game_frames(120);
+                ceo_data->moving_timer = scale_game_frames(120);
             else
-                tick_countdown_32_c(&d->moving_timer);
-        } else if (d->moving_timer) {
-            d->moving_timer = 0;
-            qcopy(d->target, (char *)&D_0013E633_challenge + 0xEED);
+                tick_countdown_32_c(&ceo_data->moving_timer);
+        } else if (ceo_data->moving_timer) {
+            ceo_data->moving_timer = 0;
+            qcopy(ceo_data->target, (char *)&D_0013E633_challenge + 0xEED);
         }
-        if (tick_countdown_32_c(&d->target_timer)) {
+        if (tick_countdown_32_c(&ceo_data->target_timer)) {
             float heading;
-            d->target_timer =
+            ceo_data->target_timer =
                 random_float_between_cf(multiply_global_factor_ed64(truncate_float_to_s32_cf(180.0f, 300.0f)));
             heading =
-                fast_add_rotations(m->yaw, truncate_float_to_s32_cf(-90.0f, 90.0f) * DEG_TO_RAD);
-            build_spherical_offset(d->target, 6.0f, heading,
+                fast_add_rotations(ceo_moby->yaw, truncate_float_to_s32_cf(-90.0f, 90.0f) * DEG_TO_RAD);
+            build_spherical_offset(ceo_data->target, 6.0f, heading,
                                    truncate_float_to_s32_cf(0.0f, 30.0f) * DEG_TO_RAD);
-            add_vector_xyz(d->target, d->target, m->position);
+            add_vector_xyz(ceo_data->target, ceo_data->target, ceo_moby->position);
         }
-        if (d->moving_timer) {
+        if (ceo_data->moving_timer) {
             qcopy(scratch.target, (char *)&D_0013E633_challenge + 0xEED);
             rate = 0.04f;
             head_rate = 0.3f;
         } else {
-            qcopy(scratch.target, d->target);
+            qcopy(scratch.target, ceo_data->target);
         }
     }
     if (tracking) {
         float yaw;
         float pitch;
-        qcopy(scratch.eye, m->position);
+        qcopy(scratch.eye, ceo_moby->position);
         scratch.eye[2] += 1.0f;
         subtract_vector_xyz(scratch.delta, scratch.target, scratch.eye);
-        yaw = fast_subtract_rotations(FUN_001fa688_cf(scratch.delta[0], scratch.delta[1]), m->yaw);
+        yaw = fast_subtract_rotations(FUN_001fa688_cf(scratch.delta[0], scratch.delta[1]), ceo_moby->yaw);
         pitch = -FUN_001fa688_cf(vector_length_xy(scratch.delta), scratch.delta[2]);
         if (yaw > 1.5707964f)
             yaw = 1.5707964f;
@@ -1695,14 +1695,14 @@ void gadgetron_ceo_update(L16ChallengeMoby *m) {
             pitch = 0.5235988f;
         else if (pitch < -0.5235988f)
             pitch = -0.5235988f;
-        d->pitch = pitch;
-        d->yaw = yaw * 0.7f;
-        d->head_yaw = yaw * 0.3f;
+        ceo_data->pitch = pitch;
+        ceo_data->yaw = yaw * 0.7f;
+        ceo_data->head_yaw = yaw * 0.3f;
     }
     if (D_0015EDB0_b)
-        *(float *)((char *)d + 0x150) = 2.75f;
-    update_joint_animation(rate * frame_scale_sq, head_rate * frame_scale_sq, m, d->body, 0);
-    update_joint_animation(rate * frame_scale_sq, head_rate * frame_scale_sq, m, d->head, 1);
+        *(float *)((char *)ceo_data + 0x150) = 2.75f;
+    update_joint_animation(rate * frame_scale_sq, head_rate * frame_scale_sq, ceo_moby, ceo_data->body, 0);
+    update_joint_animation(rate * frame_scale_sq, head_rate * frame_scale_sq, ceo_moby, ceo_data->head, 1);
 }
 /* Ported from rac1-decomp (src/overlays/l16_kalebo3/vendor_002E7C70.c: func_L16_002E8538), where it is exact; names translated to the US level program. */
 
@@ -2538,7 +2538,7 @@ extern void fast_vec_sub(void *, void *, void *) __asm__("FUN_001f9a28");
 extern void fast_vec_scale(void *, void *, float) __asm__("FUN_001f9a68");
 extern void fast_vec_normalize(void *, void *, float) __asm__("FUN_001f9bf8");
 
-void FUN_L16_002e8b98(int point_count, Vec3f *p1, Vec3f *point_positions, int unused, float *out) {
+void FUN_L16_002e8b98(int point_count, Vec3f *direction_vectors, Vec3f *point_positions, int unused, float *out) {
     int i;
     float relative_direction[4];
     float v[4];
@@ -2556,9 +2556,9 @@ void FUN_L16_002e8b98(int point_count, Vec3f *p1, Vec3f *point_positions, int un
         fast_vec_sub(relative_direction, v, D_L16_001671C0);
         fast_vec_normalize(relative_direction, relative_direction, 1.0f);
         w[3] = 1.0f;
-        w[0] = p1[i].x;
-        w[1] = p1[i].y;
-        w[2] = p1[i].z;
+        w[0] = direction_vectors[i].x;
+        w[1] = direction_vectors[i].y;
+        w[2] = direction_vectors[i].z;
         fast_vec_normalize(w, w, 1.0f);
         direction_dot_product = fast_vec_dot(w, relative_direction);
         fast_vec_scale(t, w, direction_dot_product + direction_dot_product);
@@ -2720,7 +2720,7 @@ void FUN_L16_002e9270(void) {
     int *b = (int *)D_L16_00161F60;
     int *c = (int *)D_L16_00161F68;
     int *direction_vectors = (int *)D_L16_00161F70;
-    int *e = (int *)D_L16_00161F78;
+    int *point_word_streams = (int *)D_L16_00161F78;
     int i;
 
     vu1_add_g_sregister_2e9270(6, get_effect_texture_2e9270(0x29));
@@ -2731,7 +2731,7 @@ void FUN_L16_002e9270(void) {
     for (i = 0; i < 1; i++) {
         if (fast_bsphere_check(D_L16_00161F80_t[i], 512.0f) != -1) {
             FUN_L16_002e8b98_t(point_counts[i], direction_vectors[i], b[i], c[i], D_L16_001DDC80);
-            FUN_L00_001fde98(point_counts[i], b[i], e[i], D_L16_001DDC80, 1);
+            FUN_L00_001fde98(point_counts[i], b[i], point_word_streams[i], D_L16_001DDC80, 1);
         }
     }
 }

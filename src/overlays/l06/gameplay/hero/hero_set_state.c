@@ -88,6 +88,10 @@ int hero_set_state(int a, int b) {
     enum {
         HERO_STATE_GRIND_HURT = 0x42,
         HERO_STATE_VEHICLE_MODE_1_IDLE = 0x43,
+        HERO_STATE_VEHICLE_MODE_1_RUN = 0x44,
+        HERO_STATE_VEHICLE_MODE_1_FALL = 0x45,
+        HERO_STATE_VEHICLE_MODE_1_HURT = 0x46,
+        HERO_STATE_VEHICLE_MODE_1_DYING = 0x47,
         HERO_STATE_VEHICLE_MODE_1_SLIP = 0x52,
         HERO_STATE_VEHICLE_MODE_3_IDLE = 0x53,
         HERO_STATE_VEHICLE_MODE_3_RUN = 0x54,
@@ -1534,7 +1538,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0xE, 0, (float)scale_game_frames(0xC));
         break;
     }
-    case 0x45: {
+    case HERO_STATE_VEHICLE_MODE_1_FALL: {
         struct Hero *p = &hero;
         p->state.control_mode = 2;
         p->unk2284 = 0;
@@ -1553,7 +1557,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(4, 0, (float)scale_game_frames(0xC));
         break;
     }
-    case 0x46: {
+    case HERO_STATE_VEHICLE_MODE_1_HURT: {
         struct Hero *p = &hero;
         p->state.control_mode = 7;
         p->unk2284 = 0;
@@ -1570,7 +1574,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x44: {
+    case HERO_STATE_VEHICLE_MODE_1_RUN: {
         struct Hero *p = &hero;
         if (p->on_slip_ground != 0 && p->frames_off_ground.s == 0) {
             hero_set_state(0x52, 1);
@@ -1591,7 +1595,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x47: {
+    case HERO_STATE_VEHICLE_MODE_1_DYING: {
         struct Hero *p = &hero;
         p->state.control_mode = 0x14;
         p->unk2284 = 0;

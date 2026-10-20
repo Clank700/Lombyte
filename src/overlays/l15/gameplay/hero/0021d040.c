@@ -140,15 +140,18 @@ extern int func_001F9908_r(int *) __asm__("FUN_001f9740");
 
 void FUN_L15_0021d040(void) {
     enum {
+        HERO_STATE_WAIT_FOR_ITEM_BUTTON_RELEASE = 23,
         HERO_STATE_LEDGE_HANG_ENTRY = 24,
         HERO_STATE_LEDGE_HANG = 25,
         HERO_STATE_LEDGE_SHIMMY_YAW_PLUS_90 = 26,
         HERO_STATE_LEDGE_SHIMMY_YAW_MINUS_90 = 27,
         HERO_STATE_LEDGE_JUMP = 28,
+        HERO_STATE_WAIT_FOR_ANIMATION_THEN_IDLE = 33,
         HERO_STATE_APPROACH_TARGET_POSE = 101,
         HERO_STATE_TARGET_POSE_ANIMATION_WAIT = 102,
         HERO_STATE_AT_TARGET_POSE = 103,
         HERO_STATE_WAIT_FOR_JUMP_OR_RESPAWN = 104,
+        HERO_STATE_WAIT_FOR_ANIMATION_THEN_RESPAWN = 106,
         HERO_STATE_FALL_TO_RESPAWN = 119,
         HERO_STATE_WAIT_FOR_RESPAWN_HEIGHT_OR_TIMEOUT = 123
     };
@@ -467,7 +470,7 @@ void FUN_L15_0021d040(void) {
                 case 71:
                 case 87:
                 case 98:
-                case 106:
+                case HERO_STATE_WAIT_FOR_ANIMATION_THEN_RESPAWN:
                 case 128:
                 case 130:
                     if (hero.unkA98 & 2) {
@@ -658,7 +661,7 @@ void FUN_L15_0021d040(void) {
                         }
                     }
                     break;
-                case 23:
+                case HERO_STATE_WAIT_FOR_ITEM_BUTTON_RELEASE:
                     if (controller_state.held & hero.items[0].button_mask) {
                         break;
                     }
@@ -743,7 +746,7 @@ void FUN_L15_0021d040(void) {
                         }
                     }
                     break;
-                case 33:
+                case HERO_STATE_WAIT_FOR_ANIMATION_THEN_IDLE:
                 case HERO_STATE_WALL_BONK:
                     if (hero.unkA98 & 2) {
                         hero_set_state(HERO_STATE_IDLE, 1);

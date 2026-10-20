@@ -45,6 +45,9 @@ void FUN_L00_0023d968(void) {
         LEVEL_WITH_SKY_PARTICLES_AND_MODULO_50000_SHELL_ROTATION = 7,
         LEVEL_WITH_MODULO_40000_SKY_SHELL_ROTATION = 8,
         LEVEL_WITH_MODULO_25000_SKY_SHELL_ROTATION = 9,
+        LEVEL_WITH_FOUR_ROTATING_SKY_SHELLS = 10,
+        LEVEL_WITH_THREE_ROTATING_SKY_SHELLS = 11,
+        LEVEL_WITH_ROTATING_SKY_SHELLS_ONE_THROUGH_THREE = 12,
         LEVEL_WITH_THREE_SKY_SHELLS_AND_PARTICLES = 13,
         LEVEL_WITH_MODULO_50000_AND_100000_SKY_SHELL_ROTATIONS = 14,
         LEVEL_WITH_TWO_SKY_SHELLS_AND_PARTICLES = 15,
@@ -83,13 +86,13 @@ void FUN_L00_0023d968(void) {
     case LEVEL_WITH_MODULO_25000_SKY_SHELL_ROTATION:
         FUN_L00_0028a3a8();
         break;
-    case 10:
+    case LEVEL_WITH_FOUR_ROTATING_SKY_SHELLS:
         FUN_L00_0028a480();
         break;
-    case 11:
+    case LEVEL_WITH_THREE_ROTATING_SKY_SHELLS:
         FUN_L00_0028a620();
         break;
-    case 12:
+    case LEVEL_WITH_ROTATING_SKY_SHELLS_ONE_THROUGH_THREE:
         FUN_L00_0028a7a0();
         break;
     case LEVEL_WITH_THREE_SKY_SHELLS_AND_PARTICLES:
@@ -165,13 +168,13 @@ extern void FUN_L00_0026ced0(void *, void *, s32, s32, s32, f32);
 extern VeldinLevelState D_L00_0016C860;
 
 void FUN_L00_0023e268(void) {
-    VeldinMoby *m;
+    VeldinMoby *particle_source_moby;
     VeldinMoby *mb;
     char *src;
     s32 i;
     s32 j;
     s32 k;
-    s32 n;
+    s32 effect_spawn_attempt_index;
     f32 azimuth_angle;
     f32 b;
     s32 r;
@@ -198,9 +201,9 @@ void FUN_L00_0023e268(void) {
         D_L00_0016C860.timer < scale_game_frames(1100)) {
         src = (char *)D_L00_0016C860.unk184;
         if (src != 0) {
-            for (n = 0; n < 4; n++) {
+            for (effect_spawn_attempt_index = 0; effect_spawn_attempt_index < 4; effect_spawn_attempt_index++) {
                 clear_u64_value(&v);
-                moby_point_position(src, n % 2, &buf);
+                moby_point_position(src, effect_spawn_attempt_index % 2, &buf);
                 azimuth_angle = veldin_random_angle();
                 b = veldin_random_angle();
                 build_spherical_offset(
@@ -216,10 +219,10 @@ void FUN_L00_0023e268(void) {
         enqueue_callback_list_1((s32)FUN_L00_002935b8, (s32)D_L00_0016C860.unk188);
     }
     if (current_level_index == 14 && D_L00_0016C860.state == 0) {
-        m = D_L00_0016C860.unk17C;
-        if (m != 0 && (u32)(D_L00_0016C860.timer - 0x1C) < 6) {
-            FUN_L00_0023e008(m);
-            enqueue_callback_list_1((s32)FUN_L00_0023db30, (s32)m);
+        particle_source_moby = D_L00_0016C860.unk17C;
+        if (particle_source_moby != 0 && (u32)(D_L00_0016C860.timer - 0x1C) < 6) {
+            FUN_L00_0023e008(particle_source_moby);
+            enqueue_callback_list_1((s32)FUN_L00_0023db30, (s32)particle_source_moby);
         }
     }
     if (current_level_index == 15 && (u32)(D_L00_0016C860.state - 3) < 2) {

@@ -91,9 +91,13 @@ int hero_set_state(int a, int b) {
         ENTER_IDLE = 0,
         HERO_STATE_DOUBLE_JUMP = 0xE,
         ENTER_ATTACK_COMBO = 0x13,
+        HERO_STATE_LEDGE_HANG = 0x19,
         HERO_STATE_GRIND_JUMP = 0x29,
+        HERO_STATE_GRIND_RAIL_TRANSFER = 0x2A,
         HERO_STATE_GRIND_ATTACK = 0x2B,
+        HERO_STATE_GRIND_OBSTACLE_HOP = 0x42,
         HERO_STATE_APPROACH_TARGET_POSE = 0x65,
+        HERO_STATE_TARGET_POSE_STOP = 0x66,
         HERO_STATE_AT_TARGET_POSE = 0x67,
         ENTER_DROWN = 0x6A,
         ENTER_SLIP = 0x79
@@ -646,7 +650,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x66: {
+    case HERO_STATE_TARGET_POSE_STOP: {
         struct Hero *p = &hero;
         char *v = (char *)&p->motion.unk110;
         p->state.control_mode = 1;
@@ -895,7 +899,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x19: {
+    case HERO_STATE_LEDGE_HANG: {
         struct Hero *p = &hero;
         p->state.control_mode = 3;
         p->unk2284 = 0xD;
@@ -1012,7 +1016,7 @@ int hero_set_state(int a, int b) {
     case 0x12:
     case 0x1C:
     case HERO_STATE_GRIND_JUMP:
-    case 0x2A:
+    case HERO_STATE_GRIND_RAIL_TRANSFER:
     case 0x3C:
     case 0x49:
     case 0x4C:
@@ -1760,7 +1764,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x42: {
+    case HERO_STATE_GRIND_OBSTACLE_HOP: {
         struct Hero *p = &hero;
         p->state.control_mode = 0xF;
         p->unk2284 = 0;

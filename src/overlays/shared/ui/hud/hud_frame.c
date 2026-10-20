@@ -25,7 +25,7 @@ extern G0023b120 D_L00_0017E4D8;
 void draw_hud_sprite(s32, s32, s32, s32, s32, s32) __asm__("FUN_001ffc30");
 void hud_frame(O0023b120 *o, s32 id, s32 x, s32 y, u32 flags, s32 extra) __asm__("FUN_L00_0023b120");
 void hud_frame(O0023b120 *hud_element, s32 id, s32 x, s32 y, u32 flags, s32 extra) {
-    s32 w0, h0, w, h;
+    s32 w0, h0, w, draw_height;
     R0023b120 *r;
     if (id < 0)
         return;
@@ -35,31 +35,31 @@ void hud_frame(O0023b120 *hud_element, s32 id, s32 x, s32 y, u32 flags, s32 extr
     w0 = 1 << r->lw;
     h0 = 1 << r->lh;
     w = w0;
-    h = h0;
+    draw_height = h0;
     if (flags & 1) {
         x -= w >> 1;
-        y -= h >> 1;
+        y -= draw_height >> 1;
     }
     if (flags & 2) {
         x += w >> 2;
-        y += h >> 2;
+        y += draw_height >> 2;
         w >>= 1;
-        h >>= 1;
+        draw_height >>= 1;
     }
     if (flags & 4) {
         x -= w0 >> 1;
         y -= h0 >> 1;
         w <<= 1;
-        h <<= 1;
+        draw_height <<= 1;
     }
-    draw_hud_sprite(id, x, y, w, h, extra);
+    draw_hud_sprite(id, x, y, w, draw_height, extra);
 }
 extern char *D_L00_001611C0_23b6c0 __asm__("D_L00_001611C0");
 extern int D_0013E500_23b6c0[] __asm__("D_0013E500");
 extern int D_L00_0017E4D8_23b6c0[] __asm__("D_L00_0017E4D8") __attribute__((section(".data")));
 extern u64 FUN_001ffa10_23b6c0(int) __asm__("FUN_001ffa10");
 
-void FUN_L00_0023b6c0(int tex, int x, int y, int w, int h, int a) {
+void FUN_L00_0023b6c0(int tex, int x, int y, int w, int h, int alpha) {
     u64 *packet_words;
     int *coordinate_offsets;
     int *g;
@@ -73,7 +73,7 @@ void FUN_L00_0023b6c0(int tex, int x, int y, int w, int h, int a) {
     packet_words[1] = 0x5353106;
     packet_words[2] = FUN_001ffa10_23b6c0(tex);
     packet_words[3] = 0x156;
-    packet_words[4] = ((u64)a << 24) | 0x7F7F7F;
+    packet_words[4] = ((u64)alpha << 24) | 0x7F7F7F;
     packet_words[5] = 0;
     coordinate_offsets = D_0013E500_23b6c0;
     g = D_L00_0017E4D8_23b6c0;
@@ -106,7 +106,7 @@ extern char *D_L00_001611C0_23bac0 __asm__("D_L00_001611C0");
 extern int D_0013E500_23bac0[] __asm__("D_0013E500");
 extern G_23bac0 D_L00_0017E4D8_23bac0 __asm__("D_L00_0017E4D8") __attribute__((section(".data")));
 extern u64_23bac0 FUN_001ffa10_23bac0(int) __asm__("FUN_001ffa10");
-void FUN_L00_0023bac0(int id, int x, int y, int w, int h, int a) {
+void FUN_L00_0023bac0(int id, int x, int y, int w, int h, int alpha) {
     u64_23bac0 *packet_words;
     int *coordinate_offsets;
     G_23bac0 *g = &D_L00_0017E4D8_23bac0;
@@ -123,7 +123,7 @@ void FUN_L00_0023bac0(int id, int x, int y, int w, int h, int a) {
     packet_words[1] = 0x53535353106UL;
     packet_words[2] = FUN_001ffa10_23bac0(id);
     packet_words[3] = 0x154;
-    packet_words[4] = ((u64_23bac0)a << 24) | 0x7F7F7F;
+    packet_words[4] = ((u64_23bac0)alpha << 24) | 0x7F7F7F;
     packet_words[5] = ww << 4;
     coordinate_offsets = D_0013E500_23bac0;
     packet_words[6] = (u64_23bac0)(((x << 4) + coordinate_offsets[4] - 8) | (((u64_23bac0)((y << 4) + coordinate_offsets[5] - 8)) << 16)) |

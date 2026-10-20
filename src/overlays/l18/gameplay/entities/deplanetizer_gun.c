@@ -79,7 +79,7 @@ void FUN_L18_002f88e8(struct Moby *moby) {
         UPDATE_SEQUENCE_EFFECTS = 1
     };
     union { EffectRadii radii; struct { Vec4 pos, velocity; } vectors; } scratch;
-    Vec4 direction, a, b;
+    Vec4 direction, interpolated_joint_zero_position, b;
     struct Moby *target;
     float radius, numerator, denominator, fraction, saved;
     float *data;
@@ -277,9 +277,9 @@ void FUN_L18_002f88e8(struct Moby *moby) {
                 moby_point_position(target, 2, &scratch.vectors.velocity);
                 for (i = 0; i < 12; i++) {
                     fraction = convert_integer_to_float(i) / 12.0f;
-                    interpolate_vector(&a, &scratch.vectors.pos, &D_L18_00162530, fraction);
+                    interpolate_vector(&interpolated_joint_zero_position, &scratch.vectors.pos, &D_L18_00162530, fraction);
                     interpolate_vector(&b, &scratch.vectors.velocity, &D_L18_00162540, fraction);
-                    FUN_L18_002fa250(&a, &a, D_L18_0015F580, D_L18_001624D0, D_L18_001624D0 * 0.4f);
+                    FUN_L18_002fa250(&interpolated_joint_zero_position, &interpolated_joint_zero_position, D_L18_0015F580, D_L18_001624D0, D_L18_001624D0 * 0.4f);
                     FUN_L18_002fa250(&b, &b, D_L18_0015F580, D_L18_001624D0, D_L18_001624D0 * 0.4f);
                 }
                 qcopy(&D_L18_00162530, &scratch.vectors.pos);
@@ -478,8 +478,8 @@ extern short D_L18_00162500 __attribute__((sda));
 void FUN_L18_002f9a98(void *moby) {
     char glow_position[16];
     char b[32];
-    char c[16];
-    char d[16];
+    char bone_transform_row2[16];
+    char bone_world_position[16];
     char scaled_bone_offset[16];
     int color_cycle_frames = scale_game_frames(D_L18_00162460);
     float f = convert_integer_to_float(game_frame % color_cycle_frames);
@@ -489,12 +489,12 @@ void FUN_L18_002f9a98(void *moby) {
     f = fast_sin(f - 3.14159f);
     tweened_color = fast_tween_color(D_L18_00162458, D_L18_0016245C, f * 0.5f + 0.5f);
     build_moby_bone_transform(moby, 1, b);
-    scale_vector_xyz(scaled_bone_offset, c, *(float *)&D_L18_00162500);
-    subtract_vector_xyz(glow_position, d, scaled_bone_offset);
+    scale_vector_xyz(scaled_bone_offset, bone_transform_row2, *(float *)&D_L18_00162500);
+    subtract_vector_xyz(glow_position, bone_world_position, scaled_bone_offset);
     FUN_L00_00263618(glow_position, tweened_color, D_L18_00162450, D_L18_00162454);
     build_moby_bone_transform(moby, 2, b);
-    scale_vector_xyz(scaled_bone_offset, c, *(float *)&D_L18_00162500);
-    subtract_vector_xyz(glow_position, d, scaled_bone_offset);
+    scale_vector_xyz(scaled_bone_offset, bone_transform_row2, *(float *)&D_L18_00162500);
+    subtract_vector_xyz(glow_position, bone_world_position, scaled_bone_offset);
     FUN_L00_00263618(glow_position, tweened_color, D_L18_00162450, D_L18_00162454);
 }
 /* Draws the moby's two glow quads facing the camera, in the inner and outer tints. */
@@ -700,7 +700,7 @@ extern int func_001FA898_r(float) __asm__("FUN_001fa6d0");
 extern char *func_L00_0026DEA0_c(void *, int, void *, float, float, float, float,
                                  int) __asm__("FUN_L00_0026d000");
 
-void FUN_L18_002fa250(void *first_position_source, void *b, void *c, float f0, float f1) {
+void FUN_L18_002fa250(void *first_position_source, void *b, void *effect_velocity_source, float f0, float f1) {
     char first_effect_position[16];
     char second_effect_position[16];
     int i;
@@ -712,7 +712,7 @@ void FUN_L18_002fa250(void *first_position_source, void *b, void *c, float f0, f
     qcopy(second_effect_position, b);
     for (i = 1; i >= 0; i--) {
         m = (char *)random_integer_below(16);
-        m = func_L00_0026DEA0_c(first_effect_position, random_integer_below(2) ? -(int)m : (int)m, c, 0.0f, 1.0f, 0.9f,
+        m = func_L00_0026DEA0_c(first_effect_position, random_integer_below(2) ? -(int)m : (int)m, effect_velocity_source, 0.0f, 1.0f, 0.9f,
                                 f0, 0x7F204080);
         effect_data = m + 0x20;
         if (m) {
@@ -730,7 +730,7 @@ void FUN_L18_002fa250(void *first_position_source, void *b, void *c, float f0, f
     do {
         int y = x;
         x = -x;
-        m = func_L00_0026DEA0_c(second_effect_position, y, c, 0.0f, 1.0f, 0.97f, f1, 0x7FFFFFFF);
+        m = func_L00_0026DEA0_c(second_effect_position, y, effect_velocity_source, 0.0f, 1.0f, 0.97f, f1, 0x7FFFFFFF);
         effect_data = m + 0x20;
         if (m) {
             m[9] = func_001FA898_r(4.0f) + 0x40;
@@ -988,7 +988,7 @@ extern void func_L00_0025F4A8_alt(void *, void *, void *, float, float, int, int
                                   int) __asm__("FUN_L00_0025e450");
 
 void gadgebot_update(unsigned char *m) __asm__("FUN_L18_002fbb98");
-void gadgebot_update(unsigned char *m) {
+void gadgebot_update(unsigned char *moby) {
     enum {
         GADGEBOT_INITIALIZE = 0,
         GADGEBOT_LAUNCH_FLIGHT = 1,
@@ -998,143 +998,143 @@ void gadgebot_update(unsigned char *m) {
         GADGEBOT_DEATH_FALL = 5,
         GADGEBOT_EXPLODE = 6
     };
-    char tmp[16];
-    unsigned char *e = *(unsigned char **)(m + 0x78);
+    char position_scratch[16];
+    unsigned char *moby_vars = *(unsigned char **)(moby + 0x78);
     unsigned char *moby_transform_ptr;
-    FUN_L18_002fc100((struct Moby *)m);
-    switch (m[0x20]) {
+    FUN_L18_002fc100((struct Moby *)moby);
+    switch (moby[0x20]) {
     case GADGEBOT_INITIALIZE: {
-        unsigned short h;
-        m[0x20] = 8;
+        unsigned short moby_flags;
+        moby[0x20] = 8;
         if (random_integer_below(2))
-            *(unsigned short *)(m + 0x34) |= 0x8000;
+            *(unsigned short *)(moby + 0x34) |= 0x8000;
         else
-            *(unsigned short *)(m + 0x34) &= 0x7FFF;
-        *(unsigned short *)(m + 0x34) |= 0x100;
-        m[0x73] = D_L18_00162608;
-        *(void **)(e + 0x140) = &D_L18_001625F0;
-        *(float *)(e + 0x20) = 1.0f;
-        e[0x58] = 8;
-        *(short *)(e + 0x24) = 1;
-        e[0x5C] = 1;
-        *(float *)(e + 0x30) = 0.5f;
-        *(float *)(e + 0x1F8) = random_angle_radians();
-        m[0x30] = 0xFF;
-        h = *(unsigned short *)(m + 0x34);
-        *(short *)(m + 0x32) = 0xFF;
-        h |= 1;
-        m[0x31] = 0;
-        h &= 0xEFFF;
-        *(int *)(m + 0x94) = 0;
-        *(unsigned short *)(m + 0x34) = h;
+            *(unsigned short *)(moby + 0x34) &= 0x7FFF;
+        *(unsigned short *)(moby + 0x34) |= 0x100;
+        moby[0x73] = D_L18_00162608;
+        *(void **)(moby_vars + 0x140) = &D_L18_001625F0;
+        *(float *)(moby_vars + 0x20) = 1.0f;
+        moby_vars[0x58] = 8;
+        *(short *)(moby_vars + 0x24) = 1;
+        moby_vars[0x5C] = 1;
+        *(float *)(moby_vars + 0x30) = 0.5f;
+        *(float *)(moby_vars + 0x1F8) = random_angle_radians();
+        moby[0x30] = 0xFF;
+        moby_flags = *(unsigned short *)(moby + 0x34);
+        *(short *)(moby + 0x32) = 0xFF;
+        moby_flags |= 1;
+        moby[0x31] = 0;
+        moby_flags &= 0xEFFF;
+        *(int *)(moby + 0x94) = 0;
+        *(unsigned short *)(moby + 0x34) = moby_flags;
         break;
     }
     case GADGEBOT_LAUNCH_FLIGHT: {
         float a = 10.0f;
         float r;
-        moby_transform_ptr = m + 0x10;
-        *(float *)(e + 0x1D8) = *(float *)(e + 0x1D8) - frame_time_sq * a;
-        add_vector_xyz(moby_transform_ptr, moby_transform_ptr, e + 0x1D0);
-        qcopy(tmp, moby_transform_ptr);
-        ((float *)tmp)[2] += 1.0f;
-        r = probe_ground_height(tmp, 0, 0.5f);
-        if (*(float *)(m + 0x18) < r) {
-            *(float *)(m + 0x18) = r;
-            m[0x20] = 2;
-            if (m[0x53])
-                blend_moby_animation(m, 0, 0, scale_game_frames(10));
-        } else if (*(float *)(m + 0x18) < a) {
-            m[0x20] = 6;
+        moby_transform_ptr = moby + 0x10;
+        *(float *)(moby_vars + 0x1D8) = *(float *)(moby_vars + 0x1D8) - frame_time_sq * a;
+        add_vector_xyz(moby_transform_ptr, moby_transform_ptr, moby_vars + 0x1D0);
+        qcopy(position_scratch, moby_transform_ptr);
+        ((float *)position_scratch)[2] += 1.0f;
+        r = probe_ground_height(position_scratch, 0, 0.5f);
+        if (*(float *)(moby + 0x18) < r) {
+            *(float *)(moby + 0x18) = r;
+            moby[0x20] = 2;
+            if (moby[0x53])
+                blend_moby_animation(moby, 0, 0, scale_game_frames(10));
+        } else if (*(float *)(moby + 0x18) < a) {
+            moby[0x20] = 6;
         }
         break;
     }
     case 7:
-        if (FUN_L00_002dc9f0(m, e + 0x70)) {
-            m[0x20] = 2;
-            *(short *)(e + 0x138) = 0;
+        if (FUN_L00_002dc9f0(moby, moby_vars + 0x70)) {
+            moby[0x20] = 2;
+            *(short *)(moby_vars + 0x138) = 0;
         }
         break;
     case GADGEBOT_WAIT_TO_APPROACH:
-        if (*(int *)(e + 0x1C4) == 2) {
-            if (!(10.0f < f9d48_i(m + 0x10, e + 0x180)))
+        if (*(int *)(moby_vars + 0x1C4) == 2) {
+            if (!(10.0f < f9d48_i(moby + 0x10, moby_vars + 0x180)))
                 break;
         }
-        m[0x20] = 3;
-        if (m[0x53] != 1)
-            blend_moby_animation(m, 1, 0, scale_game_frames(10));
+        moby[0x20] = 3;
+        if (moby[0x53] != 1)
+            blend_moby_animation(moby, 1, 0, scale_game_frames(10));
         break;
     case GADGEBOT_APPROACH_TARGET: {
-        float f;
-        *(QVd058 *)tmp = *(QVd058 *)(e + 0x180);
-        f = FUN_L18_002fc4e0_c(m, tmp);
-        if (*(int *)(e + 0x1C4) == 2 && f < 5.0f) {
-            m[0x20] = 2;
-            if (m[0x53])
-                blend_moby_animation(m, 0, 0, scale_game_frames(10));
+        float target_distance;
+        *(QVd058 *)position_scratch = *(QVd058 *)(moby_vars + 0x180);
+        target_distance = FUN_L18_002fc4e0_c(moby, position_scratch);
+        if (*(int *)(moby_vars + 0x1C4) == 2 && target_distance < 5.0f) {
+            moby[0x20] = 2;
+            if (moby[0x53])
+                blend_moby_animation(moby, 0, 0, scale_game_frames(10));
             break;
         }
-        if (f < 1.5f) {
-            m[0x20] = 4;
-            if (m[0x53] != 2) {
+        if (target_distance < 1.5f) {
+            moby[0x20] = 4;
+            if (moby[0x53] != 2) {
                 int v = (int)D_L18_00162600;
-                blend_moby_animation(m, 2, v, scale_game_frames(5));
+                blend_moby_animation(moby, 2, v, scale_game_frames(5));
             }
         }
         break;
     }
     case GADGEBOT_FACE_TARGET: {
-        float r, k, b, d;
-        moby_transform_ptr = m + 0x48;
-        r = fast_arc_tan(*(float *)(e + 0x180) - *(float *)(m + 0x10),
-                         *(float *)(e + 0x184) - *(float *)(m + 0x14));
+        float r, k, b, max_turn_step;
+        moby_transform_ptr = moby + 0x48;
+        r = fast_arc_tan(*(float *)(moby_vars + 0x180) - *(float *)(moby + 0x10),
+                         *(float *)(moby_vars + 0x184) - *(float *)(moby + 0x14));
         k = 6.2831855f;
         b = frame_time_sq * k;
-        d = frame_time * k;
-        approach_angle((float *)moby_transform_ptr, (float *)(e + 0x1E8), r, b, b, d);
-        if (is_value_within_interpolated_window((char *)m, 14.0f))
-            FUN_L00_002599e8(m, 0.5f, 1.0f, 1.0f, 1, 1, 0, 1, 0);
-        if (m[0x70] & 2) {
-            if (*(int *)(e + 0x1C4) == 2) {
-                m[0x20] = 2;
-                if (m[0x53])
-                    blend_moby_animation(m, 0, 0, scale_game_frames(10));
+        max_turn_step = frame_time * k;
+        approach_angle((float *)moby_transform_ptr, (float *)(moby_vars + 0x1E8), r, b, b, max_turn_step);
+        if (is_value_within_interpolated_window((char *)moby, 14.0f))
+            FUN_L00_002599e8(moby, 0.5f, 1.0f, 1.0f, 1, 1, 0, 1, 0);
+        if (moby[0x70] & 2) {
+            if (*(int *)(moby_vars + 0x1C4) == 2) {
+                moby[0x20] = 2;
+                if (moby[0x53])
+                    blend_moby_animation(moby, 0, 0, scale_game_frames(10));
                 break;
             }
-            if (!(2.5f < f9d48_i(m + 0x10, e + 0x180)))
+            if (!(2.5f < f9d48_i(moby + 0x10, moby_vars + 0x180)))
                 break;
-            m[0x20] = 3;
-            if (m[0x53] != 1)
-                blend_moby_animation(m, 1, 0, scale_game_frames(10));
+            moby[0x20] = 3;
+            if (moby[0x53] != 1)
+                blend_moby_animation(moby, 1, 0, scale_game_frames(10));
             break;
         }
         break;
     }
     case GADGEBOT_DEATH_FALL:
-        if (!(mine_fall(m, e + 0x70) & 0x140))
+        if (!(mine_fall(moby, moby_vars + 0x70) & 0x140))
             break;
     case GADGEBOT_EXPLODE:
-        qcopy(tmp, m + 0x10);
-        ((float *)tmp)[2] += 0.5f;
-        func_L00_0025F4A8_alt(m, e + 0x40, tmp, 0.0f, 0.0f, 5, 2, 4, 1.0f, 0.5f, 9.0f, 0.5f, 4,
+        qcopy(position_scratch, moby + 0x10);
+        ((float *)position_scratch)[2] += 0.5f;
+        func_L00_0025F4A8_alt(moby, moby_vars + 0x40, position_scratch, 0.0f, 0.0f, 5, 2, 4, 1.0f, 0.5f, 9.0f, 0.5f, 4,
                               0.0f, 0, 1, -1, 0);
-        m[0x20] = 8;
-        if (m[0x53])
-            blend_moby_animation(m, 0, 0, scale_game_frames(10));
-        *(int *)(m + 0x94) = 0;
-        *(unsigned short *)(m + 0x34) = (*(unsigned short *)(m + 0x34) | 0x41) & 0xEFFF;
+        moby[0x20] = 8;
+        if (moby[0x53])
+            blend_moby_animation(moby, 0, 0, scale_game_frames(10));
+        *(int *)(moby + 0x94) = 0;
+        *(unsigned short *)(moby + 0x34) = (*(unsigned short *)(moby + 0x34) | 0x41) & 0xEFFF;
         break;
     }
-    moby_transform_ptr = m + 0xC0;
-    vu_euler_rotation_basis(moby_transform_ptr, m + 0x40);
-    if (*(float *)(e + 0x1F4) != 0.0f) {
+    moby_transform_ptr = moby + 0xC0;
+    vu_euler_rotation_basis(moby_transform_ptr, moby + 0x40);
+    if (*(float *)(moby_vars + 0x1F4) != 0.0f) {
         float g;
-        approach_value((float *)(e + 0x1F4), 0.0f, frame_time * 4.0f);
+        approach_value((float *)(moby_vars + 0x1F4), 0.0f, frame_time * 4.0f);
         g = 1.0f;
-        scale_vector_xyz(m + 0xE0, m + 0xE0, *(float *)(e + 0x1F4) + g);
-        g = g - *(float *)(e + 0x1F4);
+        scale_vector_xyz(moby + 0xE0, moby + 0xE0, *(float *)(moby_vars + 0x1F4) + g);
+        g = g - *(float *)(moby_vars + 0x1F4);
         scale_vector_xyz(moby_transform_ptr, moby_transform_ptr, g);
-        scale_vector_xyz(m + 0xD0, m + 0xD0, g);
-        enqueue_callback_list_1(FUN_L18_002fc860, m);
+        scale_vector_xyz(moby + 0xD0, moby + 0xD0, g);
+        enqueue_callback_list_1(FUN_L18_002fc860, moby);
     }
 }
 #include "rnc/gameplay/hero.h"
@@ -1208,7 +1208,7 @@ void FUN_L18_002fc100(struct Moby *moby) {
     float angle;
     float speed;
     char *coll;
-    int a;                      /* the reaction kind, later the path */
+    int reaction_value_or_path_address;                      /* the reaction kind, later the path */
     int b;                      /* the reaction flags, later the path's slot in the table */
 
     if (moby->state == 0 || moby->state == 8) {
@@ -1256,8 +1256,8 @@ void FUN_L18_002fc100(struct Moby *moby) {
                 sentry_vars->unk84 = D_L18_00162620 * frame_time_sq;
                 sentry_vars->unk88 = D_L18_00162624 * frame_time;
                 sentry_vars->unk8C = D_L18_00162628 * frame_time;
-                a = 0x29;
-                sentry_vars->unk94 = a;
+                reaction_value_or_path_address = 0x29;
+                sentry_vars->unk94 = reaction_value_or_path_address;
                 sentry_vars->unkAD = 0;
                 sentry_vars->unkBC = frame_time + frame_time;
                 moby->flags &= ~0x1000;
@@ -1276,8 +1276,8 @@ void FUN_L18_002fc100(struct Moby *moby) {
     moby->hit_slot = 0xFF;
     anim_update_c100(moby, sentry_vars->anim);
     b = (int)&D_L18_001B0EB0[sentry_vars->path];
-    a = *(int *)b;
-    FUN_L00_0025ff38_c100(512.0f, moby, &sentry_vars->target, 0, 0, (int *)(a + 0x10), *(int *)a);
+    reaction_value_or_path_address = *(int *)b;
+    FUN_L00_0025ff38_c100(512.0f, moby, &sentry_vars->target, 0, 0, (int *)(reaction_value_or_path_address + 0x10), *(int *)reaction_value_or_path_address);
     if (sentry_vars->target_mode == 2) {
         if (hero.state.control_mode == 0xF) {
             int *list = (int *)hero.unk560;
@@ -1310,7 +1310,7 @@ float FUN_L18_002fc4e0(char *self, float *src) {
     float v[4];
     float b[4];
     float z = 0.0f;
-    float h = 0.5f;
+    float movement_clearance = 0.5f;
     char *moby_vars = *(char **)(self + 0x78);
     float dist;
     *(u128 *)&target_position = *(u128 *)src;
@@ -1328,8 +1328,8 @@ float FUN_L18_002fc4e0(char *self, float *src) {
     v[0] = fast_cos(*(float *)(self + 0x48)) * *(float *)(moby_vars + 0x1F0);
     v[1] = fast_sin(*(float *)(self + 0x48)) * *(float *)(moby_vars + 0x1F0);
     v[2] = -(frame_time + frame_time);
-    FUN_L00_00258830((int)self, (int)v, h, h, z, 0);
-    FUN_L00_00261d78(h, *(void **)(moby_vars + 0x1E0), self + 0x10, self + 0x10);
+    FUN_L00_00258830((int)self, (int)v, movement_clearance, movement_clearance, z, 0);
+    FUN_L00_00261d78(movement_clearance, *(void **)(moby_vars + 0x1E0), self + 0x10, self + 0x10);
     return dist;
 }
 #include "qcopy.h"
@@ -1437,16 +1437,16 @@ void FUN_L18_002fc860(struct Moby *m) {
     Pk_c860 pk;
     float mat[4][4];
     float w;
-    float h;
+    float vertical_axis_scale;
     int c;
     int i;
     float *quad_vertex;
-    h = *(float *)(d + 0x1F4) + 1.0f + D_L18_0016264C;
+    vertical_axis_scale = *(float *)(d + 0x1F4) + 1.0f + D_L18_0016264C;
     w = 1.0f - *(float *)(d + 0x1F4) + D_L18_00162650;
     qcopy(mat[3], &m->pos);
     mat[3][2] -= D_L18_00162648;
     clear_g(mat[2]);
-    mat[2][2] = h;
+    mat[2][2] = vertical_axis_scale;
     sub_g(mat[0], D_L18_001677C0_g, &m->pos);
     cross_g(mat[1], mat[0], mat[2]);
     cross_g(mat[0], mat[1], mat[2]);

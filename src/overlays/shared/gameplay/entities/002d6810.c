@@ -157,9 +157,11 @@ void electric_water_update(struct Moby *moby) __asm__("FUN_L15_002d6810");
 void electric_water_update(struct Moby *moby) {
     enum {
         ELECTRIC_WATER_INITIALIZE = 0,
+        ELECTRIC_WATER_ON = 1,
+        ELECTRIC_WATER_OFF = 2,
         ELECTRIC_WATER_SWITCH_DISABLED = 3
     };
-    float tmp[4];
+    float unused_vector_argument[4];
     HitRecord hit;
     ElectricWaterVars *vars = (ElectricWaterVars *)moby->pvars;
     int armed = 1;
@@ -221,7 +223,7 @@ void electric_water_update(struct Moby *moby) {
         vars->voice1 = -1;
         break;
 
-    case 1:
+    case ELECTRIC_WATER_ON:
         inside = 0;
         wet = FUN_L15_002d6770();
         if (fast_dec_timer_s16(&vars->on_timer) != 0) {
@@ -344,7 +346,7 @@ void electric_water_update(struct Moby *moby) {
             theta = random_angle_radians();
             phi = random_angle_radians();
             build_spherical_offset(&vars->bolt_aim, radius, theta, phi);
-            FUN_L00_001ff290(tmp, &vars->bolt_aim, &hero.motion.unkD0);
+            FUN_L00_001ff290(unused_vector_argument, &vars->bolt_aim, &hero.motion.unkD0);
             vars->bolt_end = vars->bolt_aim;
             vars->bolt_start = hero.motion.unkD0.q;
             FUN_L15_002d79e8((char *)moby);
@@ -374,7 +376,7 @@ void electric_water_update(struct Moby *moby) {
             }
         }
         /* fall through: the hum and the switches, as in state 2 */
-    case 2:
+    case ELECTRIC_WATER_OFF:
         nearest = 0;
         for (near_lamp = 0; near_lamp < 3; near_lamp++) {
             if (vars->lamps[near_lamp] == -1) {

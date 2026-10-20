@@ -90,7 +90,7 @@ void electric_gate_update(char *gate_moby) {
     char *pos;
     char *voice_position_base;
     char *voice_owner;
-    float d;
+    float gate_reference_distance;
     int idx;
     switch (state) {
     case ELECTRIC_GATE_INITIALIZE:
@@ -115,8 +115,8 @@ void electric_gate_update(char *gate_moby) {
                     if (*(short *)(voice_owner + 0xA6) == 0x346) {
                         if (voice_owner != gate_moby) {
                             if (*(unsigned char *)(voice_owner + 0x20) == state) {
-                                d = FUN_001f9b48(pos, tab);
-                                if (!(d < FUN_001f9b48(voice_owner + 0x10, tab)))
+                                gate_reference_distance = FUN_001f9b48(pos, tab);
+                                if (!(gate_reference_distance < FUN_001f9b48(voice_owner + 0x10, tab)))
                                     goto after;
                             }
                             voice_position_base = base + 0x90;
@@ -537,7 +537,7 @@ void drain_cover_update(DrainCoverMoby *moby) {
     char *entry;
     DrainCoverHero *hero;
     DrainCoverLid *lid;
-    float t;
+    float minimum_rise_height;
     float ang;
 
     qcopy(old_position, moby->pos);
@@ -566,9 +566,9 @@ void drain_cover_update(DrainCoverMoby *moby) {
         data->f9C = random_angle_radians_30e7f8();
         data->fA0 = random_float_between_30e7f8_init(70.0f, 120.0f) * 0.017453292f * frame_time;
         data->fA4 = random_float_between_30e7f8_init(70.0f, 120.0f) * 0.017453292f * frame_time;
-        t = data->f84 + 1.0f;
-        if (data->f80 <= t) {
-            data->f80 = t;
+        minimum_rise_height = data->f84 + 1.0f;
+        if (data->f80 <= minimum_rise_height) {
+            data->f80 = minimum_rise_height;
         }
         break;
     case DRAIN_COVER_WAIT_TO_RISE:
@@ -1023,7 +1023,7 @@ void FUN_L05_003150f0(struct Moby *emitter_moby) {
     struct EmitterVars *emitter_vars = (struct EmitterVars *)emitter_moby->pvars;
     float floor;
     float lim;
-    float a, b, c;
+    float particle_speed, b, third_particle_speed_sample;
     float scale;
     int kind;
     int big;
@@ -1082,16 +1082,16 @@ void FUN_L05_003150f0(struct Moby *emitter_moby) {
             qcopy(v, &emitter_moby->pos);
             fast_vec_normalize(u, &emitter_moby->rot_row1, random_float_between(-D_L05_00161EB4, D_L05_00161EB4));
             add_vector_xyz(v, v, u);
-            a = random_float_between(lim, D_L05_00161EA8);
+            particle_speed = random_float_between(lim, D_L05_00161EA8);
             b = random_float_between(lim, D_L05_00161EA8);
-            c = random_float_between(lim, D_L05_00161EA8);
-            if (a < b) {
-                a = b;
+            third_particle_speed_sample = random_float_between(lim, D_L05_00161EA8);
+            if (particle_speed < b) {
+                particle_speed = b;
             }
-            if (a < c) {
-                a = c;
+            if (particle_speed < third_particle_speed_sample) {
+                particle_speed = third_particle_speed_sample;
             }
-            fast_vec_normalize(w, &emitter_moby->rot_row0, a * frame_time);
+            fast_vec_normalize(w, &emitter_moby->rot_row0, particle_speed * frame_time);
             if (big) {
                 scale = D_L05_00161EA0;
                 kind = D_L05_00161E98;
@@ -2428,7 +2428,7 @@ void FUN_L05_003193a8(char *moby) {
     };
     char *taxi_data = *(char **)(moby + 0x78);
     char *selected_path;
-    float inv, a, b, r;
+    float inv, frame_scaled_travel_step, b, r;
     switch (*(short *)(taxi_data + 0xB4)) {
     case TAXI_PAIRED_ROUTE_FIRST_STOP:
         *(char **)(taxi_data + 0xAC) = D_L05_001B0930[*(int *)(taxi_data + 0x94)];
@@ -2458,12 +2458,12 @@ void FUN_L05_003193a8(char *moby) {
     }
     selected_path = *(char **)(taxi_data + 0xAC);
     r = FUN_001f9b48(selected_path + 0x10, selected_path + 0x20);
-    a = frame_time * 20.0f;
+    frame_scaled_travel_step = frame_time * 20.0f;
     b = frame_time_sq * 5.0f;
     inv = 1.0f / (r * (float)**(int **)(taxi_data + 0xAC));
     *(int *)(taxi_data + 0xC4) = 0;
     *(int *)(taxi_data + 0xC0) = 0;
-    *(float *)(taxi_data + 0xD4) = a * inv;
+    *(float *)(taxi_data + 0xD4) = frame_scaled_travel_step * inv;
     *(float *)(taxi_data + 0xD8) = b * inv;
 }
 /* Ported from rac1-decomp (src/overlays/l05_rilgar/vendor_0030EB68.c: func_L05_0031B138), where it is exact; names translated to the US level program. */

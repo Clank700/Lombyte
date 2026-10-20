@@ -50,7 +50,7 @@ void FUN_L02_002ec3f0(char *moby) {
     char *joint_position_out;
     int v;
     int r, g, b, c;
-    int *q;
+    int *cached_global_value_ptr;
 
     if (*(unsigned char *)(moby + 0x21) == 0xFF) {
         return;
@@ -70,9 +70,9 @@ void FUN_L02_002ec3f0(char *moby) {
     c |= b;
     *(int *)(data + 0xB0) = c;
     if (v != 0) {
-        q = *(int **)(data + 0xB4);
-        if (v != *q) {
-            *q = v;
+        cached_global_value_ptr = *(int **)(data + 0xB4);
+        if (v != *cached_global_value_ptr) {
+            *cached_global_value_ptr = v;
             enqueue_callback_list_1(FUN_L02_002ec308, moby);
         }
     }
@@ -131,21 +131,21 @@ void background_ship_1_update(char *moby) {
     int flag = 0;
     float tv[4];
     float f70;
-    float p2;
+    float path_travel_distance;
     float x;
-    int r1;
-    int r2;
-    int r3;
+    int first_effect_frame_count;
+    int second_effect_frame_count;
+    int third_effect_frame_count;
     moby_data = *(char **)(moby + 0x78);
     path = D_L02_001B0AB0[*(int *)(moby_data + 0x60)];
     r = (int)find_moby_hit(moby, 0x10000, 0);
     switch (*(unsigned char *)(moby + 0x20)) {
     case BACKGROUND_SHIP_1_INITIALIZE: {
-        int m1;
+        int invalid_index;
         *(unsigned char *)(moby + 0x30) = 0xFF;
         *(short *)(moby + 0x32) = 0xFF;
-        m1 = -1;
-        if (*(int *)(moby_data + 0x60) == m1) {
+        invalid_index = -1;
+        if (*(int *)(moby_data + 0x60) == invalid_index) {
             stub_printf(D_L02_001FAD60, *(short *)(moby + 0xB2));
             delete_moby(moby);
             return;
@@ -161,7 +161,7 @@ void background_ship_1_update(char *moby) {
         *(unsigned char *)(moby_data + 0x2B) = 1;
         qcopy(moby + 0x10, D_L02_001B0AB0[*(int *)(moby_data + 0x60)] + 0x10);
         *(float *)(moby_data + 0x68) = random_angle_radians();
-        *(int *)(moby_data + 0x6C) = m1;
+        *(int *)(moby_data + 0x6C) = invalid_index;
         *(unsigned char *)(moby + 0x20) = 1;
         *(unsigned short *)(moby + 0x34) |= 0x10;
         *(float *)(moby_data + 0x64) = *(float *)(moby_data + 0x74) * (float)*(int *)path;
@@ -172,8 +172,8 @@ void background_ship_1_update(char *moby) {
         if (voice_is_playing(moby, *(int *)(moby_data + 0x6C)) == 0) {
             *(int *)(moby_data + 0x6C) = func_0022ED80_r(1, 4, (int)moby);
         }
-        p2 = *(float *)&D_L02_00161F64 * frame_time;
-        *(float *)(moby_data + 0x64) = *(float *)(moby_data + 0x64) + p2 / *(float *)(moby_data + 0x70);
+        path_travel_distance = *(float *)&D_L02_00161F64 * frame_time;
+        *(float *)(moby_data + 0x64) = *(float *)(moby_data + 0x64) + path_travel_distance / *(float *)(moby_data + 0x70);
         if ((float)*(int *)path < *(float *)(moby_data + 0x64)) {
             *(float *)(moby_data + 0x64) = *(float *)(moby_data + 0x64) - (float)*(int *)path;
         }
@@ -227,12 +227,12 @@ void background_ship_1_update(char *moby) {
         func_0022ED80_r(0, 0, (int)moby);
         scale_vector_xyz(tv, moby + 0xC0, D_L02_00161F7C * D_0015ED60);
         tv[2] = tv[2] + D_L02_00161F80 * D_0015ED60;
-        r1 = scale_game_frames(90);
-        FUN_L00_00263fd8(moby, 0x5F2, (float *)(moby + 0x10), (void *)(moby + 0x40), r1, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
-        r2 = scale_game_frames(90);
-        FUN_L00_00263fd8(moby, 0x5F5, (float *)(moby + 0x10), (void *)(moby + 0x40), r2, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
-        r3 = scale_game_frames(90);
-        FUN_L00_00263fd8(moby, 0x790, (float *)(moby + 0x10), (void *)(moby + 0x40), r3, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
+        first_effect_frame_count = scale_game_frames(90);
+        FUN_L00_00263fd8(moby, 0x5F2, (float *)(moby + 0x10), (void *)(moby + 0x40), first_effect_frame_count, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
+        second_effect_frame_count = scale_game_frames(90);
+        FUN_L00_00263fd8(moby, 0x5F5, (float *)(moby + 0x10), (void *)(moby + 0x40), second_effect_frame_count, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
+        third_effect_frame_count = scale_game_frames(90);
+        FUN_L00_00263fd8(moby, 0x790, (float *)(moby + 0x10), (void *)(moby + 0x40), third_effect_frame_count, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
         delete_moby(moby);
         break;
     default:
@@ -327,7 +327,7 @@ void FUN_L02_002ecd50(char *moby) {
     char *joint_position_out;
     int v;
     int r, g, b, packed_color;
-    int *q;
+    int *cached_global_value_ptr;
 
     if (*(unsigned char *)(moby + 0x21) == 0xFF) {
         return;
@@ -347,9 +347,9 @@ void FUN_L02_002ecd50(char *moby) {
     packed_color |= b;
     *(int *)(data + 0xE0) = packed_color;
     if (v != 0) {
-        q = *(int **)(data + 0xE4);
-        if (v != *q) {
-            *q = v;
+        cached_global_value_ptr = *(int **)(data + 0xE4);
+        if (v != *cached_global_value_ptr) {
+            *cached_global_value_ptr = v;
             enqueue_callback_list_1(FUN_L02_002ecc68, moby);
         }
     }
@@ -388,22 +388,22 @@ void background_ship_2_update(char *moby) {
     float f70;
     float path_travel_distance;
     float x;
-    int r1;
-    int r2;
-    int r3;
+    int first_effect_frame_count;
+    int second_effect_frame_count;
+    int third_effect_frame_count;
     moby_data = *(char **)(moby + 0x78);
     path = D_L02_001B0AB0[*(int *)(moby_data + 0x60)];
     r = (int)find_moby_hit(moby, 0x10000, 0);
     switch (*(unsigned char *)(moby + 0x20)) {
     case BACKGROUND_SHIP_2_INITIALIZE: {
-        int m1;
+        int invalid_index;
         *(unsigned char *)(moby + 0x30) = 0xFF;
         *(short *)(moby + 0x32) = 0xFF;
         if (current_level_index == 10) {
             *(float *)(moby + 0x2C) = *(float *)(moby + 0x2C) * 0.5f;
         }
-        m1 = -1;
-        if (*(int *)(moby_data + 0x60) == m1) {
+        invalid_index = -1;
+        if (*(int *)(moby_data + 0x60) == invalid_index) {
             stub_printf(D_L02_001FADB0, *(short *)(moby + 0xB2));
             delete_moby(moby);
             return;
@@ -419,7 +419,7 @@ void background_ship_2_update(char *moby) {
         *(unsigned char *)(moby_data + 0x2B) = 1;
         qcopy(moby + 0x10, D_L02_001B0AB0[*(int *)(moby_data + 0x60)] + 0x10);
         *(float *)(moby_data + 0x68) = random_angle_radians();
-        *(int *)(moby_data + 0x6C) = m1;
+        *(int *)(moby_data + 0x6C) = invalid_index;
         *(unsigned char *)(moby + 0x20) = 1;
         *(unsigned short *)(moby + 0x34) |= 0x10;
         *(float *)(moby_data + 0x64) = *(float *)(moby_data + 0x74) * (float)*(int *)path;
@@ -496,12 +496,12 @@ void background_ship_2_update(char *moby) {
         func_0022ED80_r(0, 0, (int)moby);
         scale_vector_xyz(tv, moby + 0xC0, D_L02_00161FD0 * D_0015ED60_f);
         tv[2] = tv[2] + D_L02_00161FD4 * D_0015ED60_f;
-        r1 = scale_game_frames(90);
-        FUN_L00_00263fd8(moby, 0x5F6, (float *)(moby + 0x10), (void *)(moby + 0x40), r1, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
-        r2 = scale_game_frames(90);
-        FUN_L00_00263fd8(moby, 0x5F8, (float *)(moby + 0x10), (void *)(moby + 0x40), r2, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
-        r3 = scale_game_frames(90);
-        FUN_L00_00263fd8(moby, 0x5F9, (float *)(moby + 0x10), (void *)(moby + 0x40), r3, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
+        first_effect_frame_count = scale_game_frames(90);
+        FUN_L00_00263fd8(moby, 0x5F6, (float *)(moby + 0x10), (void *)(moby + 0x40), first_effect_frame_count, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
+        second_effect_frame_count = scale_game_frames(90);
+        FUN_L00_00263fd8(moby, 0x5F8, (float *)(moby + 0x10), (void *)(moby + 0x40), second_effect_frame_count, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
+        third_effect_frame_count = scale_game_frames(90);
+        FUN_L00_00263fd8(moby, 0x5F9, (float *)(moby + 0x10), (void *)(moby + 0x40), third_effect_frame_count, 0, frame_time_sq * 12.0f, tv, &D_L02_0015F580, &D_L02_0015F580);
         delete_moby(moby);
         return;
     default:
@@ -786,18 +786,18 @@ void FUN_L02_002fa7c8(char *candidate_moby) {
     float v[4];
     char *g = D_L02_00167280_c;
     char *p = *(char **)(g + 0x180);
-    char *h;
+    char *candidate_selection_state;
     float vector_distance;
     float accumulated_amount;
     float ang;
     if (*(short *)(p + 0x86) == 0) {
         if (!(0.05f < absolute_float(*(float *)(D_0013CA44)))) {
-            h = g + 0x380;
+            candidate_selection_state = g + 0x380;
             subtract_vector_xyz(v, candidate_moby + 0x10, &hero.motion.pos);
             vector_distance = vector_length_xyz(v);
             if (vector_distance < 22.0f) {
                 if (0.0f < vector_distance) {
-                    if (vector_distance < *(float *)(h + 8)) {
+                    if (vector_distance < *(float *)(candidate_selection_state + 8)) {
                         if (0.0f < v[2]) {
                             ang = 1.5707964f - fast_arc_sin(dot_vectors_xyz(p, v) / vector_distance);
                             if (ang < 1.1170107f) {
@@ -808,13 +808,13 @@ void FUN_L02_002fa7c8(char *candidate_moby) {
                                 }
                                 ang = 1.5707964f - fast_arc_sin(dot_vectors_xyz(p, v) / vector_distance);
                                 if (ang < 0.62831855f) {
-                                    accumulated_amount = *(float *)(h + 0xC) + *(float *)&D_L02_0016238C;
+                                    accumulated_amount = *(float *)(candidate_selection_state + 0xC) + *(float *)&D_L02_0016238C;
                                     *(char **)(g + 0x380) = p;
-                                    *(float *)(h + 8) = vector_distance;
-                                    *(char **)(h + 4) = candidate_moby;
-                                    *(float *)(h + 0xC) = accumulated_amount;
+                                    *(float *)(candidate_selection_state + 8) = vector_distance;
+                                    *(char **)(candidate_selection_state + 4) = candidate_moby;
+                                    *(float *)(candidate_selection_state + 0xC) = accumulated_amount;
                                     if (1.0f < accumulated_amount) {
-                                        *(float *)(h + 0xC) = 1.0f;
+                                        *(float *)(candidate_selection_state + 0xC) = 1.0f;
                                     }
                                 }
                             }
@@ -1001,16 +1001,16 @@ void FUN_L02_002fb9c8(char *moby) {
             return;
         }
         {
-            char *t;
+            char *first_group_target;
             char *u;
             int b;
             {
                 int e = *group;
                 b = D_L02_0015FFD8;
-                t = (char *)(b + ((e & 0x7fff) << 8));
+                first_group_target = (char *)(b + ((e & 0x7fff) << 8));
                 id = e;
             }
-            if (*(signed char *)(t + 0x20) < 0) {
+            if (*(signed char *)(first_group_target + 0x20) < 0) {
                 do {
                     if ((id << 16) < 0) {
                         *(short *)(data + 0x20) = -1;
@@ -1027,7 +1027,7 @@ void FUN_L02_002fb9c8(char *moby) {
                 } while (*(signed char *)(u + 0x20) < 0);
                 target = u;
             } else {
-                target = t;
+                target = first_group_target;
             }
         }
     } else {

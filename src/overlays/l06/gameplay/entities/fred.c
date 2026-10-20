@@ -6810,7 +6810,7 @@ void shuttle_update(struct Moby *moby) {
         SHUTTLE_ROUTE_INITIAL_TO_THIRD_STOP = 3,
         SHUTTLE_ROUTE_THIRD_TO_INITIAL_STOP = 4
     };
-    Data_302578 *d = *(Data_302578 **)&moby->pvars;
+    Data_302578 *shuttle_vars = *(Data_302578 **)&moby->pvars;
     float old_pos[4];
     float old_rot[4];
     float delta[4];
@@ -6832,7 +6832,7 @@ void shuttle_update(struct Moby *moby) {
     switch (moby->state) {
     case INITIALIZE_SHUTTLE:
         D_L06_0015FDF8 = 0;
-        if (*(unsigned char *)(d->fF8 + (current_level_index << 4) + (int)visited52) == 0xFF) {
+        if (*(unsigned char *)(shuttle_vars->fF8 + (current_level_index << 4) + (int)visited52) == 0xFF) {
             FUN_L06_00304028((char *)moby);
         } else {
             D_0013D3AC_302578[5] = 0;
@@ -6844,8 +6844,8 @@ void shuttle_update(struct Moby *moby) {
         if (moby->prev_seq != 2) {
             blend_moby_animation_302578(moby, 2, 0, 0);
         }
-        d->sel = 0;
-        d->side = 0;
+        shuttle_vars->sel = 0;
+        shuttle_vars->side = 0;
         break;
     case WAIT_FOR_SHUTTLE_ROUTE_REQUEST:
         busy = 0;
@@ -6858,87 +6858,87 @@ void shuttle_update(struct Moby *moby) {
             || D_L06_00162100 != 0) {
             FUN_L06_00302fd8((char *)moby);
             now = D_L06_00162100;
-            if (now != 0 || ((*(int *)(D_0013A4E0_302578 + 0x2604) & 0x10) && D_L06_0015F594 == 10 && d->f9C >= 0)) {
-                d->go = 1;
+            if (now != 0 || ((*(int *)(D_0013A4E0_302578 + 0x2604) & 0x10) && D_L06_0015F594 == 10 && shuttle_vars->f9C >= 0)) {
+                shuttle_vars->go = 1;
                 D_L06_0015FDF8 = 0;
                 if (now != 0) {
-                    d->f9C = 2;
+                    shuttle_vars->f9C = 2;
                     D_L06_00162100 = 0;
                 }
-                switch (d->f9C) {
+                switch (shuttle_vars->f9C) {
                 case SHUTTLE_ROUTE_INITIAL_TO_SECOND_STOP:
-                    d->sel = 1;
-                    d->fC4 = D_L06_001620F8;
-                    d->fC8 = D_L06_001620F4;
-                    d->side = 0;
+                    shuttle_vars->sel = 1;
+                    shuttle_vars->fC4 = D_L06_001620F8;
+                    shuttle_vars->fC8 = D_L06_001620F4;
+                    shuttle_vars->side = 0;
                     play_sound_302578(4, 8);
                     break;
                 case SHUTTLE_ROUTE_SECOND_TO_INITIAL_STOP:
-                    d->side = 1;
-                    d->fC4 = D_L06_001620F4;
-                    d->fC8 = D_L06_001620F8;
-                    d->sel = 0;
+                    shuttle_vars->side = 1;
+                    shuttle_vars->fC4 = D_L06_001620F4;
+                    shuttle_vars->fC8 = D_L06_001620F8;
+                    shuttle_vars->sel = 0;
                     play_sound_302578(0, 10);
                     break;
                 case SHUTTLE_ROUTE_FORCED_TO_INITIAL_STOP:
-                    d->side = 2;
-                    d->fC4 = D_L06_001620F4;
-                    d->fC8 = D_L06_001620F8;
-                    d->sel = 0;
+                    shuttle_vars->side = 2;
+                    shuttle_vars->fC4 = D_L06_001620F4;
+                    shuttle_vars->fC8 = D_L06_001620F8;
+                    shuttle_vars->sel = 0;
                     break;
                 case SHUTTLE_ROUTE_INITIAL_TO_THIRD_STOP:
-                    d->side = 3;
-                    d->sel = 2;
-                    d->fC4 = D_L06_001620F8;
-                    d->fC8 = D_L06_001620F8;
+                    shuttle_vars->side = 3;
+                    shuttle_vars->sel = 2;
+                    shuttle_vars->fC4 = D_L06_001620F8;
+                    shuttle_vars->fC8 = D_L06_001620F8;
                     break;
                 case SHUTTLE_ROUTE_THIRD_TO_INITIAL_STOP:
-                    d->side = 4;
-                    d->sel = 0;
-                    d->fC4 = D_L06_001620F8;
-                    d->fC8 = D_L06_001620F8;
+                    shuttle_vars->side = 4;
+                    shuttle_vars->sel = 0;
+                    shuttle_vars->fC4 = D_L06_001620F8;
+                    shuttle_vars->fC8 = D_L06_001620F8;
                     break;
                 }
             }
-        } else if (d->go == 0) {
-            if (d->sel == 0 && is_point_inside_clip_volume((char *)&hero.motion.pos, d->zone[0]) != 0) {
+        } else if (shuttle_vars->go == 0) {
+            if (shuttle_vars->sel == 0 && is_point_inside_clip_volume((char *)&hero.motion.pos, shuttle_vars->zone[0]) != 0) {
                 int base = (int)D_L06_001600EC_302578;
-                int ofs = d->cam[2] << 7;
+                int ofs = shuttle_vars->cam[2] << 7;
                 qcopy(((float *)&moby->pos), (char *)(ofs + base + 0x30));
                 qcopy(((float *)&moby->rot), (char *)(ofs + base + 0x70));
-                d->sel = 2;
+                shuttle_vars->sel = 2;
                 D_L06_0015FDF8 = 0;
-            } else if (d->sel == 2 && is_point_inside_clip_volume((char *)&hero.motion.pos, d->zone[1]) != 0) {
-                int ofs = d->cam[0] << 7;
+            } else if (shuttle_vars->sel == 2 && is_point_inside_clip_volume((char *)&hero.motion.pos, shuttle_vars->zone[1]) != 0) {
+                int ofs = shuttle_vars->cam[0] << 7;
                 int base = (int)D_L06_001600EC_302578;
                 qcopy(((float *)&moby->pos), (char *)(ofs + base + 0x30));
                 qcopy(((float *)&moby->rot), (char *)(ofs + base + 0x70));
-                d->sel = 0;
+                shuttle_vars->sel = 0;
                 D_L06_0015FDF8 = 0;
-            } else if (d->sel != 1 && is_point_inside_clip_volume((char *)&hero.motion.pos, d->zone[2]) != 0) {
+            } else if (shuttle_vars->sel != 1 && is_point_inside_clip_volume((char *)&hero.motion.pos, shuttle_vars->zone[2]) != 0) {
                 int base = (int)D_L06_001600EC_302578;
-                int ofs = d->cam[1] << 7;
+                int ofs = shuttle_vars->cam[1] << 7;
                 qcopy(((float *)&moby->pos), (char *)(ofs + base + 0x30));
                 qcopy(((float *)&moby->rot), (char *)(ofs + base + 0x70));
-                d->sel = 1;
+                shuttle_vars->sel = 1;
                 D_L06_0015FDF8 = 1;
                 if (((Flags_302578 *)(D_0013D388_302578))->f21 == 0) {
                     ((Flags_302578 *)(D_0013D388_302578))->f21 = 1;
                 }
             }
         }
-        if (d->go != 0) {
-            d->go = 0;
+        if (shuttle_vars->go != 0) {
+            shuttle_vars->go = 0;
             moby->state = 3;
             FUN_L00_002644e0_302578(10);
             if (moby->prev_seq != 0) {
                 blend_moby_animation_302578(moby, 0, 0, 0);
             }
             fade_to_black_302578(scale_game_frames_302578(10));
-            d->fB0 = 0;
-            idx = d->side;
-            qcopy(a, ((char **)D_L06_001B0C30_302578)[d->a[idx]] + 0x10);
-            qcopy(b, ((char **)D_L06_001B0C30_302578)[d->b[idx]] + 0x10);
+            shuttle_vars->fB0 = 0;
+            idx = shuttle_vars->side;
+            qcopy(a, ((char **)D_L06_001B0C30_302578)[shuttle_vars->a[idx]] + 0x10);
+            qcopy(b, ((char **)D_L06_001B0C30_302578)[shuttle_vars->b[idx]] + 0x10);
             clear_vector_302578(rot);
             rot[2] = angle_atan2_302578(b[0] - a[0], b[1] - a[1]);
             rot[1] = -angle_atan2_302578(vector_distance_302578(a, b), b[2] - a[2]);
@@ -6946,23 +6946,23 @@ void shuttle_update(struct Moby *moby) {
             FUN_L02_002f8aa0_302578(0.001f, 1.0f, 1.0f, 0.001f, 1.0f, 1.0f);
             FUN_L00_002ea9d8_302578(a);
             FUN_L00_002eaa30_302578(rot);
-            FUN_L00_00216f90_302578(D_L06_001600EC_302578 + (d->cut << 7) + 0x30, D_L06_001600EC_302578 + (d->cut << 7) + 0x70, 0x72, 0);
+            FUN_L00_00216f90_302578(D_L06_001600EC_302578 + (shuttle_vars->cut << 7) + 0x30, D_L06_001600EC_302578 + (shuttle_vars->cut << 7) + 0x70, 0x72, 0);
             allocate_voice_302578(2, 0, moby);
         }
         break;
     case UPDATE_SHUTTLE_PATH_RIDE:
-        if (FUN_L06_00303160((char *)moby, d->side) != 0) {
+        if (FUN_L06_00303160((char *)moby, shuttle_vars->side) != 0) {
             int ofs;
             int base;
             moby->state = 4;
-            d->fF4 = 0;
-            ofs = d->cam[d->sel] << 7;
+            shuttle_vars->fF4 = 0;
+            ofs = shuttle_vars->cam[shuttle_vars->sel] << 7;
             base = (int)D_L06_001600EC_302578;
             qcopy(((float *)&moby->pos), (char *)(ofs + base + 0x30));
             qcopy(((float *)&moby->rot), (char *)(ofs + base + 0x70));
             vu_euler_rotation_basis_302578(((float *)&moby->rot_row0), ((float *)&moby->rot));
             moby->scale = moby->pclass->scale;
-            if (d->sel == 1) {
+            if (shuttle_vars->sel == 1) {
                 D_L06_0015FDF8 = 1;
                 if (((Flags_302578 *)(D_0013D388_302578))->f21 == 0) {
                     ((Flags_302578 *)(D_0013D388_302578))->f21 = 1;
@@ -6977,10 +6977,10 @@ void shuttle_update(struct Moby *moby) {
             clear_vector_302578(rot);
             rot[2] = fast_add_rotations_302578(moby->rot.z, 3.1415927f);
             FUN_L00_00216f90_302578(b, rot, 0, 0);
-            if (d->f114 != 0) {
+            if (shuttle_vars->f114 != 0) {
                 D_0013D3AC_302578[5] = 1;
-                FUN_L06_002e6148_302578(D_L06_0015FFD8_302578 + (d->f10C << 8));
-                d->f114 = 0;
+                FUN_L06_002e6148_302578(D_L06_0015FFD8_302578 + (shuttle_vars->f10C << 8));
+                shuttle_vars->f114 = 0;
                 moby->state = 6;
                 if (moby->prev_seq != 2) {
                     blend_moby_animation_302578(moby, 2, 0, scale_game_frames_302578(30));
@@ -6990,29 +6990,29 @@ void shuttle_update(struct Moby *moby) {
         }
         break;
     case WAIT_FOR_HERO_NEAR_LINKED_MOBY:
-        if (vector_distance_302578((char *)&hero.motion.pos, D_L06_0015FFD8_302578 + (d->f10C << 8) + 0x10) < 3.5f) {
-            char *o = D_L06_0015FFD8_302578 + (d->f10C << 8);
-            qcopy(b, o + 0x10);
-            qcopy(rot, o + 0x40);
+        if (vector_distance_302578((char *)&hero.motion.pos, D_L06_0015FFD8_302578 + (shuttle_vars->f10C << 8) + 0x10) < 3.5f) {
+            char *linked_moby = D_L06_0015FFD8_302578 + (shuttle_vars->f10C << 8);
+            qcopy(b, linked_moby + 0x10);
+            qcopy(rot, linked_moby + 0x40);
             rot[2] = fast_add_rotations_302578(rot[2], 3.14159f);
             FUN_L00_00216f90_302578(b, rot, 0x72, 1);
             play_sound_302578(0, 10);
             FUN_L00_00298840_302578(12);
-            delete_moby_302578(o);
+            delete_moby_302578(linked_moby);
             FUN_L00_002607d0_302578(5);
             moby->state = 8;
-            FUN_L00_002502a0_302578(d->fF8);
+            FUN_L00_002502a0_302578(shuttle_vars->fF8);
             FUN_L00_00284e50_302578(b, rot);
         }
         break;
     case WAIT_FOR_FORCED_SHUTTLE_RETURN_TRIGGER:
-        if (is_point_inside_clip_volume((char *)&hero.motion.pos, d->fF0) != 0) {
-            d->side = 2;
-            d->fC4 = D_L06_001620F4;
-            d->fC8 = D_L06_001620F8;
-            d->sel = 0;
-            d->go = 1;
-            d->f114 = 1;
+        if (is_point_inside_clip_volume((char *)&hero.motion.pos, shuttle_vars->fF0) != 0) {
+            shuttle_vars->side = 2;
+            shuttle_vars->fC4 = D_L06_001620F4;
+            shuttle_vars->fC8 = D_L06_001620F8;
+            shuttle_vars->sel = 0;
+            shuttle_vars->go = 1;
+            shuttle_vars->f114 = 1;
             moby->state = 1;
         }
         break;
@@ -7050,7 +7050,7 @@ void shuttle_update(struct Moby *moby) {
         break;
     }
     subtract_vector_xyz_302578(delta, ((float *)&moby->pos), old_pos);
-    FUN_L00_00260738_302578(d->area, delta, old_rot, ((float *)&moby->rot));
+    FUN_L00_00260738_302578(shuttle_vars->area, delta, old_rot, ((float *)&moby->rot));
 }
 
 #define NOT_SDA
@@ -7084,12 +7084,12 @@ void FUN_L06_00302fd8(char *shuttle_moby) {
     switch (*(int *)(shuttle_vars + 0xBC)) {
     case SHUTTLE_AT_INITIAL_STOP: {
         int idx = current_level_index << 4;
-        int a = *(unsigned char *)(*(int *)(shuttle_vars + 0xF8) + idx + (int)visited52);
-        if (a != 0xFF) {
+        int primary_visit_byte = *(unsigned char *)(*(int *)(shuttle_vars + 0xF8) + idx + (int)visited52);
+        if (primary_visit_byte != 0xFF) {
             *(int *)(shuttle_vars + 0x9C) = 0;
         } else {
             int b = *(unsigned char *)(*(int *)(shuttle_vars + 0xFC) + idx + (int)visited52);
-            if (b == a) {
+            if (b == primary_visit_byte) {
                 *(int *)(shuttle_vars + 0x9C) = 3;
             } else {
                 *(int *)(shuttle_vars + 0x9C) = -1;
@@ -7701,7 +7701,7 @@ extern float D_L06_001621B4 __attribute__((sda));
 extern int D_L06_001621B8 __attribute__((sda));
 void FUN_L06_00304818(int unused, void *obj) {
     float pos[4];
-    V6 a;
+    V6 first_color_palette;
     V6 b;
     int i = 0;
     clear_u64_value(pos);
@@ -7715,10 +7715,10 @@ void FUN_L06_00304818(int unused, void *obj) {
             int r3;
             i++;
             s = random_float_between(8.0f, 10.0f);
-            a = D_L06_002019A0;
+            first_color_palette = D_L06_002019A0;
             b = D_L06_002019B8;
             s = s * frame_time;
-            pa = a.v + random_integer_below(6);
+            pa = first_color_palette.v + random_integer_below(6);
             pb = b.v + random_integer_below(6);
             f = D_L06_001621B4 * 400000.0f;
             random_frame_count = random_int_between(scale_game_frames(0xF), scale_game_frames(0x14));
@@ -7988,7 +7988,7 @@ void FUN_L06_00305170(char *moby) {
     float rotation_scale_matrix[16];
     float b[16];
     float mat[5][16];
-    int s[10];
+    int shared_helper_arguments[10];
     char *data;
     float *transform_matrix_base;
     int *sp;
@@ -8009,7 +8009,7 @@ void FUN_L06_00305170(char *moby) {
                                   ((long)D_L06_001621CC << 6) | 0x8000000000L);
     font_queue_vu_state();
     transform_matrix_base = mat[0];
-    sp = s;
+    sp = shared_helper_arguments;
     pp = mat[0] + 12;
     tp = D_L06_001FE890;
     mp = transform_matrix_base;
@@ -8023,15 +8023,15 @@ void FUN_L06_00305170(char *moby) {
         pp[3] = 1.0f;
         pp += 16;
     }
-    s[0] = D_L06_00162234;
-    s[2] = (int)(data + 0xF00);
-    s[1] = D_L06_00162238;
-    s[3] = D_L06_001621E0;
-    s[4] = D_L06_001621E4;
-    *(float *)&s[7] = D_L06_001621F4;
-    *(float *)&s[8] = *(float *)&D_L06_001621F8_gp;
-    s[5] = 0x1E;
-    s[6] = (int)data;
+    shared_helper_arguments[0] = D_L06_00162234;
+    shared_helper_arguments[2] = (int)(data + 0xF00);
+    shared_helper_arguments[1] = D_L06_00162238;
+    shared_helper_arguments[3] = D_L06_001621E0;
+    shared_helper_arguments[4] = D_L06_001621E4;
+    *(float *)&shared_helper_arguments[7] = D_L06_001621F4;
+    *(float *)&shared_helper_arguments[8] = *(float *)&D_L06_001621F8_gp;
+    shared_helper_arguments[5] = 0x1E;
+    shared_helper_arguments[6] = (int)data;
     pp = transform_matrix_base;
     for (j = 3; j >= 0; j--) {
         FUN_L06_00216b88(sp, pp);

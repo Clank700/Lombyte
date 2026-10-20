@@ -180,12 +180,12 @@ s32 FUN_L18_00218a90(s32 arg) {
     enum {
         HERO_VEHICLE_MODE_NORMAL = 0
     };
-    u8 *m;
+    u8 *hero_moby_bytes;
     T_210ce8 *tbl;
     u8 *mob;
     s32 flag;
     s32 id;
-    f32 a, b, e;
+    f32 horizontal_response_scale, b, response_frame_time;
     V_210ce8 v;
 
     if (hero.state.control_mode == 0x14) {
@@ -204,12 +204,12 @@ s32 FUN_L18_00218a90(s32 arg) {
         return 0;
     }
     hero.unk2280 = 0;
-    m = ((u8 *)hero.moby);
-    if (m[0xA4] == 0xFF) {
+    hero_moby_bytes = ((u8 *)hero.moby);
+    if (hero_moby_bytes[0xA4] == 0xFF) {
         return 0;
     }
-    tbl = &D_L18_00178B00[m[0xA4]];
-    if (tbl->p34 != m) {
+    tbl = &D_L18_00178B00[hero_moby_bytes[0xA4]];
+    if (tbl->p34 != hero_moby_bytes) {
         return 0;
     }
     if (hero.vehicle_mode == 2) {
@@ -296,14 +296,14 @@ s32 FUN_L18_00218a90(s32 arg) {
         } else {
             hero_set_state(HERO_STATE_HURT, 1);
         }
-        e = frame_time;
-        a = e * 5.7f;
-        b = e * 2.4f;
+        response_frame_time = frame_time;
+        horizontal_response_scale = response_frame_time * 5.7f;
+        b = response_frame_time * 2.4f;
         if (hero.unk12E7 != 0) {
-            a = 0.0f;
-            b = e * 1.7f;
+            horizontal_response_scale = 0.0f;
+            b = response_frame_time * 1.7f;
         }
-        FUN_L00_00210c80_210ce8(&v, flag, a, b);
+        FUN_L00_00210c80_210ce8(&v, flag, horizontal_response_scale, b);
         if (flag != 0 && tbl->b28 == 4) {
             v.f[2] += v.f[2];
         }

@@ -1283,7 +1283,7 @@ extern s32 FUN_L00_0025df68(void *, void *, void *, s32 *, f32 *, s32, f32, f32,
 void FUN_L01_00314e98(Camera *cam) {
     Vec4 at;
     s32 seg;
-    f32 t;
+    f32 path_fraction_or_length;
     CameraPreset *preset = D_L01_0015EF50[cam->preset].preset;
     CameraControl *control;
     CameraFocus *focus;
@@ -1342,7 +1342,7 @@ void FUN_L01_00314e98(Camera *cam) {
         look_path = D_L01_001B0930[preset->look_path];
         preset->ready = 1;
         for (i = 0; i < preset_path->count; i++) {
-            FUN_L00_0025df68(b, &preset_path->pts[i], &at, &seg, &t, 0, 20.0f, 5.0f, 0.0f);
+            FUN_L00_0025df68(b, &preset_path->pts[i], &at, &seg, &path_fraction_or_length, 0, 20.0f, 5.0f, 0.0f);
             preset_path->pts[i].f[0] = preset_path->pts[i].f[3];
             preset_path->pts[i].f[3] = seg;
         }
@@ -1353,15 +1353,15 @@ void FUN_L01_00314e98(Camera *cam) {
             if (segment_count < 0) {
                 segment_count += b->count;
             }
-            t = 0.0f;
+            path_fraction_or_length = 0.0f;
             for (k = 0; k < segment_count; k++) {
-                t += b->pts[(j + i) % b->count].f[3];
+                path_fraction_or_length += b->pts[(j + i) % b->count].f[3];
             }
-            preset_path->pts[i].f[1] = t;
+            preset_path->pts[i].f[1] = path_fraction_or_length;
             prev = i;
         }
         for (i = 0; i < look_path->count; i++) {
-            FUN_L00_0025df68(target_path, &look_path->pts[i], &at, &seg, &t, 0, 20.0f, 5.0f, 0.0f);
+            FUN_L00_0025df68(target_path, &look_path->pts[i], &at, &seg, &path_fraction_or_length, 0, 20.0f, 5.0f, 0.0f);
             look_path->pts[i].f[0] = look_path->pts[i].f[3];
             look_path->pts[i].f[3] = seg;
         }
@@ -1372,11 +1372,11 @@ void FUN_L01_00314e98(Camera *cam) {
             if (segment_count < 0) {
                 segment_count += target_path->count;
             }
-            t = 0.0f;
+            path_fraction_or_length = 0.0f;
             for (k = 0; k < segment_count; k++) {
-                t += target_path->pts[(j + i) % target_path->count].f[3];
+                path_fraction_or_length += target_path->pts[(j + i) % target_path->count].f[3];
             }
-            look_path->pts[i].f[1] = t;
+            look_path->pts[i].f[1] = path_fraction_or_length;
             prev = i;
         }
     }
@@ -1690,7 +1690,7 @@ void FUN_L01_00315de0(Camera *cam) {
     CameraPreset *camera_preset = rows[cam->preset].preset;
     OvlVec4 at, delta, to_camera;
     s32 seg;
-    f32 t;
+    f32 path_fraction;
 
     qcopy((char *)cam + 0x30, (char *)src + 0x30);
     qcopy(cam, src);
@@ -1715,8 +1715,8 @@ void FUN_L01_00315de0(Camera *cam) {
         s32 next;
         path = D_L01_001B0930[camera_preset->track_path];
         seg = 0;
-        t = 0.0f;
-        if (FUN_L00_0025df68(path, &D_0013F3D0_315de0, &at, &seg, &t,
+        path_fraction = 0.0f;
+        if (FUN_L00_0025df68(path, &D_0013F3D0_315de0, &at, &seg, &path_fraction,
                              0, 20.0f, 1.0f, 0.0f)) {
             s32 count = path->count;
             next = seg + 1;
@@ -1789,7 +1789,7 @@ void FUN_L01_00316030(CamUser_316030 *camera_user) {
 extern char *FUN_L00_001eb1f8(int);
 
 extern char *D_L01_00167280_lui __asm__("D_L01_00167280") __attribute__((section(".data")));
-void FUN_L01_00316e88(float a, float b) {
+void FUN_L01_00316e88(float camera_track_accel_y, float b) {
     char *camera_candidate = D_L01_00167280_lui;
     char *selected_camera;
     char *destination;
@@ -1798,7 +1798,7 @@ void FUN_L01_00316e88(float a, float b) {
     else
         selected_camera = camera_candidate;
     destination = *(char **)(selected_camera + 0x70) + 0xE0;
-    *(float *)(destination + 0x44) = a;
+    *(float *)(destination + 0x44) = camera_track_accel_y;
     *(float *)(destination + 0x48) = b;
 }
 extern char *D_L00_0015F5F4;
@@ -1962,15 +1962,15 @@ void FUN_L01_0031a128(int *moby) {
             return;
         }
         if (music_trigger_data[2] != 0) {
-            short *s = (short *)music_trigger_data;
-            if (s[7] == -1)
-                s[7] = s[6];
-            if (s[6] == -1)
-                s[6] = s[7];
+            short *music_trigger_halfwords = (short *)music_trigger_data;
+            if (music_trigger_halfwords[7] == -1)
+                music_trigger_halfwords[7] = music_trigger_halfwords[6];
+            if (music_trigger_halfwords[6] == -1)
+                music_trigger_halfwords[6] = music_trigger_halfwords[7];
             if (v[4] > 0) {
-                jet_game_state(music_trigger_data[1], s[7]);
+                jet_game_state(music_trigger_data[1], music_trigger_halfwords[7]);
             } else {
-                jet_game_state(music_trigger_data[0], s[6]);
+                jet_game_state(music_trigger_data[0], music_trigger_halfwords[6]);
             }
             music_trigger_data[2] = 0;
         }

@@ -1215,6 +1215,9 @@ void FUN_L13_00308d10(struct Moby *moby) {
         HIT_RESULT_STUN_KNOCKBACK = 3,
         HIT_RESULT_NO_REACTION = 11
     };
+    enum {
+        GROUND_MATERIAL_DESTROYS_WALKER = 0
+    };
     struct WalkerVars_8d10 *vars = (struct WalkerVars_8d10 *)moby->pvars;
     char *hit;
     s32 code;
@@ -1305,7 +1308,7 @@ void FUN_L13_00308d10(struct Moby *moby) {
     ground = probe_ground_height_8d10(&moby->pos, 0, 0.5f);
     if (ground != 0.0f) {
         switch (ground_material_8d10()) {
-        case 0:
+        case GROUND_MATERIAL_DESTROYS_WALKER:
         case 1:
         case 3:
         case 11:
@@ -1554,7 +1557,7 @@ void FUN_L13_00309e88(struct Moby *moby) {
         BOBBING_PLATFORM_UPDATE = 1
     };
     Bob_9e88 *b;
-    float f;
+    float height_half_span_or_tile_enabled;
     int i, j, k, n;
     int cr, cg;
 
@@ -1624,15 +1627,15 @@ void FUN_L13_00309e88(struct Moby *moby) {
         break;
     }
     case BOBBING_PLATFORM_UPDATE: {
-        struct Hero *h;
-        f = b->top;
-        f -= b->bottom;
-        f *= 0.5f;
-        moby->pos.z = b->bottom + (fast_cos(b->angle) * f + f);
-        h = &hero;
-        if (h->state.control_mode != 0x14 && h->state.control_mode != 0x19 &&
-            h->state.current != 0x3D && h->state.current != 0x7B &&
-            h->state.current != 0x7C)
+        struct Hero *hero_context;
+        height_half_span_or_tile_enabled = b->top;
+        height_half_span_or_tile_enabled -= b->bottom;
+        height_half_span_or_tile_enabled *= 0.5f;
+        moby->pos.z = b->bottom + (fast_cos(b->angle) * height_half_span_or_tile_enabled + height_half_span_or_tile_enabled);
+        hero_context = &hero;
+        if (hero_context->state.control_mode != 0x14 && hero_context->state.control_mode != 0x19 &&
+            hero_context->state.current != 0x3D && hero_context->state.current != 0x7B &&
+            hero_context->state.current != 0x7C)
             b->angle = fast_add_rotations(b->angle, b->speed);
         Tiles_9e88[b->idx].c1C = D_L13_001CAB80.c3C;
         Tiles_9e88[b->idx].c1D = D_L13_001CAB80.c3D;
@@ -1646,11 +1649,11 @@ void FUN_L13_00309e88(struct Moby *moby) {
     }
     }
     if (b->idx >= 0) {
-        f = 0.0f;
+        height_half_span_or_tile_enabled = 0.0f;
         (Tiles_9e88 + b->idx)->z = moby->pos.z;
         if (FUN_L01_00275690(48.0f, moby) != -1)
-            f = 1.0f;
-        if (f == 0.0f)
+            height_half_span_or_tile_enabled = 1.0f;
+        if (height_half_span_or_tile_enabled == 0.0f)
             Tiles_9e88[b->idx].c1E = 0;
         else
             Tiles_9e88[b->idx].c1E = D_L13_001F1E20[b->idx];
@@ -1950,8 +1953,8 @@ int FUN_L13_0030ae68(int idx, int arg) {
         int id = *moby_id_cursor & 0x7FFF;
         char *moby = (char *)(id << 8) + (int)D_L13_0015FFD8_m;
         if (moby[0x20] >= 0) {
-            char *f = FUN_L00_002db890(moby);
-            if (f == 0 || *(short *)(f + 0x68) < 4) {
+            char *moby_callback_record = FUN_L00_002db890(moby);
+            if (moby_callback_record == 0 || *(short *)(moby_callback_record + 0x68) < 4) {
                 if (arg == -1 ||
                     *(unsigned char *)((char *)(id << 8) + (int)D_L13_0015FFD8_m + 0x20) != arg) {
                     count++;
@@ -2226,7 +2229,7 @@ void FUN_L13_0030bb70(struct Moby *moby) {
     char *target_moby;
     float v[4];
     int idx;
-    float t;
+    float nearest_segment_progress;
     int i;
     if (moby->state == 0) {
         moby->update_dist = 0xFF;
@@ -2255,10 +2258,10 @@ void FUN_L13_0030bb70(struct Moby *moby) {
             return;
         pth = D_L13_001B07B0[moby_vars[1]];
         if (moby->state == 1) {
-            FUN_L00_0025df68(pth, target_moby + 0x10, v, &idx, &t, 0, 100.0f, 1.0f, 0.0f);
-            if (idx > moby_vars[2] || t > ((float *)moby_vars)[3] || moby_vars[4] < 0x1E) {
+            FUN_L00_0025df68(pth, target_moby + 0x10, v, &idx, &nearest_segment_progress, 0, 100.0f, 1.0f, 0.0f);
+            if (idx > moby_vars[2] || nearest_segment_progress > ((float *)moby_vars)[3] || moby_vars[4] < 0x1E) {
                 moby_vars[2] = idx;
-                ((float *)moby_vars)[3] = t;
+                ((float *)moby_vars)[3] = nearest_segment_progress;
                 qcopy(&moby->pos, v);
             } else {
                 moby->state = 2;
@@ -2426,7 +2429,7 @@ char *FUN_L13_0030c138(void *position, void *b, int duration_frames, int d) {
     unsigned char *moby = (unsigned char *)func_0020D348_m(0x662);
     if (moby != 0) {
         char *data;
-        float r1, dd;
+        float rotation_x_increment, dd;
         data = *(char **)(moby + 0x78);
         moby[0x30] = 0xFF;
         *(short *)(moby + 0x32) = 0xFF;
@@ -2435,9 +2438,9 @@ char *FUN_L13_0030c138(void *position, void *b, int duration_frames, int d) {
         set_moby_color(moby, 0x20, 0x60, 0x10);
         qcopy(moby + 0x10, position);
         qcopy(data, b);
-        r1 = random_float_between_alt(frame_time * 6.2831855f, frame_time * 12.566371f);
+        rotation_x_increment = random_float_between_alt(frame_time * 6.2831855f, frame_time * 12.566371f);
         dd = frame_time;
-        *(float *)(data + 0x10) = r1;
+        *(float *)(data + 0x10) = rotation_x_increment;
         *(float *)(data + 0x14) = random_float_between_alt(dd * 6.2831855f, dd * 12.566371f);
         *(short *)(data + 0x18) = duration_frames;
         *(short *)(data + 0x1A) = duration_frames;

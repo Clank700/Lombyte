@@ -53,7 +53,7 @@ void FUN_L01_002f6328(struct Moby *rail_moby) {
     Vec4 dir;
     Vec4 pull;
     s32 seg;
-    f32 t;
+    f32 candidate_fraction;
     s32 best_seg;
     f32 best_t;
     f32 drag;
@@ -84,14 +84,14 @@ void FUN_L01_002f6328(struct Moby *rail_moby) {
     best_path = 0;
     for (k = 0; k < rail_vars->count; k++) {
         path = D_L01_001B0930[rail_vars->paths[k]];
-        FUN_L00_0025df68(path, &hero.motion.pos, &pt, &seg, &t, 0, 999.0f, 5.0f, 0.0f);
+        FUN_L00_0025df68(path, &hero.motion.pos, &pt, &seg, &candidate_fraction, 0, 999.0f, 5.0f, 0.0f);
         dist = vector_distance(&hero.motion.pos, &pt);
         if (dist < best) {
             best_path = path;
             qcopy(&best_pt, &pt);
             best = dist;
             best_seg = seg;
-            best_t = t;
+            best_t = candidate_fraction;
         }
     }
     if (best_path == 0) {
@@ -438,16 +438,16 @@ struct Moby *spawn_debris_chunk(Vec4f *pos, Vec4f *vel, s32 oclass, s32 a3, s32 
                               f32 scale, f32 gravity, f32 spin, f32 seconds) __asm__("FUN_L01_002f8530");
 struct Moby *spawn_debris_chunk(Vec4f *pos, Vec4f *vel, s32 oclass, s32 initial_timer, s32 fade_out,
                               f32 scale, f32 gravity, f32 spin, f32 seconds) {
-    u128 p;
+    u128 spawn_position_snapshot;
     u128 v;
-    u128 *pp = &p;
+    u128 *pp = &spawn_position_snapshot;
     u128 *vp = &v;
     struct Moby *debris_moby;
     DebrisVars_2f8530 *pv;
     f32 r;
     f32 initial_spin;
 
-    p = *(u128 *)pos;
+    spawn_position_snapshot = *(u128 *)pos;
     v = *(u128 *)vel;
     debris_moby = create_moby_local(oclass);
     if (debris_moby != 0) {
@@ -987,12 +987,12 @@ void the_plumber_update(L01WatchMoby *plumber_moby) {
     tracking = 0;
     if (plumber_moby->animation == 0) {
         char *g = (char *)&hero.motion.pos;
-        L01Player *q;
+        L01Player *hero_aim_view;
         tracking = 1;
         if (vector_distance(plumber_moby->position, g) < 8.0f &&
-            (q = (L01Player *)(g - 0x80),
+            (hero_aim_view = (L01Player *)(g - 0x80),
              fast_difference_between_rotations(
-                 plumber_moby->yaw, fast_arc_tan(q->aim[0] - plumber_moby->position[0], q->aim[1] - plumber_moby->position[1]))) <
+                 plumber_moby->yaw, fast_arc_tan(hero_aim_view->aim[0] - plumber_moby->position[0], hero_aim_view->aim[1] - plumber_moby->position[1]))) <
                 1.5707964f) {
             if (fast_vec_length(g + 0x80) > 0.01f)
                 plumber_vars->moving_timer = scale_game_frames(120);
@@ -1528,21 +1528,21 @@ void FUN_L01_00308550(char *moby) {
     tm = (int *)(moby_vars + 0x40);
     sz = (float *)(moby_vars + 0x50);
     for (i = 0; i < 4; i++) {
-        float a = ang[i] + spd[i];
+        float unwrapped_angle = ang[i] + spd[i];
         float pulse_progress;
-        int c;
-        ang[i] = a;
-        if (255.0f <= a) {
-            ang[i] = a - 255.0f;
-        } else if (a <= 0.0f) {
-            ang[i] = a + 255.0f;
+        int packed_color;
+        ang[i] = unwrapped_angle;
+        if (255.0f <= unwrapped_angle) {
+            ang[i] = unwrapped_angle - 255.0f;
+        } else if (unwrapped_angle <= 0.0f) {
+            ang[i] = unwrapped_angle + 255.0f;
         }
         if (fast_dec_timer((int *)(moby_vars + 0x40) + i)) {
             tm[i] = scale_game_frames(0xFF);
         }
         pulse_progress = convert_integer_to_float(scale_game_frames(0xFF) - tm[i]) / (float)scale_game_frames(0xFF);
-        c = fast_tween_color(D_L01_00161F3C, D_L01_00161F40, absolute_float(0.5f - pulse_progress));
-        FUN_L00_00272f68(dir, c, func_001FA898_r(ang[i]), D_L01_00161F4C, D_L01_00161F48, 2, 0,
+        packed_color = fast_tween_color(D_L01_00161F3C, D_L01_00161F40, absolute_float(0.5f - pulse_progress));
+        FUN_L00_00272f68(dir, packed_color, func_001FA898_r(ang[i]), D_L01_00161F4C, D_L01_00161F48, 2, 0,
                          sz[i] * scale);
         add_vector_xyz(dir, dir, step);
     }
@@ -2015,13 +2015,13 @@ void FUN_L01_003094f0(char *moby) {
     }
     ring_half_height = 0.1f;
     if (*(float *)(moby_data + 0x34) < 1.15f) {
-        float t = (1.15f - *(float *)(moby_data + 0x34)) * 2.0f;
-        if (1.0f < t) {
-            t = 1.0f;
-        } else if (t < 0.0f) {
-            t = 0.0f;
+        float ring_half_height_increase = (1.15f - *(float *)(moby_data + 0x34)) * 2.0f;
+        if (1.0f < ring_half_height_increase) {
+            ring_half_height_increase = 1.0f;
+        } else if (ring_half_height_increase < 0.0f) {
+            ring_half_height_increase = 0.0f;
         }
-        ring_half_height = t + 0.1f;
+        ring_half_height = ring_half_height_increase + 0.1f;
         if (((unsigned char *)moby)[0x20] != 7 && ((unsigned char *)moby)[0x20] != 8) {
             if (*(float *)(moby_data + 0x34) < 0.65f) {
                 D_001413F5_c = 1;
@@ -2085,12 +2085,12 @@ void FUN_L01_003097e8(L01Moby *moby) {
     }
 }
 void FUN_L01_00309838(char *parent_moby) {
-    char *p = *(char **)(parent_moby + 0x24);
+    char *parent_record = *(char **)(parent_moby + 0x24);
     char **child_slot;
     s32 i;
     s8 one;
     child_slot = (char **)(*(char **)(parent_moby + 0x78) + 0x14);
-    *(s32 *)(parent_moby + 0x94) = *(s32 *)(p + 0x10);
+    *(s32 *)(parent_moby + 0x94) = *(s32 *)(parent_record + 0x10);
     *(u16 *)(parent_moby + 0x34) &= 0xFFFE;
     *(s8 *)(parent_moby + 0x31) = 1;
     one = 1;

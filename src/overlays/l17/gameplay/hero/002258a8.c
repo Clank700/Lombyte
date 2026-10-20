@@ -153,11 +153,14 @@ void FUN_L17_002258a8(void) {
         HERO_STATE_LEDGE_HANG = 25,
         HERO_STATE_LEDGE_SHIMMY_POSITIVE_YAW = 26,
         HERO_STATE_LEDGE_SHIMMY_NEGATIVE_YAW = 27,
+        HERO_STATE_LEDGE_JUMP = 28,
+        HERO_STATE_LOOK_RELEASE_WAIT = 30,
         HERO_STATE_GRIND_JUMP = 41,
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
         HERO_STATE_GRIND_OBSTACLE_JUMP = 66,
         HERO_STATE_APPROACH_TARGET_POSE = 101,
+        HERO_STATE_TARGET_POSE_ANIMATION_WAIT = 102,
         HERO_STATE_AT_TARGET_POSE = 103,
         HERO_STATE_UNDERWATER_DEATH = 106,
         HERO_STATE_DEATH_FALL = 119
@@ -1014,7 +1017,7 @@ void FUN_L17_002258a8(void) {
                     }
                     FUN_L00_00228c18();
                     break;
-                case 102:
+                case HERO_STATE_TARGET_POSE_ANIMATION_WAIT:
                     if (hero.unkA98 & 2) {
                         hero_set_state(0x65, 1);
                     }
@@ -2007,7 +2010,7 @@ void FUN_L17_002258a8(void) {
                 case HERO_STATE_PACK_LONG_JUMP:
                 case 17:
                 case 18:
-                case 28:
+                case HERO_STATE_LEDGE_JUMP:
                 case 60:
                 case 105:
                     if (hero.unk4AE != 0) {
@@ -2874,7 +2877,7 @@ void FUN_L17_002258a8(void) {
                         hero_set_state(0x53, 0);
                     }
                     break;
-                case 30:
+                case HERO_STATE_LOOK_RELEASE_WAIT:
                     if (hero.vehicle_mode == 0) {
                         if (hero.unk20AA == 0 || hero.unk20A5 != 0) {
                             if (controller_state.held & 0xA) {

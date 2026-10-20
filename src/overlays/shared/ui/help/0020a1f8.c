@@ -10,9 +10,9 @@ typedef struct {
 extern S0020a1f8 D_L00_0017A680_0020a1f8 __asm__("D_L00_0017A680");
 /* Stores the two floats in D_L00_0017A680. */
 void FUN_L00_0020a1f8(float a, float b) {
-    S0020a1f8 *p = &D_L00_0017A680_0020a1f8;
-    p->a = a;
-    p->b = b;
+    S0020a1f8 *destination = &D_L00_0017A680_0020a1f8;
+    destination->a = a;
+    destination->b = b;
 }
 typedef struct {
     u8 pad[0x204];
@@ -21,9 +21,9 @@ typedef struct {
 extern S0020a210 D_L00_0017A680_0020a210 __asm__("D_L00_0017A680");
 /* Stores the two floats in D_L00_0017A680. */
 void FUN_L00_0020a210(float a, float b) {
-    S0020a210 *p = &D_L00_0017A680_0020a210;
-    p->a = a;
-    p->b = b;
+    S0020a210 *destination = &D_L00_0017A680_0020a210;
+    destination->a = a;
+    destination->b = b;
 }
 typedef struct {
     u8 pad[0x2B4];
@@ -32,9 +32,9 @@ typedef struct {
 extern S0020a228 D_L00_0017A680_0020a228 __asm__("D_L00_0017A680");
 /* Stores the two floats in D_L00_0017A680. */
 void FUN_L00_0020a228(float a, float b) {
-    S0020a228 *p = &D_L00_0017A680_0020a228;
-    p->a = a;
-    p->b = b;
+    S0020a228 *destination = &D_L00_0017A680_0020a228;
+    destination->a = a;
+    destination->b = b;
 }
 
 
@@ -58,9 +58,9 @@ void FUN_L00_00216ec0(int a, int b, int c) {
 
 extern int D_0013F350_002321a8[] __asm__("D_0013F350");
 void FUN_L00_002321a8(void) {
-    int *p = D_0013F350_002321a8;
-    p[0x2278 / 4] = 0;
-    p[0x227C / 4] = 0;
+    int *destination = D_0013F350_002321a8;
+    destination[0x2278 / 4] = 0;
+    destination[0x227C / 4] = 0;
 }
 
 f32 D_L00_0017A7D4[1] __attribute__((section(".data"))) = {0};

@@ -19,14 +19,14 @@ extern void FUN_L00_0025d1b8(void *);
 extern float D_L08_00161468 __attribute__((sda));
 extern float D_L08_0016146C __attribute__((sda));
 void FUN_L08_002b8228(struct Moby *moby) {
-    float a = D_L08_00161468;
+    float random_range_start = D_L08_00161468;
     float b = D_L08_0016146C;
     char *moby_vars;
     moby->rot.x = 0.0f;
     moby->rot.y = 0.5235988f;
     moby->rot.z = 0.0f;
     moby_vars = (char *)moby->pvars;
-    *(float *)(moby_vars + 0xC) = random_float_between(a, b);
+    *(float *)(moby_vars + 0xC) = random_float_between(random_range_start, b);
     *(int *)(moby_vars + 0x28) = 0;
     *(float *)(moby_vars + 8) = moby->pos.z;
     FUN_L00_0025d1b8(moby);
@@ -134,7 +134,7 @@ void FUN_L08_002b82a0(Moby_2B94B0 *moby)
     };
     MobyData_2B94B0 *moby_data = moby->data;
     float A[4], F[4], B[4], C[4], P[4], E[4];
-    float f20, bob_phase_radians, f;
+    float f20, bob_phase_radians, adjusted_speed_or_bob_sine;
     int hit, ok, bob_period_ticks;
 
     moby_data->ticks++;
@@ -171,8 +171,8 @@ void FUN_L08_002b82a0(Moby_2B94B0 *moby)
                 }
                 if (ok != 0) {
                     func_L00_001FF610_2B94B0(F, moby_data->vel, D_L08_00174700_2B94B0);
-                    f = fast_vec_length(F) - D_L08_0016145C;
-                    fast_vec_normalize(moby_data->vel, F, f < 0.0f ? 0.0f : f);
+                    adjusted_speed_or_bob_sine = fast_vec_length(F) - D_L08_0016145C;
+                    fast_vec_normalize(moby_data->vel, F, adjusted_speed_or_bob_sine < 0.0f ? 0.0f : adjusted_speed_or_bob_sine);
                 } else {
                     clear_u64_value(moby_data->vel);
                     qcopy(P, (D_L08_001746D8_2B94B0 + 8));
@@ -217,9 +217,9 @@ void FUN_L08_002b82a0(Moby_2B94B0 *moby)
     }
     bob_period_ticks = D_L08_00161460;
     bob_phase_radians = (float)(moby_data->ticks % bob_period_ticks) / (float)(bob_period_ticks - 1) * 6.2831855f - 3.1415927f;
-    f = func_001F9FA8_2B94B0(bob_phase_radians);
+    adjusted_speed_or_bob_sine = func_001F9FA8_2B94B0(bob_phase_radians);
     moby_data->f8 = moby->pos[2];
-    moby->pos[2] = moby->pos[2] + D_L08_00161464 * f;
+    moby->pos[2] = moby->pos[2] + D_L08_00161464 * adjusted_speed_or_bob_sine;
 }
 #define NOT_SDA
 
@@ -1211,7 +1211,7 @@ void FUN_L08_002d5d08(char *moby) {
     };
     float a[4];
     float b[4];
-    float c[4];
+    float launch_velocity_or_offset[4];
     char *moby_vars = *(char **)(moby + 0x78);
     short *list = D_L08_001AC040[((Blk_7010 *)D_L08_0015FFD8 + *(int *)(moby_vars + 0x144))->group];
     char *other;
@@ -1240,11 +1240,11 @@ void FUN_L08_002d5d08(char *moby) {
             qcopy(spawned_debris_moby + 0x10, a);
             ang = random_float_between_c4(-0.2617994f, 0.2617994f);
             clear_u64_value(b);
-            c[0] = fast_cos_c3(ang) * (D_0015ED6C_lui * 15.0f);
-            c[1] = fast_sin(ang) * (D_0015ED6C_lui * 15.0f);
-            c[2] = 0.0f;
-            c[2] = random_float_between_c4(D_0015ED6C_lui * 8.0f, D_0015ED6C_lui * 12.0f);
-            FUN_L05_00318648(spawned_debris_moby, (int)moby, c, b, func_001FA898_2D6C58(random_float_between_c4(60.0f, 90.0f)));
+            launch_velocity_or_offset[0] = fast_cos_c3(ang) * (D_0015ED6C_lui * 15.0f);
+            launch_velocity_or_offset[1] = fast_sin(ang) * (D_0015ED6C_lui * 15.0f);
+            launch_velocity_or_offset[2] = 0.0f;
+            launch_velocity_or_offset[2] = random_float_between_c4(D_0015ED6C_lui * 8.0f, D_0015ED6C_lui * 12.0f);
+            FUN_L05_00318648(spawned_debris_moby, (int)moby, launch_velocity_or_offset, b, func_001FA898_2D6C58(random_float_between_c4(60.0f, 90.0f)));
         }
     }
     while (1) {
@@ -1260,38 +1260,38 @@ void FUN_L08_002d5d08(char *moby) {
                 a[2] = random_float_between_c4(D_0015ED6C_lui * 8.0f, D_0015ED6C_lui * 12.0f);
                 switch ((short)(*(unsigned short *)(other + 0xA6) - 0x24C)) {
                 case LINKED_CLASS_SECOND_HIGHEST_Y_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 1.629f; c[1] = -1.341f; c[2] = 11.48f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 1.629f; launch_velocity_or_offset[1] = -1.341f; launch_velocity_or_offset[2] = 11.48f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_FOURTH_LOWEST_X_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 1.299f; c[1] = -5.558f; c[2] = 11.48f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 1.299f; launch_velocity_or_offset[1] = -5.558f; launch_velocity_or_offset[2] = 11.48f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_SECOND_LOWEST_X_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 0.629f; c[1] = -2.527f; c[2] = 3.409f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 0.629f; launch_velocity_or_offset[1] = -2.527f; launch_velocity_or_offset[2] = 3.409f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_LOWEST_X_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 0.019f; c[1] = -6.19f; c[2] = 3.409f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 0.019f; launch_velocity_or_offset[1] = -6.19f; launch_velocity_or_offset[2] = 3.409f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_THIRD_HIGHEST_X_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 3.196f; c[1] = -2.105f; c[2] = 7.784f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 3.196f; launch_velocity_or_offset[1] = -2.105f; launch_velocity_or_offset[2] = 7.784f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_LOWEST_Z_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 2.11f; c[1] = -3.013f; c[2] = 2.625f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 2.11f; launch_velocity_or_offset[1] = -3.013f; launch_velocity_or_offset[2] = 2.625f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_HIGHEST_X_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 4.33f; c[1] = -6.449f; c[2] = 7.397f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 4.33f; launch_velocity_or_offset[1] = -6.449f; launch_velocity_or_offset[2] = 7.397f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_LOWEST_Y_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 3.286f; c[1] = -6.925f; c[2] = 2.96f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 3.286f; launch_velocity_or_offset[1] = -6.925f; launch_velocity_or_offset[2] = 2.96f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_HIGHEST_Z_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 1.539f; c[1] = -1.071f; c[2] = 13.144f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 1.539f; launch_velocity_or_offset[1] = -1.071f; launch_velocity_or_offset[2] = 13.144f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_FOURTH_HIGHEST_Y_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 1.596f; c[1] = -2.512f; c[2] = 8.359f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 1.596f; launch_velocity_or_offset[1] = -2.512f; launch_velocity_or_offset[2] = 8.359f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 case LINKED_CLASS_THIRD_LOWEST_X_LAUNCH_OFFSET:
-                    *(u128_7010 *)c = 0; c[0] = 0.885f; c[1] = -5.824f; c[2] = 8.224f;
-                    qcopy(b, c); break;
+                    *(u128_7010 *)launch_velocity_or_offset = 0; launch_velocity_or_offset[0] = 0.885f; launch_velocity_or_offset[1] = -5.824f; launch_velocity_or_offset[2] = 8.224f;
+                    qcopy(b, launch_velocity_or_offset); break;
                 }
                 if (fast_difference_between_rotations_c2(fast_arc_tan_c(a[0], a[1]),
                                   fast_arc_tan_c(D_L08_00167480.x - *(float *)(moby + 0x10),
@@ -2128,10 +2128,10 @@ void FUN_L08_002dc180(struct Moby *moby) {
     };
     char *data = (char *)moby->pvars;
     char *pl = (char *)&hero.motion.pos;
-    Route_2dd4f8 *a = D_L08_001B0FB0_r[*(int *)(data + 0x88)];
+    Route_2dd4f8 *route = D_L08_001B0FB0_r[*(int *)(data + 0x88)];
     Route_2dd4f8 *b = D_L08_001B0FB0_r[*(int *)(data + 0x80)];
     Route_2dd4f8 *alternate_path = D_L08_001B0FB0_r[*(int *)(data + 0x84)];
-    float best_candidate_distance = distance_xyz(pl, (char *)a + (a->count << 4));
+    float best_candidate_distance = distance_xyz(pl, (char *)route + (route->count << 4));
     float configured_path_start_distance = distance_xyz(pl, b->e[0]);
     float alternate_path_start_distance = distance_xyz(pl, alternate_path->e[0]);
     int sel = 0;
@@ -2151,13 +2151,13 @@ void FUN_L08_002dc180(struct Moby *moby) {
     moby->collision = moby->pclass->collision;
     switch (sel) {
     case SHUTTLE_SELECT_ROUTE_END: {
-        int route_point_count = a->count;
+        int route_point_count = route->count;
         unsigned char *visited_table;
         int f94, f98;
         int fr;
-        qcopy(data + 0x60, (char *)((route_point_count << 4) + (int)a));
-        y = fast_arc_tan(*(float *)((char *)a + ((route_point_count - 2) << 4) + 0x10) - *(float *)(data + 0x60),
-                              *(float *)((char *)a + ((route_point_count - 2) << 4) + 0x14) - *(float *)(data + 0x64));
+        qcopy(data + 0x60, (char *)((route_point_count << 4) + (int)route));
+        y = fast_arc_tan(*(float *)((char *)route + ((route_point_count - 2) << 4) + 0x10) - *(float *)(data + 0x60),
+                              *(float *)((char *)route + ((route_point_count - 2) << 4) + 0x14) - *(float *)(data + 0x64));
         fr = current_level_index << 4;
         visited_table = visited52;
         *(float *)(data + 0x78) = y;
@@ -2183,9 +2183,9 @@ void FUN_L08_002dc180(struct Moby *moby) {
         *(Route_2dd4f8 **)(data + 0x120) = b;
         break;
     case SHUTTLE_SELECT_ROUTE_START:
-        qcopy(data + 0x60, a->e[0]);
-        y = fast_arc_tan(a->e[1][0] - *(float *)(data + 0x60), a->e[1][1] - *(float *)(data + 0x64));
-        *(Route_2dd4f8 **)(data + 0x120) = a;
+        qcopy(data + 0x60, route->e[0]);
+        y = fast_arc_tan(route->e[1][0] - *(float *)(data + 0x60), route->e[1][1] - *(float *)(data + 0x64));
+        *(Route_2dd4f8 **)(data + 0x120) = route;
         break;
     case SHUTTLE_SELECT_ALTERNATE_PATH_START:
         qcopy(data + 0x60, alternate_path->e[0]);

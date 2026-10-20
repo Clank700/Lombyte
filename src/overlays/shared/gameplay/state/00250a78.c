@@ -11,12 +11,12 @@
 extern float square_root(float) __asm__("FUN_001f9988");
 
 void trooper_set_knockback(float *p, float a, float b) __asm__("FUN_L03_00250a78");
-void trooper_set_knockback(float *knockback_state, float a, float b) {
+void trooper_set_knockback(float *knockback_state, float horizontal_knockback_scale, float b) {
     float root = square_root((b + b) * knockback_state[4]);
     float x = (root + root) / knockback_state[4];
     knockback_state[7] = root;
-    knockback_state[6] = (a + a) / x;
-    knockback_state[5] = (a + a) / (x * x);
+    knockback_state[6] = (horizontal_knockback_scale + horizontal_knockback_scale) / x;
+    knockback_state[5] = (horizontal_knockback_scale + horizontal_knockback_scale) / (x * x);
 }
 #include "eetypes.h"
 
@@ -32,7 +32,7 @@ extern void FUN_L00_001ff290(void *, void *, void *);
 extern void *FUN_L00_002712b8(void *, void *, s32, s32, s32, s32, f32, f32, f32, f32, f32);
 extern void *FUN_L00_0026cbb0(void *, void *, s32, s32, s32, s32, f32);
 
-void FUN_L03_00250ae8(char *param_1, u128 *emission_position, void *param_3) {
+void FUN_L03_00250ae8(char *orientation_source, u128 *emission_position, void *param_3) {
     struct { u128 position; u128 velocity; u128 temp; } vectors;
     s32 i;
     s32 j;
@@ -47,7 +47,7 @@ void FUN_L03_00250ae8(char *param_1, u128 *emission_position, void *param_3) {
 
     for (i = 0; i < truncate_float_to_s32(24.0f); i++) {
         angle = randf_sym(0.0f, 0.1308997f);
-        build_look_at_matrix(&vectors.velocity, param_1 + 0xe0, param_1 + 0xc0,
+        build_look_at_matrix(&vectors.velocity, orientation_source + 0xe0, orientation_source + 0xc0,
                              (f32)i * 0.2617994f + angle);
         /* Fakematch: the empty scopes add 20 notes to loop 1, past haifa's 100-luid region limit,
          * so sched1 schedules this loop block by block as retail does (they emit no code). */
@@ -65,7 +65,7 @@ void FUN_L03_00250ae8(char *param_1, u128 *emission_position, void *param_3) {
     }
     for (j = 0; j < truncate_float_to_s32(6.0f); ) {
         angle = random_float_between(0.0f, 0.7853982f);
-        build_look_at_matrix(&vectors.velocity, param_1 + 0xe0, param_1 + 0xc0,
+        build_look_at_matrix(&vectors.velocity, orientation_source + 0xe0, orientation_source + 0xc0,
                              (f32)j++ * 1.0471976f + angle);
         fast_vec_normalize(&vectors.velocity, &vectors.velocity, random_float_between(0.05f, 0.1f));
         minimum = scale_game_frames(20);

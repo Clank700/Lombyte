@@ -162,6 +162,8 @@ void FUN_L18_0022e8f8(void) {
         HERO_STATE_GRIND_JUMP = 41,
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
+        HERO_STATE_SWIM = 51,
+        HERO_STATE_SWIM_IDLE = 52,
         HERO_STATE_GRIND_COLLISION_RECOVERY = 66,
         HERO_STATE_APPROACH_TARGET = 101,
         HERO_STATE_TARGET_ARRIVAL = 103,
@@ -503,7 +505,7 @@ void FUN_L18_0022e8f8(void) {
                         return;
                     }
                     break;
-                case 51:
+                case HERO_STATE_SWIM:
                 case 53:
                     if (hero.state.current == 0x33) {
                         hero.anim_speed = hero.ground_speed * 15.0f;
@@ -538,7 +540,7 @@ void FUN_L18_0022e8f8(void) {
                         hero_set_state(0x34, 1);
                     }
                     break;
-                case 52:
+                case HERO_STATE_SWIM_IDLE:
                     if (hero.unkA98 & 2) {
                         if (((unsigned char *)hero.moby)[0x53] != 0x3C) {
                             set_hero_animation(0x3C, 0, scale_game_frames(0xB));
@@ -1337,16 +1339,16 @@ void FUN_L18_0022e8f8(void) {
                         }
                         if (hero.unk5BC != 0) {
                             if (hero.unk5C0 != 0) {
-                                float h;
+                                float initial_jump_velocity_z;
                                 float t;
 
                                 hero_set_state(0x29, 1);
                                 hero.unk5C4 = 1;
-                                h = FUN_L00_0025abf0(hero.motion.pos.f, hero.unk550.f, 0,
+                                initial_jump_velocity_z = FUN_L00_0025abf0(hero.motion.pos.f, hero.unk550.f, 0,
                                                      hero.motion.unk164, -hero.unk4A0);
                                 *(OvlQuad *)v1 = 0;
                                 *(OvlQuad *)v0 = 0;
-                                v1[2] = h;
+                                v1[2] = initial_jump_velocity_z;
                                 t = FUN_L00_00259468(v0, v1, 0, hero.unk4A0);
                                 hero.unk48C = t + 0.05f;
                                 hero.unk430 = t;

@@ -23,7 +23,7 @@ typedef struct {
 extern Rec D_L06_0017A240[];
 extern int hero_slot_item_id(int) __asm__("FUN_L00_0020d498");
 
-int FUN_L06_0021d0a0(int a) {
+int FUN_L06_0021d0a0(int allow_item_help) {
     struct Hero *g = &hero;
     switch (g->vehicle_mode) {
     case 1:
@@ -36,7 +36,7 @@ int FUN_L06_0021d0a0(int a) {
         if (g2->health.hp == 1) {
             return 0x54;
         }
-        if (a == 0) {
+        if (allow_item_help == 0) {
             return 0;
         }
         if (g2->unk20A8 == 0) {
@@ -345,7 +345,7 @@ extern int hero_set_state(int, int) __asm__("FUN_L06_002356a0");
 
 void FUN_L06_00227cf8(void) {
     struct Hero *g = &hero;
-    unsigned char *m;
+    unsigned char *flag_clear_target;
     if (g->vehicle_mode == 1) {
         g->health.unk22AC = g->health.hp;
         g->health.hp = g->health.unk22B0;
@@ -362,9 +362,9 @@ void FUN_L06_00227cf8(void) {
         struct Hero *g2 = &hero;
         FUN_L00_00205538_227cf8();
         g2->vehicle_mode = 0;
-        m = g2->unkA84;
-        if (m) {
-            *(u16 *)(m + 0x34) &= ~6;
+        flag_clear_target = g2->unkA84;
+        if (flag_clear_target) {
+            *(u16 *)(flag_clear_target + 0x34) &= ~6;
         }
         g2->unkA84 = 0;
         if (g2->unkA8C) {
@@ -436,7 +436,7 @@ extern void FUN_00125180_2291d0(void *, void *) __asm__("FUN_00125180");
 extern s32 D_L06_001745DC __attribute__((section(".data")));
 extern char D_0013F3D0[] __attribute__((section(".data")));
 void FUN_L06_002291d0(int force) {
-    V_2291d0 a, d1, b, d2;
+    V_2291d0 primary_vector_origin, primary_vector_endpoint, b, secondary_vector_endpoint;
     char *src;
     P_2291d0 *g;
     f32 off, k, secondary_vector_scale, ang, negative_horizontal_dot;
@@ -456,33 +456,33 @@ void FUN_L06_002291d0(int force) {
         k = 0.27000001072883606f;
     }
     src = D_0013F3D0;
-    qcopy(&a, src);
-    a.f[2] += off;
+    qcopy(&primary_vector_origin, src);
+    primary_vector_origin.f[2] += off;
     qcopy(&b, src);
     b.f[2] += off * 0.3f;
     if (force || FUN_001f9b20_2291d0(src + 0x60) < 0.01f) {
         g = (P_2291d0 *)(src - 0x80);
         secondary_vector_scale = 1.4f;
-        d1.f[0] = FUN_001f9dc8_2291d0(g->f98) * k;
-        d1.f[1] = FUN_001f9de0_2291d0(g->f98) * k;
-        *(s32 *)&d1.f[2] = 0;
-        d2.f[0] = FUN_001f9dc8_2291d0(g->f98) * k * secondary_vector_scale;
-        d2.f[1] = FUN_001f9de0_2291d0(g->f98) * k * secondary_vector_scale;
-        *(s32 *)&d2.f[2] = 0;
+        primary_vector_endpoint.f[0] = FUN_001f9dc8_2291d0(g->f98) * k;
+        primary_vector_endpoint.f[1] = FUN_001f9de0_2291d0(g->f98) * k;
+        *(s32 *)&primary_vector_endpoint.f[2] = 0;
+        secondary_vector_endpoint.f[0] = FUN_001f9dc8_2291d0(g->f98) * k * secondary_vector_scale;
+        secondary_vector_endpoint.f[1] = FUN_001f9de0_2291d0(g->f98) * k * secondary_vector_scale;
+        *(s32 *)&secondary_vector_endpoint.f[2] = 0;
     } else {
-        qcopy(&d1, src + 0x60);
-        *(s32 *)&d1.f[2] = 0;
-        FUN_001f9a68_2291d0(&d1, &d1, k / FUN_001f9b20_2291d0(&d1));
-        qcopy(&d2, &d1);
-        FUN_001f9a68_2291d0(&d2, &d2, 1.4f);
+        qcopy(&primary_vector_endpoint, src + 0x60);
+        *(s32 *)&primary_vector_endpoint.f[2] = 0;
+        FUN_001f9a68_2291d0(&primary_vector_endpoint, &primary_vector_endpoint, k / FUN_001f9b20_2291d0(&primary_vector_endpoint));
+        qcopy(&secondary_vector_endpoint, &primary_vector_endpoint);
+        FUN_001f9a68_2291d0(&secondary_vector_endpoint, &secondary_vector_endpoint, 1.4f);
     }
-    FUN_001f9a10_2291d0(&d1, &d1, &a);
-    FUN_001f9a10_2291d0(&d2, &d2, &b);
+    FUN_001f9a10_2291d0(&primary_vector_endpoint, &primary_vector_endpoint, &primary_vector_origin);
+    FUN_001f9a10_2291d0(&secondary_vector_endpoint, &secondary_vector_endpoint, &b);
     r = -1;
-    if (FUN_001efa68_2291d0(&b, &d2, 4, P.p2080, 0) && D_L06_001745DC > 0)
+    if (FUN_001efa68_2291d0(&b, &secondary_vector_endpoint, 4, P.p2080, 0) && D_L06_001745DC > 0)
         r = FUN_001f0b58_2291d0();
     ang = 0.0f;
-    if (FUN_001efa68_2291d0(&a, &d1, 4, P.p2080, 0) && X.i1C > 0)
+    if (FUN_001efa68_2291d0(&primary_vector_origin, &primary_vector_endpoint, 4, P.p2080, 0) && X.i1C > 0)
         ang = FUN_001f9e90_2291d0(X.v40.f[2], FUN_001f9b20_2291d0(&X.v40));
     if (0.8726646304130554f <= ang || r == 8 || r == 12) {
         P.i240 = X.i18;
@@ -548,7 +548,7 @@ s32 FUN_L06_0022a1d0(s32 mode) {
     s32 mask;
     s32 i;
     u128_22a1d0 *collision_result_position;
-    f32 h;
+    f32 query_height_or_displacement_length;
     if (hero.unk1CC != 0) {
         return 1;
     }
@@ -582,11 +582,11 @@ s32 FUN_L06_0022a1d0(s32 mode) {
                 break;
         } else {
             s32 collision_query_result;
-            h = hero.capsule_top - hero.unk224;
-            if (h < 0.05f) {
-                h = 0.05f;
+            query_height_or_displacement_length = hero.capsule_top - hero.unk224;
+            if (query_height_or_displacement_length < 0.05f) {
+                query_height_or_displacement_length = 0.05f;
             }
-            collision_query_result = coll2_22a1d0(&hero.motion.pos.q, mask, hero.unk234, hero.moby, h);
+            collision_query_result = coll2_22a1d0(&hero.motion.pos.q, mask, hero.unk234, hero.moby, query_height_or_displacement_length);
             if (!(collision_query_result | coll3_22a1d0(&hero.motion.pos.q, hero.unk234)))
                 break;
         }
@@ -599,8 +599,8 @@ s32 FUN_L06_0022a1d0(s32 mode) {
     }
     vsub_22a1d0(&hero.motion.pos.q, &hero.motion.pos.q, &v);
     vsub_22a1d0(&w, &hero.motion.pos.q, &old);
-    h = vlen_22a1d0(&w);
-    if (hero.unk234 * 1.5f < h) {
+    query_height_or_displacement_length = vlen_22a1d0(&w);
+    if (hero.unk234 * 1.5f < query_height_or_displacement_length) {
         if (mode == 0xF) {
             if (512.0f < w.f[0])
                 w.f[0] = 512.0f;
@@ -658,7 +658,7 @@ void FUN_L06_002348d0(void) {
     Vec4 history_delta;
     struct Moby *spawned_moby;
     s32 i;
-    s32 n;
+    s32 history_index_base;
     s32 sample_count;
 
     if (hero.unk20AD == 0) {
@@ -740,11 +740,11 @@ void FUN_L06_002348d0(void) {
         FUN_001f99f8_2348d0(&sum);
         sample_count = 8;
         for (i = 0; i < sample_count; i++) {
-            n = hero.unk21B0 - i;
+            history_index_base = hero.unk21B0 - i;
             {
-                s32 a = (n + 0x1F) % 32;
-                s32 b = (n + 0x1E) % 32;
-                FUN_001f9a28_2348d0(&history_delta, &hero.unk1B00[a], &hero.unk1B00[b]);
+                s32 history_sample_index = (history_index_base + 0x1F) % 32;
+                s32 b = (history_index_base + 0x1E) % 32;
+                FUN_001f9a28_2348d0(&history_delta, &hero.unk1B00[history_sample_index], &hero.unk1B00[b]);
             }
             FUN_001f9a10_2348d0(&sum, &sum, &history_delta);
         }

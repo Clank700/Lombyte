@@ -127,7 +127,7 @@ void gadgebot_spawn_container_update(unsigned char *moby) {
     char *hit_record = find_moby_hit(moby, 0x10000, 0);
     float raised_position_snapshot[4];
     int frame_count_snapshot;
-    float f;
+    float color_pulse_value;
 
     moby[0xA4] = 0xFF;
     switch (moby[0x20]) {
@@ -136,12 +136,12 @@ void gadgebot_spawn_container_update(unsigned char *moby) {
         break;
     case GADGEBOT_CONTAINER_PULSE_AND_HANDLE_HITS:
         frame_count_snapshot = level_frame_count;
-        f = (float)(frame_count_snapshot % 150) / 150.0f * 2.0f * 3.14159274f;
-        if (f > 3.14159274f) {
-            f -= 6.28318548f;
+        color_pulse_value = (float)(frame_count_snapshot % 150) / 150.0f * 2.0f * 3.14159274f;
+        if (color_pulse_value > 3.14159274f) {
+            color_pulse_value -= 6.28318548f;
         }
-        f = (fast_sin(f) + 1.0f) * 0.5f;
-        *(int *)(moby + 0x90) = fast_tween_color(0x80464646, 0x80828282, f);
+        color_pulse_value = (fast_sin(color_pulse_value) + 1.0f) * 0.5f;
+        *(int *)(moby + 0x90) = fast_tween_color(0x80464646, 0x80828282, color_pulse_value);
         if (hit_record != 0) {
             FUN_L06_002d8178(moby, hit_record);
         }
@@ -311,11 +311,11 @@ void gadgebot_spawn_pad_update(char *moby) {
     char *owner_moby = *(char **)(moby + 0xB8);
     if (owner_moby != 0 && (unsigned char)owner_moby[0x20] < 2) {
         int frame_count_snapshot = *(int *)&level_frame_count;
-        float f = (float)(frame_count_snapshot % 150) / 150.0f * 2.0f * 3.14159274f;
-        if (f > 3.14159274f)
-            f -= 6.28318548f;
-        f = (fast_sin(f) + 1.0f) * 0.5f;
-        *(int *)(moby + 0x90) = fast_tween_color(0x80464646, 0x80828282, f);
+        float color_pulse_value = (float)(frame_count_snapshot % 150) / 150.0f * 2.0f * 3.14159274f;
+        if (color_pulse_value > 3.14159274f)
+            color_pulse_value -= 6.28318548f;
+        color_pulse_value = (fast_sin(color_pulse_value) + 1.0f) * 0.5f;
+        *(int *)(moby + 0x90) = fast_tween_color(0x80464646, 0x80828282, color_pulse_value);
     } else {
         *(int *)(moby + 0x90) = fast_tween_color(*(int *)(moby + 0x90), 0x80464646, 0.1f);
     }
@@ -1982,7 +1982,7 @@ void gadgebot_update(GbMoby *moby) {
             qcopy(moby->pos, gadgebot_vars->unkE0);
             moby->state = 4;
             for (i = 0; i < 10; i++) {
-                float s = random_float_between(0.1f, 1.0f);
+                float effect_scale_factor = random_float_between(0.1f, 1.0f);
                 int cr = random_int_between(0x40, 0xFF);
                 int cg = random_int_between(0x40, 0xFF);
                 int cb = random_int_between(0x40, 0xFF);
@@ -2000,8 +2000,8 @@ void gadgebot_update(GbMoby *moby) {
                 vector_and_hit_scratch[2] = random_float_between(frame_time * 2.5f, frame_time * 5.0f);
                 t = scale_game_frames(random_int_between(0xF, 0x1E));
                 ga = (cg << 8) | 0x7F000000;
-                fa = s * 0.07f;
-                fb = s * 0.7f;
+                fa = effect_scale_factor * 0.07f;
+                fb = effect_scale_factor * 0.7f;
                 FUN_L00_00272060(position_and_displacement_scratch, t, fa, fb, (cb << 16) | ga | cr, 0,
                                  random_integer_below(2) ? 1 : -1, frame_time_sq * 15.0f, vector_and_hit_scratch);
             }
@@ -2145,7 +2145,7 @@ extern float vector_distance(void *, void *) __asm__("FUN_001f9b80");
 extern float fast_difference_between_rotations(float, float) __asm__("FUN_001fa688");
 extern float fast_arc_tan(float, float) __asm__("FUN_001f9e90");
 
-float FUN_L06_002f2148(char *moby, char *b, int c) {
+float FUN_L06_002f2148(char *moby, char *b, int target_kind) {
     float r = vector_distance(moby + 0x10, b + 0x10);
     float *g = (float *)D_L06_00167400;
     float t = fast_difference_between_rotations(
@@ -2159,7 +2159,7 @@ float FUN_L06_002f2148(char *moby, char *b, int c) {
     if (((unsigned char *)b)[0x31] == 0) {
         r += 10.0f;
     }
-    if (c == 9) {
+    if (target_kind == 9) {
         r += 100.0f;
     }
     return r;
@@ -3113,7 +3113,7 @@ void FUN_L06_002f7628(char *moby) {
     add_vector_xyz(pos, pos, beam->tgt + 0x10);
     for (i = 0; i < 4; i++) {
         float timer_progress;
-        int c;
+        int beam_sprite_color;
         beam->ph[i] += beam->spd[i];
         if (255.0f <= beam->ph[i]) {
             beam->ph[i] -= 255.0f;
@@ -3124,8 +3124,8 @@ void FUN_L06_002f7628(char *moby) {
             beam->t[i] = scale_game_frames(0xFF);
         }
         timer_progress = convert_integer_to_float(scale_game_frames(0xFF) - beam->t[i]) / (float)scale_game_frames(0xFF);
-        c = fast_tween_color(D_L06_00161E58, D_L06_00161E5C, absolute_float(0.5f - timer_progress));
-        func_L00_00273E08_g(pos, c, func_001FA898_g(beam->ph[i]), D_L06_00161E64, D_L06_00161E60, 2, 0,
+        beam_sprite_color = fast_tween_color(D_L06_00161E58, D_L06_00161E5C, absolute_float(0.5f - timer_progress));
+        func_L00_00273E08_g(pos, beam_sprite_color, func_001FA898_g(beam->ph[i]), D_L06_00161E64, D_L06_00161E60, 2, 0,
                           beam->sz[i]);
         add_vector_xyz(pos, pos, step);
     }

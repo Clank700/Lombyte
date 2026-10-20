@@ -19,22 +19,22 @@ extern s32 rand();
 extern void refresh_moby_spatial_bounds_from_basis(void *) __asm__("FUN_0020e098");
 void blend_moby_animation_u(MobyAnim *moby, int new_seq, int frame_index, int blend_frames) __asm__("FUN_00212f90");
 
-void FUN_L04_002a5a08(struct Moby *m) {
+void FUN_L04_002a5a08(struct Moby *moby) {
     int *animation_countdown;
-    if (m != 0) {
-        m->collision = 0;
-        animation_countdown = (int *)m->pvars;
+    if (moby != 0) {
+        moby->collision = 0;
+        animation_countdown = (int *)moby->pvars;
         if (*animation_countdown == 0) {
-            if (m->prev_seq != 1) {
-                blend_moby_animation_u(m, (void *)1, 0, (void *)scale_game_frames(3));
+            if (moby->prev_seq != 1) {
+                blend_moby_animation_u(moby, (void *)1, 0, (void *)scale_game_frames(3));
             }
             *animation_countdown = scale_game_frames((rand() + 0x1E) & 0xFF);
         }
-        if ((m->anim_flags & 2) && m->prev_seq != 0) {
-            blend_moby_animation_u(m, 0, 0, (void *)scale_game_frames(3));
+        if ((moby->anim_flags & 2) && moby->prev_seq != 0) {
+            blend_moby_animation_u(moby, 0, 0, (void *)scale_game_frames(3));
         }
         *animation_countdown = *animation_countdown - 1;
-        refresh_moby_spatial_bounds_from_basis(m);
+        refresh_moby_spatial_bounds_from_basis(moby);
     }
 }
 #define NOT_SDA
@@ -81,7 +81,7 @@ int FUN_L04_002c1e98(struct Moby *moby) {
     char *data = (char *)moby->pvars;
     float vec[20];
     float target_distance;
-    float s;
+    float target_selection_distance_limit;
     char *other_moby;
     int flag = 0;
     if (*(int *)(data + 0x38) != 0 || *(short *)(data + 0x136) != 0) {
@@ -89,11 +89,11 @@ int FUN_L04_002c1e98(struct Moby *moby) {
     }
     if (flag) {
         float x = *(float *)(data + 0x140);
-        s = x + x;
+        target_selection_distance_limit = x + x;
     } else {
-        s = *(float *)(data + 0x140);
+        target_selection_distance_limit = *(float *)(data + 0x140);
     }
-    FUN_L00_0025fcb8(moby, vec, s);
+    FUN_L00_0025fcb8(moby, vec, target_selection_distance_limit);
     target_distance = vector_distance((float *)&moby->pos, vec);
     for (other_moby = D_L04_0015FFE4; other_moby != 0; other_moby = *(char **)(other_moby + 0x28)) {
         if (other_moby != moby && *(short *)(other_moby + 0xA6) == 0x154) {
@@ -332,11 +332,11 @@ void FUN_L04_0029ecf8(struct Moby *moby) {
 /* Sets the float at 0x58 on the moby and on the linked moby at data+0x424, if any. */
 /* Ported from rac1-decomp (src/overlays/l04_eudora/vendor_0029FCF0.c: func_L04_002BB6D8), where it is exact; names translated to the US level program. */
 
-void FUN_L04_002ba448(char *arg, float f) {
+void FUN_L04_002ba448(char *arg, float animation_speed) {
     char *data = *(char **)(arg + 0x78);
-    *(float *)(arg + 0x58) = f;
+    *(float *)(arg + 0x58) = animation_speed;
     if (*(char **)(data + 0x424) != 0) {
-        *(float *)(*(char **)(data + 0x424) + 0x58) = f;
+        *(float *)(*(char **)(data + 0x424) + 0x58) = animation_speed;
     }
 }
 
@@ -1102,29 +1102,29 @@ void big_axebot_update(M_B7B0 *moby) {
     }
     if (moby->state != 0) {
         float q[4];
-        float m[4][4];
-        float e[4];
+        float bone_transform[4][4];
+        float bone_euler_angles[4];
         {
             data->f428 =
                 fast_subtract_rotations_cf(data->f428, fast_add_rotations_cf(moby->rot[2], rot));
-            build_moby_bone_transform((char *)moby, 0xC, (char *)m);
-            matrix_to_euler(m, e);
+            build_moby_bone_transform((char *)moby, 0xC, (char *)bone_transform);
+            matrix_to_euler(bone_transform, bone_euler_angles);
             FUN_L00_001fff28(q, 2, fast_add_rotations_cf(ang, data->f428));
             data->f428 = ang;
             multiply_quaternions(data->m160.q, data->m160.q, q);
         }
     }
     if (data->f424 != 0) {
-        float m2[4][4];
+        float axe_bone_transform[4][4];
         {
             M_B7B0 *axe;
 
-            build_moby_bone_transform((char *)moby, 0xD, (char *)m2);
+            build_moby_bone_transform((char *)moby, 0xD, (char *)axe_bone_transform);
             axe = data->f424;
-            qcopy(axe->pos, m2[3]);
+            qcopy(axe->pos, axe_bone_transform[3]);
             advance_moby_animation(axe);
             FUN_L00_00250df8(data->f424);
-            copy_matrix3x4(data->f424->fC0, m2);
+            copy_matrix3x4(data->f424->fC0, axe_bone_transform);
             normalize_vector_triplet(data->f424->fC0);
             refresh_moby_spatial_bounds_from_basis(data->f424);
             data->f424->f34 |= 6;
@@ -1708,18 +1708,18 @@ void circular_saw_enemy_update(M_35F0 *moby) {
     if (moby->state == 7 && moby->f52 == 7 && hd > 15.0f && hd < 44.0f) {
         int i;
         for (i = 0; i < 4; i++) {
-            S_35F0 p;
+            S_35F0 melee_hit_parameters;
             V4_35F0 jp;
             I4_35F0 joints = D_L04_00161890;
             {
                 moby_point_position(moby, joints.v[i], jp);
-                p.moby = moby;
-                p.f14 = 0x10001;
-                p.f1C = 1.0f;
-                subtract_vector_xyz(p.v, &hero.motion.pos, moby->pos);
-                normalize_vector_xyz(p.v, p.v, frame_time * 10.0f);
-                p.f20 = 1;
-                collect_mobies_in_sphere(jp, 0x10, moby, &p, 0.5f);
+                melee_hit_parameters.moby = moby;
+                melee_hit_parameters.f14 = 0x10001;
+                melee_hit_parameters.f1C = 1.0f;
+                subtract_vector_xyz(melee_hit_parameters.v, &hero.motion.pos, moby->pos);
+                normalize_vector_xyz(melee_hit_parameters.v, melee_hit_parameters.v, frame_time * 10.0f);
+                melee_hit_parameters.f20 = 1;
+                collect_mobies_in_sphere(jp, 0x10, moby, &melee_hit_parameters, 0.5f);
                 if (D_L04_00173FC0.f18 == tgt) {
                     data->f146 =
                         data->f146 < scale_game_frames(0x3C) ? data->f146 : scale_game_frames(0x3C);
@@ -2056,15 +2056,15 @@ void circular_saw_enemy_update(M_35F0 *moby) {
         {
             if (vector_distance(moby->pos, dest) >= frame_time * 3.0f * 2.0f) {
                 float rel = fast_subtract_rotations(ang, moby->rot);
-                float q = fast_add_rotations(rel, 0.3926991f);
+                float biased_relative_yaw = fast_add_rotations(rel, 0.3926991f);
                 float dir;
-                if (q < 0.0f) {
-                    q += 6.2831855f;
+                if (biased_relative_yaw < 0.0f) {
+                    biased_relative_yaw += 6.2831855f;
                 }
                 if (fast_difference_between_rotations(
                         wrap_angle(wrap_angle(convert_integer_to_float(data->f14C) * 1.5707964f)),
                         rel) > 1.7453293f) {
-                    data->f14C = truncate_float_to_s32(q * 1.999f / 3.1415927f);
+                    data->f14C = truncate_float_to_s32(biased_relative_yaw * 1.999f / 3.1415927f);
                     anim = tbl.v[data->f14C];
                 }
                 dir = wrap_angle(convert_integer_to_float(data->f14C) * 1.5707964f);
@@ -2373,7 +2373,7 @@ void blarg_trooper_update(struct Moby *moby) {
             } p;
         } w;
     } st;
-    int n;
+    int hit_reaction_status;
     float dmg;
     float ang;
     float ang2;
@@ -2451,7 +2451,7 @@ void blarg_trooper_update(struct Moby *moby) {
         best = 0.0f;
     }
     hit = find_moby_hit(moby, 0x210000, 0);
-    r = hit_reaction(moby, hit, data + 0x20, 0, &n, &dmg, 0, 4);
+    r = hit_reaction(moby, hit, data + 0x20, 0, &hit_reaction_status, &dmg, 0, 4);
     fast_dec_timer_s16(data + 0xF0);
     fast_dec_timer_s16(data + 0xF2);
     if (hit != 0 && moby->state < 0xB && *(short *)(data + 0xF0) == 0) {
@@ -2489,11 +2489,11 @@ void blarg_trooper_update(struct Moby *moby) {
             {
                 float a = frame_time_sq * 37.0f;
                 float b = frame_time * 17.0f;
-                float c = frame_time_sq * 20.0f;
+                float fatal_knockback_horizontal_speed_adjustment = frame_time_sq * 20.0f;
                 float d = frame_time * 13.0f;
                 *(float *)(data + 0x80) = a;
                 *(float *)(data + 0x88) = b;
-                *(float *)(data + 0x84) = c;
+                *(float *)(data + 0x84) = fatal_knockback_horizontal_speed_adjustment;
                 *(float *)(data + 0x8C) = d;
             }
             *(OvlQuad *)st.w.p.v70 = *(OvlQuad *)(hit + 0x10);

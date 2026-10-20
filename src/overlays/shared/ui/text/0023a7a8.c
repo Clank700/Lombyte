@@ -31,7 +31,7 @@ extern short D_L00_0015F93C __attribute__((sda));
 extern short D_L00_0015F940 __attribute__((sda));
 int FUN_L00_0023a7a8(char *hud_element) {
     char buf[16];
-    char *q = hud_element + 0x70;
+    char *fade_control_bytes = hud_element + 0x70;
     int x4;
     int y = 0x12;
     int x, frame_alpha, alpha, w, text_color, tex, c1, wd, displayed_numerator;
@@ -48,7 +48,7 @@ int FUN_L00_0023a7a8(char *hud_element) {
             f21 = 1.0f;
         else if (f21 < 0.0f)
             f21 = 0.0f;
-        f20 = convert_integer_to_float(*(unsigned char *)(q + 1));
+        f20 = convert_integer_to_float(*(unsigned char *)(fade_control_bytes + 1));
         f20 = f20 / convert_integer_to_float(*(int *)&D_L00_0015F920_gp);
         if (f20 > 1.0f)
             f20 = 1.0f;
@@ -114,7 +114,7 @@ int FUN_L00_0023aaa8(O_23aaa8 *hud_frame_state) {
     };
     T_23aaa8 *frame_sequence = &D_L00_0017E4F4[hud_frame_state->id];
     int r;
-    int k, a;
+    int k, restart_start_offset;
     r = 0;
     if (frame_sequence->id != 0xFFFF) {
         switch (hud_frame_state->mode) {
@@ -147,8 +147,8 @@ int FUN_L00_0023aaa8(O_23aaa8 *hud_frame_state) {
                     r += frame_sequence->base;
                 } else {
                     r = frame_sequence->base;
-                    a = FUN_001f96f8_23aaa8(0xA);
-                    hud_frame_state->start = frame_sequence->n * 2 + a + FUN_00213260_23aaa8(FUN_001f96f8_23aaa8(0x1E));
+                    restart_start_offset = FUN_001f96f8_23aaa8(0xA);
+                    hud_frame_state->start = frame_sequence->n * 2 + restart_start_offset + FUN_00213260_23aaa8(FUN_001f96f8_23aaa8(0x1E));
                 }
             } else {
                 r = hud_frame_state->frame;
@@ -184,12 +184,12 @@ int scale_game_frames(int) __asm__("FUN_001f96f8");
 int FUN_L00_0023ac78(int call) {
     int positive_timer_count = 0;
     E_23ac78 *hud_element;
-    H_23ac78 *h;
+    H_23ac78 *hud_timer_refresh_control;
     FUN_L00_0023adb8();
     hud_element = hud_elements;
-    h = &D_L00_0017E4D8;
+    hud_timer_refresh_control = &D_L00_0017E4D8;
     do {
-        if ((hud_element->flags & 0x10) || h->b != 0) {
+        if ((hud_element->flags & 0x10) || hud_timer_refresh_control->b != 0) {
             if (hud_element->t < scale_game_frames(10)) {
                 hud_element->t = scale_game_frames(10);
             }

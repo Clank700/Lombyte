@@ -105,9 +105,14 @@ void sentrybot_update(unsigned char *moby) {
         SENTRYBOT_RETURN_HOME = 9,
         SENTRYBOT_WAIT_FOR_ANIMATION_THEN_PATROL_IDLE = 10,
         SENTRYBOT_WAIT_FOR_TRANSITION_ANIMATION = 11,
+        SENTRYBOT_ALERT_IDLE = 12,
         SENTRYBOT_PATROL_MOVE_FAST = 13,
         SENTRYBOT_APPROACH_LINKED_MOBY = 14,
         SENTRYBOT_ACTIVATE_LINKED_MOBY = 15,
+        SENTRYBOT_WAIT_FOR_ANIMATION_THEN_EMIT_WITH_NEGATIVE_JOINT_AIM = 16,
+        SENTRYBOT_EMIT_WITH_NEGATIVE_JOINT_AIM = 17,
+        SENTRYBOT_WAIT_FOR_ANIMATION_THEN_EMIT_WITH_POSITIVE_JOINT_AIM = 18,
+        SENTRYBOT_EMIT_WITH_POSITIVE_JOINT_AIM = 19,
         SENTRYBOT_RETURN_HOME_FAST = 20,
         SENTRYBOT_RECOVERABLE_KNOCKBACK = 21,
         SENTRYBOT_DEATH_KNOCKBACK = 23
@@ -602,7 +607,7 @@ void sentrybot_update(unsigned char *moby) {
                              (void *)0xE);
         }
         break;
-    case 18:
+    case SENTRYBOT_WAIT_FOR_ANIMATION_THEN_EMIT_WITH_POSITIVE_JOINT_AIM:
         *(short *)(data + 0x19C) = 0;
         *(short *)(data + 0x194) = 0;
         FUN_L15_0029a0d0(moby);
@@ -619,7 +624,7 @@ void sentrybot_update(unsigned char *moby) {
             }
         }
         break;
-    case 16:
+    case SENTRYBOT_WAIT_FOR_ANIMATION_THEN_EMIT_WITH_NEGATIVE_JOINT_AIM:
         *(short *)(data + 0x19C) = 0;
         *(short *)(data + 0x194) = 0;
         FUN_L15_0029a0d0(moby);
@@ -636,7 +641,7 @@ void sentrybot_update(unsigned char *moby) {
             }
         }
         break;
-    case 19:
+    case SENTRYBOT_EMIT_WITH_POSITIVE_JOINT_AIM:
         *(short *)(data + 0x19C) = 0;
         *(short *)(data + 0x194) = 0;
         FUN_L15_0029a0d0(moby);
@@ -694,7 +699,7 @@ void sentrybot_update(unsigned char *moby) {
             data[0x19E] = 0;
         }
         break;
-    case 17:
+    case SENTRYBOT_EMIT_WITH_NEGATIVE_JOINT_AIM:
         *(short *)(data + 0x19C) = 0;
         *(short *)(data + 0x194) = 0;
         FUN_L15_0029a0d0(moby);
@@ -752,7 +757,7 @@ void sentrybot_update(unsigned char *moby) {
             data[0x19E] = 0;
         }
         break;
-    case 12:
+    case SENTRYBOT_ALERT_IDLE:
         if (hero.state.current == 0x65) {
             moby[0x20] = 9;
             if (moby[0x53] != 0xD)
@@ -1029,7 +1034,7 @@ int FUN_L15_00299ca0(void *mm) {
     char *moby = mm;
     int idx = *(int *)(*(char **)(moby + 0x78) + 0x128);
     char *linked_moby;
-    float d;
+    float linked_moby_distance_xy;
     short *group_moby_entry;
     if (idx == -1)
         return 0;
@@ -1038,7 +1043,7 @@ int FUN_L15_00299ca0(void *mm) {
         return 0;
     if (((unsigned char *)moby)[0x21] == 0xFF)
         return 1;
-    d = FUN_001f9b80((float *)(moby + 0x10), (float *)(linked_moby + 0x10));
+    linked_moby_distance_xy = FUN_001f9b80((float *)(moby + 0x10), (float *)(linked_moby + 0x10));
     group_moby_entry = (short *)D_L15_001ABE40[((unsigned char *)moby)[0x21]];
     if (group_moby_entry == 0)
         return 1;
@@ -1050,7 +1055,7 @@ int FUN_L15_00299ca0(void *mm) {
             int j = *(int *)(*(char **)(listed_moby + 0x78) + 0x128);
             if (j != -1) {
                 if (FUN_001f9b80((float *)(listed_moby + 0x10),
-                                 (float *)((char *)D_L15_0015FFD8_m + (j << 8) + 0x10)) < d)
+                                 (float *)((char *)D_L15_0015FFD8_m + (j << 8) + 0x10)) < linked_moby_distance_xy)
                     return 0;
             }
         }
@@ -1543,7 +1548,7 @@ void rocket_update(unsigned char *moby) {
     float next[4];
     float back[4];
     char col[0x30];
-    float s;
+    float collision_setup_value;
     if (*(int *)(rocket_data + 0x10) == 0) {
         if (dist_y(moby + 0x10, D_L15_001673C0_y) < 15.0f) {
             sound_y(9, 0, moby, 0x27E);
@@ -1552,14 +1557,14 @@ void rocket_update(unsigned char *moby) {
     }
     if (moby[0x20] != 0)
         return;
-    s = 1.0f;
+    collision_setup_value = 1.0f;
     *(float *)(moby + 0x40) = addrot_y(*(float *)(moby + 0x40), D_0015ED6C * 6.2831855f);
     add_y(next, moby + 0x10, rocket_data);
     scale_y(back, rocket_data, -2.0f);
     add_y(back, back, moby + 0x10);
     if (hero.vehicle_mode == 2 && randbelow_y(5) != 0)
-        s = 0.0f;
-    setupcol_y(col, moby, 0x10003, s, rocket_data);
+        collision_setup_value = 0.0f;
+    setupcol_y(col, moby, 0x10003, collision_setup_value, rocket_data);
     *(short *)(col + 0x1A) = *(short *)(moby + 0xA6);
     if (collide_y(back, next, 0x10, moby, col) != 0 || tick_y(rocket_data + 0x14) != 0) {
         if (D_L15_00174458_y[0] != *(int *)(rocket_data + 0x18)) {
@@ -1809,10 +1814,10 @@ void FUN_L15_0029d6c0(M_29E8A0 *missile_moby) {
         float tp[4];
         float ip[4];
         if (D_L15_0015F30C != 0 && target_moby != 0) {
-            float f = fast_vec_dist(D_L15_001673C0, target_moby->pos) / 50.0f;
+            float scaled_target_distance = fast_vec_dist(D_L15_001673C0, target_moby->pos) / 50.0f;
             qcopy(delta, target_moby->pos);
             delta[2] = delta[2] + missile_data->zoff;
-            suck_draw_reticle(missile_moby, 0xFF0FFFFF, absolute_float(0.5f - f * 0.35f), 0.0f, delta, 0xD, -1, 90.0f, 4);
+            suck_draw_reticle(missile_moby, 0xFF0FFFFF, absolute_float(0.5f - scaled_target_distance * 0.35f), 0.0f, delta, 0xD, -1, 90.0f, 4);
         }
         if (target_moby != 0 && missile_data->timer < scale_game_frames(0x96) - scale_game_frames(0) && target_moby->state >= 0) {
             float intercept_time = 0.0f;
@@ -1820,7 +1825,7 @@ void FUN_L15_0029d6c0(M_29E8A0 *missile_moby) {
             tp[2] = tp[2] + missile_data->zoff;
             subtract_vector_xyz_c2(delta, tp, missile_moby->pos);
             if (missile_data->f38 != 0) {
-                float a, b, c, r1, r2, discriminant_sqrt;
+                float a, b, c, intercept_time_plus_root, intercept_time_minus_root, discriminant_sqrt;
                 subtract_vector_xyz_c2(dv, tp, missile_data->v);
                 FUN_L00_001ff2c0(ip, dv, up);
                 qcopy(missile_data->v, tp);
@@ -1829,15 +1834,15 @@ void FUN_L15_0029d6c0(M_29E8A0 *missile_moby) {
                 a = missile_data->speed * missile_data->speed - c;
                 c = -FUN_L00_001ff430(delta);
                 discriminant_sqrt = square_root_scalar(b * b - a * 4.0f * c);
-                r1 = (-b + discriminant_sqrt) / (a + a);
-                r2 = (-b - discriminant_sqrt) / (a + a);
-                if (r1 > 0.0f && r2 > 0.0f) {
-                    if (r2 < r1) intercept_time = r1;
-                    else intercept_time = r2;
-                } else if (r1 > 0.0f) {
-                    intercept_time = r1;
-                } else if (r2 > 0.0f) {
-                    intercept_time = r2;
+                intercept_time_plus_root = (-b + discriminant_sqrt) / (a + a);
+                intercept_time_minus_root = (-b - discriminant_sqrt) / (a + a);
+                if (intercept_time_plus_root > 0.0f && intercept_time_minus_root > 0.0f) {
+                    if (intercept_time_minus_root < intercept_time_plus_root) intercept_time = intercept_time_plus_root;
+                    else intercept_time = intercept_time_minus_root;
+                } else if (intercept_time_plus_root > 0.0f) {
+                    intercept_time = intercept_time_plus_root;
+                } else if (intercept_time_minus_root > 0.0f) {
+                    intercept_time = intercept_time_minus_root;
                 } else {
                     intercept_time = -1.0f;
                 }
@@ -2020,17 +2025,17 @@ void FUN_L15_0029d6c0(M_29E8A0 *missile_moby) {
             clamp_vector_length(burst_position_or_velocity, burst_position_or_velocity, D_0015ED6C * 10.0f);
             FUN_L00_002af450((char *)missile_moby->pos, (char *)burst_position_or_velocity, FUN_L00_00257b90(scale_game_frames(0x3C), scale_game_frames(0x5A)), 0, 0);
             {
-                int n;
+                int burst_effect_pair_count;
                 float under;
                 if (dist < 6.0f) {
-                    n = truncate_float_to_s32_c4(dist) / 2;
+                    burst_effect_pair_count = truncate_float_to_s32_c4(dist) / 2;
                 } else {
-                    n = 3;
+                    burst_effect_pair_count = 3;
                 }
                 under = 0.0f;
                 if (dist < 7.0f) under = 7.0f - dist;
                 i = 0;
-                while (i < n) {
+                while (i < burst_effect_pair_count) {
                     float sz = random_float_between(8.0f, 10.0f) * D_0015ED6C - under * D_0015ED6C;
                     Cols_29E8A0 c1 = D_L15_001E2660;
                     Cols_29E8A0 c2 = D_L15_001E2678;

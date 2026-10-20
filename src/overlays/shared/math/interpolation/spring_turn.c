@@ -287,14 +287,14 @@ extern int func_L00_001F10E0_l(void *, float, int, void *) __asm__("FUN_L00_001f
 
 int FUN_L00_00258830_c(char *m, char *v, int flags, float a, float b,
                        float c) __asm__("FUN_L00_00258830");
-int FUN_L00_00258830_c(char *m, char *v, int flags, float a, float b, float ground_probe_offset) {
+int FUN_L00_00258830_c(char *moving_object, char *v, int flags, float a, float b, float ground_probe_offset) {
     Vs original_position;
     Vs raised_position;
     Vs probe_end;
     Vs scaled_displacement;
     int r = 0;
     int fl = (flags * 2) & 0x20;
-    char *movement_position = m + 0x10;
+    char *movement_position = moving_object + 0x10;
     int i;
     char *collision_position;
 
@@ -306,29 +306,29 @@ int FUN_L00_00258830_c(char *m, char *v, int flags, float a, float b, float grou
         normalize_vector_xyz(&scaled_displacement, v, b);
         add_vector_xyz(&probe_end, &scaled_displacement, movement_position);
         probe_end.a[2] += a;
-        if (collision_line(&raised_position, &probe_end, fl, (int)m, 0)) {
+        if (collision_line(&raised_position, &probe_end, fl, (int)moving_object, 0)) {
             subtract_vector_xyz(movement_position, (char *)&D_94C8_60, &scaled_displacement);
             r = 1;
-            *(float *)(m + 0x18) -= a;
+            *(float *)(moving_object + 0x18) -= a;
         }
     }
-    for (i = 0, collision_position = m + 0x10; i < 6; i++) {
+    for (i = 0, collision_position = moving_object + 0x10; i < 6; i++) {
         qcopy(&raised_position, collision_position);
         raised_position.a[2] += a;
-        if (func_L00_001F10E0_l(&raised_position, b, fl | 4, m)) {
+        if (func_L00_001F10E0_l(&raised_position, b, fl | 4, moving_object)) {
             qcopy(collision_position, &D_L00_00173E70);
             r |= 1;
-            *(float *)(m + 0x18) -= a;
+            *(float *)(moving_object + 0x18) -= a;
         } else {
             break;
         }
     }
-    b = *(float *)(m + 0x18) - ground_probe_offset;
+    b = *(float *)(moving_object + 0x18) - ground_probe_offset;
     qcopy(&raised_position, collision_position);
     qcopy(&probe_end, collision_position);
     raised_position.a[2] += a;
     probe_end.a[2] = b - 0.05f;
-    if (collision_line(&raised_position, &probe_end, fl | 2, (int)m, 0)) {
+    if (collision_line(&raised_position, &probe_end, fl | 2, (int)moving_object, 0)) {
         if (D_L00_00173E40[7] > 0) {
             float g;
             r |= 2;
@@ -339,7 +339,7 @@ int FUN_L00_00258830_c(char *m, char *v, int flags, float a, float b, float grou
             }
             g = *(float *)((char *)D_L00_00173E40 + 0x28);
             if (b < g) {
-                *(float *)(m + 0x18) += (g - b) * 0.3f;
+                *(float *)(moving_object + 0x18) += (g - b) * 0.3f;
             }
         }
     }
@@ -406,7 +406,7 @@ extern f32 probe_ground_height(void *, s32, f32) __asm__("FUN_00213508");
 extern f32 frame_time_sq_gp __asm__("D_0015ED70") __attribute__((sda));
 extern f32 frame_scale __asm__("D_0015ED60") __attribute__((sda));
 s32 FUN_L00_00258b50(Obj *m, Ctl *c, void *v, Vec4 *out, f32 f);
-s32 FUN_L00_00258b50(Obj *m, Ctl *c, void *v, Vec4 *out, f32 f) {
+s32 FUN_L00_00258b50(Obj *moby, Ctl *movement_control, void *v, Vec4 *out, f32 f) {
     Vec4 save;
     Vec4 displacement;
     Vec4 p;
@@ -424,58 +424,58 @@ s32 FUN_L00_00258b50(Obj *m, Ctl *c, void *v, Vec4 *out, f32 f) {
     f32 normal_elevation_angle;
     f32 l2;
 
-    sp = c->f1C * f;
-    lim = c->f24 * f;
-    fast_vec_sub(&displacement, v, &m->pos);
+    sp = movement_control->f1C * f;
+    lim = movement_control->f24 * f;
+    fast_vec_sub(&displacement, v, &moby->pos);
     len = vector_length_xy(&displacement);
-    save.q = m->pos.q;
+    save.q = moby->pos.q;
     speed_increment = sp * len;
     if (sp < speed_increment)
         speed_increment = sp;
-    c->f10 = c->f10 + speed_increment;
-    if (len < c->f10 * 10.0f)
-        c->f10 = c->f10 - c->f20 * c->f10;
-    if (lim < c->f10)
-        c->f10 = lim;
-    else if (c->f10 < -lim)
-        c->f10 = -lim;
-    if (c->i38 & 4) {
-        displacement.f[0] = FUN_001f9dc8_c(c->f4C) * c->f10;
-        displacement.f[1] = fast_sin(c->f4C) * c->f10;
+    movement_control->f10 = movement_control->f10 + speed_increment;
+    if (len < movement_control->f10 * 10.0f)
+        movement_control->f10 = movement_control->f10 - movement_control->f20 * movement_control->f10;
+    if (lim < movement_control->f10)
+        movement_control->f10 = lim;
+    else if (movement_control->f10 < -lim)
+        movement_control->f10 = -lim;
+    if (movement_control->i38 & 4) {
+        displacement.f[0] = FUN_001f9dc8_c(movement_control->f4C) * movement_control->f10;
+        displacement.f[1] = fast_sin(movement_control->f4C) * movement_control->f10;
     } else {
-        displacement.f[0] = FUN_001f9dc8_c(m->f48) * c->f10;
-        displacement.f[1] = fast_sin(m->f48) * c->f10;
+        displacement.f[0] = FUN_001f9dc8_c(moby->f48) * movement_control->f10;
+        displacement.f[1] = fast_sin(moby->f48) * movement_control->f10;
     }
-    if (c->i38 & 1) {
+    if (movement_control->i38 & 1) {
         displacement.f[2] = 0.0f;
     } else {
-        displacement.f[2] = c->f18;
-        c->f18 = c->f18 - frame_time_sq_gp * 9.0f;
+        displacement.f[2] = movement_control->f18;
+        movement_control->f18 = movement_control->f18 - frame_time_sq_gp * 9.0f;
     }
-    lim = m->pos.f[2] + 0.04f;
-    fast_vec_add(&p, &m->pos, &displacement);
-    p.f[2] = m->pos.f[2] - c->f30;
-    if (FUN_L00_002583f0_c(&p, m, c->i38 & 0x20, c->f08, c->f0C)) {
+    lim = moby->pos.f[2] + 0.04f;
+    fast_vec_add(&p, &moby->pos, &displacement);
+    p.f[2] = moby->pos.f[2] - movement_control->f30;
+    if (FUN_L00_002583f0_c(&p, moby, movement_control->i38 & 0x20, movement_control->f08, movement_control->f0C)) {
         g = &D_L00_00173E40_c;
         normal_elevation_angle = fast_arc_tan(g->v40.f[2], vector_length_xy(&g->v40));
         h1 = g->f28;
         if (0.5f < normal_elevation_angle && 0.1f < vector_length_xy(&displacement)) {
             {
                 fast_vec_normalize(&q, &displacement, 0.57f);
-                fast_vec_add(&q, &q, &m->pos);
-                q.f[2] = m->pos.f[2] - c->f30;
-                if (FUN_L00_002583f0_c(&q, m, c->i38 & 0x20, c->f08, c->f0C)) {
+                fast_vec_add(&q, &q, &moby->pos);
+                q.f[2] = moby->pos.f[2] - movement_control->f30;
+                if (FUN_L00_002583f0_c(&q, moby, movement_control->i38 & 0x20, movement_control->f08, movement_control->f0C)) {
                     h2 = g->f28;
                     if (!(0.5f <= fast_arc_tan(g->v40.f[2], vector_length_xy(&g->v40))))
                         goto done;
                     mask = 0x22;
-                    if (!(c->i38 & 8))
+                    if (!(movement_control->i38 & 8))
                         goto done;
                     if (!(h2 < lim))
                         goto done;
                 } else {
                     mask = 0x22;
-                    if (!(c->i38 & 8))
+                    if (!(movement_control->i38 & 8))
                         goto done;
                 }
                 if (h1 < lim)
@@ -483,31 +483,31 @@ s32 FUN_L00_00258b50(Obj *m, Ctl *c, void *v, Vec4 *out, f32 f) {
             }
         }
     } else {
-        mask = (c->i38 & 8) ? 8 : 0x22;
+        mask = (movement_control->i38 & 8) ? 8 : 0x22;
     }
 done:
     if (!(mask & 2)) {
         l2 = vector_length_xy(&displacement);
         FUN_001f9a68_c(&p, &displacement, 1.0f / l2);
-        r = FUN_L00_00258ad0_c(m, &displacement, c->f04, c->i00, c->f30, c->i38);
+        r = FUN_L00_00258ad0_c(moby, &displacement, movement_control->f04, movement_control->i00, movement_control->f30, movement_control->i38);
         if (r & 2)
-            c->f18 = frame_scale * -0.01f;
+            movement_control->f18 = frame_scale * -0.01f;
         if (r & 1) {
             mask |= 1;
             if (displacement.f[0] * p.f[0] + displacement.f[1] * p.f[1] < l2 * 0.2f)
                 mask |= 2;
-            ground_height = probe_ground_height(&m->pos, 0, 0.5f);
-            if (c->f08 < save.f[2] - ground_height || c->f0C < ground_height - save.f[2]) {
+            ground_height = probe_ground_height(&moby->pos, 0, 0.5f);
+            if (movement_control->f08 < save.f[2] - ground_height || movement_control->f0C < ground_height - save.f[2]) {
                 mask |= 0x22;
-                m->pos.q = save.q;
+                moby->pos.q = save.q;
             }
         }
         qcopy(out, &displacement);
     } else {
-        if ((c->i38 ^ 1) & 1)
-            c->f18 = frame_scale * -0.01f;
+        if ((movement_control->i38 ^ 1) & 1)
+            movement_control->f18 = frame_scale * -0.01f;
     }
-    if (len < c->f2C)
+    if (len < movement_control->f2C)
         mask |= 4;
     return mask;
 }
@@ -522,16 +522,16 @@ int FUN_001f96f8_259028(int) __asm__("FUN_001f96f8");
 int FUN_L00_00258b50_259028(unsigned char *, char *, float *, void *,
                             float) __asm__("FUN_L00_00258b50");
 int FUN_L00_00259028(unsigned char *m, char *c, float *tgt, void *out);
-int FUN_L00_00259028(unsigned char *m, char *movement_control, float *tgt, void *out) {
+int FUN_L00_00259028(unsigned char *moby, char *movement_control, float *tgt, void *out) {
     int r = 0;
     float target_heading, d;
     FUN_001f99f8_259028(out);
-    if (FUN_001f9b48_259028(m + 0x10, tgt) < *(float *)(movement_control + 0x2C))
+    if (FUN_001f9b48_259028(moby + 0x10, tgt) < *(float *)(movement_control + 0x2C))
         r = 4;
-    target_heading = FUN_001f9e90_259028(tgt[0] - *(float *)(m + 0x10), tgt[1] - *(float *)(m + 0x14));
-    FUN_L00_00258278_259028(m, (float *)(movement_control + 0x14), target_heading, *(float *)(movement_control + 0x3C), *(float *)(movement_control + 0x40),
+    target_heading = FUN_001f9e90_259028(tgt[0] - *(float *)(moby + 0x10), tgt[1] - *(float *)(moby + 0x14));
+    FUN_L00_00258278_259028(moby, (float *)(movement_control + 0x14), target_heading, *(float *)(movement_control + 0x3C), *(float *)(movement_control + 0x40),
                             *(float *)(movement_control + 0x44));
-    d = FUN_001fa688_259028(target_heading, *(float *)(m + 0x48));
+    d = FUN_001fa688_259028(target_heading, *(float *)(moby + 0x48));
     if (*(float *)(movement_control + 0x28) <= d)
         r |= 0x10;
     FUN_001f9740_259028(movement_control + 0x48);
@@ -539,7 +539,7 @@ int FUN_L00_00259028(unsigned char *m, char *movement_control, float *tgt, void 
         *(int *)(movement_control + 0x48) = FUN_001f96f8_259028(4);
     }
     if (*(int *)(movement_control + 0x48) != 0) {
-        r |= FUN_L00_00258b50_259028(m, movement_control, tgt, out,
+        r |= FUN_L00_00258b50_259028(moby, movement_control, tgt, out,
                                      (*(float *)(movement_control + 0x28) - d) / *(float *)(movement_control + 0x28));
         if (0.1f < d)
             r &= ~2;
@@ -555,7 +555,7 @@ extern char *D_L00_0015FFD8_2591d0 __asm__("D_L00_0015FFD8");
 int FUN_L00_002592b8_c(char **, char *) __asm__("FUN_L00_002592b8");
 /* Looks up table entry idx and makes it current; the flag test reads the
  * current entry back, as the original did. */
-int FUN_L00_002591d0(char **out, int idx, int a, int b) {
+int FUN_L00_002591d0(char **out, int idx, int include_sign_bit_set_entries, int b) {
     unsigned short *v;
     char *entry_address;
     int entry_sign_bit_set;
@@ -575,7 +575,7 @@ int FUN_L00_002591d0(char **out, int idx, int a, int b) {
     D_L00_00160114 = entry_address;
     *out = entry_address;
     entry_sign_bit_set = (unsigned)(*(char *volatile *)&D_L00_00160114)[0x20] >> 31;
-    if (!a) {
+    if (!include_sign_bit_set_entries) {
         if (b || entry_sign_bit_set) return FUN_L00_002592b8_c(out, D_L00_00160114);
     } else if (b && !entry_sign_bit_set) return FUN_L00_002592b8_c(out, D_L00_00160114);
     return 0;
@@ -654,10 +654,10 @@ int FUN_L00_00259430(int *packed_countdown, int b) {
 extern f32 convert_integer_to_float(s32) __asm__("func_001FA6C0");
 extern s32 truncate_float_to_s32(f32) __asm__("FUN_001fa6d0");
 
-float FUN_L00_00259468(float *a, float *b, int *out, float f) {
+float FUN_L00_00259468(float *base_values, float *b, int *out, float f) {
     int truncated_ratio = truncate_float_to_s32(b[2] / f);
     float truncated_ratio_float = convert_integer_to_float(truncated_ratio);
-    float r = a[2] + b[2] * truncated_ratio_float - convert_integer_to_float((truncated_ratio * truncated_ratio + truncated_ratio) >> 1) * f;
+    float r = base_values[2] + b[2] * truncated_ratio_float - convert_integer_to_float((truncated_ratio * truncated_ratio + truncated_ratio) >> 1) * f;
     if (out) {
         *out = truncated_ratio;
     }
@@ -673,28 +673,28 @@ extern f32 convert_integer_to_float(s32) __asm__("func_001FA6C0");
 extern void fast_vec_add(void *, void *, void *) __asm__("FUN_001f9a10");
 extern void fast_vec_scale(void *, void *, float) __asm__("FUN_001f9a68");
 
-void FUN_L00_00259508(void *destination, void *b, void *velocity, int frame_count, float f) {
+void FUN_L00_00259508(void *destination, void *b, void *velocity, int frame_count, float vertical_drop_coefficient) {
     float displacement[4];
     fast_vec_scale(displacement, velocity, convert_integer_to_float(frame_count));
-    displacement[2] -= convert_integer_to_float((frame_count * frame_count + frame_count) >> 1) * f;
+    displacement[2] -= convert_integer_to_float((frame_count * frame_count + frame_count) >> 1) * vertical_drop_coefficient;
     fast_vec_add(destination, b, displacement);
 }
 float FUN_001f99c0(float);
 float square_root(float) __asm__("FUN_001f9988");
-int FUN_L00_002595a0(float *r0, float *r1, float a, float b, float c) {
+int FUN_L00_002595a0(float *larger_root_output, float *smaller_root_output, float a, float b, float c) {
     float discriminant = b * b - a * 4.0f * c;
     float sqrt_abs_discriminant, root_swap_temp;
     if (discriminant == 0.0f) {
-        *r0 = -b / (a + a);
+        *larger_root_output = -b / (a + a);
         return 1;
     }
     sqrt_abs_discriminant = square_root(FUN_001f99c0(discriminant));
-    *r0 = (-b + sqrt_abs_discriminant) / (a + a);
-    *r1 = (-b - sqrt_abs_discriminant) / (a + a);
-    if (*r0 < *r1) {
-        root_swap_temp = *r0;
-        *r1 = root_swap_temp;
-        *r0 = (-b - sqrt_abs_discriminant) / (a + a);
+    *larger_root_output = (-b + sqrt_abs_discriminant) / (a + a);
+    *smaller_root_output = (-b - sqrt_abs_discriminant) / (a + a);
+    if (*larger_root_output < *smaller_root_output) {
+        root_swap_temp = *larger_root_output;
+        *smaller_root_output = root_swap_temp;
+        *larger_root_output = (-b - sqrt_abs_discriminant) / (a + a);
     }
     {
         int r = 0;

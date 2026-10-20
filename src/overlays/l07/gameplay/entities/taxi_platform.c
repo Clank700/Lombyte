@@ -77,7 +77,7 @@ extern float randf_sym(float lo, float hi) __asm__("FUN_L00_00257c48");
 extern float random_angle_radians(void) __asm__("FUN_00213308");
 extern char *func_0020D348_m(int) __asm__("FUN_0020c4f8");
 
-char *FUN_L07_0030ba90(char *pos, char *vec, int c, short d) {
+char *FUN_L07_0030ba90(char *pos, char *vec, int spawning_moby, short burst_index) {
     char *spawned_moby = func_0020D348_m(0x372);
     char *moby_data;
     if (spawned_moby) {
@@ -92,8 +92,8 @@ char *FUN_L07_0030ba90(char *pos, char *vec, int c, short d) {
         *(float *)(moby_data + 0x1C) = randf_sym(100.0f, 300.0f) * DEG_TO_RAD * frame_time;
         qcopy(spawned_moby + 0x10, pos);
         qcopy(moby_data, vec);
-        *(int *)(moby_data + 0x10) = c;
-        *(int *)(moby_data + 0x14) = d;
+        *(int *)(moby_data + 0x10) = spawning_moby;
+        *(int *)(moby_data + 0x14) = burst_index;
         FUN_L00_00250df8(spawned_moby);
     }
     return spawned_moby;
@@ -347,29 +347,29 @@ extern int fast_dec_timer_s16(void *) __asm__("FUN_001f9770");
 extern int fast_tween_color(int, int, float) __asm__("FUN_001fa6e0");
 extern void FUN_L00_0023e838(int);
 
-void FUN_L07_00312150(char *a) {
+void FUN_L07_00312150(char *light_effect_state) {
     int color_phase_threshold;
     float phase_remaining_fraction;
     int c;
     float *rgb_destination;
-    if (fast_dec_timer_s16(a + 0x284)) {
-        if (*(short *)(a + 0x280) != -1) {
-            FUN_L00_0023e838(*(short *)(a + 0x280));
-            *(short *)(a + 0x280) = -1;
-            *(short *)(a + 0x282) = -1;
+    if (fast_dec_timer_s16(light_effect_state + 0x284)) {
+        if (*(short *)(light_effect_state + 0x280) != -1) {
+            FUN_L00_0023e838(*(short *)(light_effect_state + 0x280));
+            *(short *)(light_effect_state + 0x280) = -1;
+            *(short *)(light_effect_state + 0x282) = -1;
         }
-    } else if (*(short *)(a + 0x280) != -1) {
-        color_phase_threshold = (*(short *)(a + 0x286) * 7) / 8;
-        if (color_phase_threshold < *(short *)(a + 0x284)) {
-            phase_remaining_fraction = convert_integer_to_float(*(short *)(a + 0x284) - color_phase_threshold);
-            phase_remaining_fraction /= convert_integer_to_float(*(short *)(a + 0x286) - color_phase_threshold);
-            c = fast_tween_color(0, *(int *)(a + 0x288), 1.0f - phase_remaining_fraction);
+    } else if (*(short *)(light_effect_state + 0x280) != -1) {
+        color_phase_threshold = (*(short *)(light_effect_state + 0x286) * 7) / 8;
+        if (color_phase_threshold < *(short *)(light_effect_state + 0x284)) {
+            phase_remaining_fraction = convert_integer_to_float(*(short *)(light_effect_state + 0x284) - color_phase_threshold);
+            phase_remaining_fraction /= convert_integer_to_float(*(short *)(light_effect_state + 0x286) - color_phase_threshold);
+            c = fast_tween_color(0, *(int *)(light_effect_state + 0x288), 1.0f - phase_remaining_fraction);
         } else {
-            phase_remaining_fraction = convert_integer_to_float(*(short *)(a + 0x284));
+            phase_remaining_fraction = convert_integer_to_float(*(short *)(light_effect_state + 0x284));
             phase_remaining_fraction /= convert_integer_to_float(color_phase_threshold);
-            c = fast_tween_color(*(int *)(a + 0x288), *(int *)(a + 0x28C), 1.0f - phase_remaining_fraction);
+            c = fast_tween_color(*(int *)(light_effect_state + 0x288), *(int *)(light_effect_state + 0x28C), 1.0f - phase_remaining_fraction);
         }
-        rgb_destination = (float *)(D_L07_00180340 + *(short *)(a + 0x280) * 32);
+        rgb_destination = (float *)(D_L07_00180340 + *(short *)(light_effect_state + 0x280) * 32);
         rgb_destination[0] = convert_integer_to_float(c & 0xFF) * 0.0078125f;
         rgb_destination[1] = convert_integer_to_float((c >> 8) & 0xFF) * 0.0078125f;
         rgb_destination[2] = convert_integer_to_float((c >> 16) & 0xFF) * 0.0078125f;
@@ -1457,7 +1457,7 @@ extern void FUN_L01_002b7fe0_2cd2b0(void *, int) __asm__("FUN_L01_002b7fe0");
 extern void FUN_L07_0030cd20_2cd2b0(void) __asm__("FUN_L07_0030cd20");
 
 void water_update(Moby_30D8E8 *m) __asm__("FUN_L07_0030c508");
-void water_update(Moby_30D8E8 *m) {
+void water_update(Moby_30D8E8 *water_moby) {
     enum {
         WATER_INITIALIZE = 0,
         WATER_APPROACH_HIGH_HEIGHT = 1,
@@ -1468,7 +1468,7 @@ void water_update(Moby_30D8E8 *m) {
         WATER_RISE_TO_HEIGHT_54 = 6,
         WATER_REMOVE_ABOVE_HIGH_HEIGHT = 7
     };
-    Data_30D8E8 *d = m->data;
+    Data_30D8E8 *water_data = water_moby->data;
     int i;
     int j;
     int k;
@@ -1476,17 +1476,17 @@ void water_update(Moby_30D8E8 *m) {
     float ang;
     float on;
 
-    if (d == 0) {
+    if (water_data == 0) {
         return;
     }
     if (D_L07_00161B38 != 0) {
         D_0013D4C0[4] = 0;
         D_0013D4EC[0] = 0;
     }
-    switch (m->state) {
+    switch (water_moby->state) {
     case WATER_INITIALIZE:
-        m->flags |= 0x81;
-        if (d->idx == 0) {
+        water_moby->flags |= 0x81;
+        if (water_data->idx == 0) {
             Cab_30D8E8 *cab;
             Dir_30D8E8 *dir;
             int (*p)[4];
@@ -1520,124 +1520,124 @@ void water_update(Moby_30D8E8 *m) {
             D_L07_00161208 = 0;
             for (i = 0; i < 0x24; i++) {
                 FUN_L01_002b7c68_2cd2b0(&D_L07_001DCE40_2cd2b0[i], p[i]);
-                D_L07_001DCE40_2cd2b0[d->idx].h1E = D_L07_00204680[d->idx];
+                D_L07_001DCE40_2cd2b0[water_data->idx].h1E = D_L07_00204680[water_data->idx];
             }
             for (k = 0; k < 0x24; k++) {
-                Rec_30D8E8 *t = D_L07_001DCE40_2cd2b0;
-                Rec_30D8E8 *r = &t[k];
+                Rec_30D8E8 *water_records = D_L07_001DCE40_2cd2b0;
+                Rec_30D8E8 *r = &water_records[k];
                 for (j = 0; j < 2; j++) {
                     float x = r->x + random_float_between(-6.0f, 6.0f);
                     float y = r->y + random_float_between(-6.0f, 6.0f);
-                    FUN_L01_002b8288_2cd2b0(t, 0x24, x, y, 2.0f, 0.2f);
+                    FUN_L01_002b8288_2cd2b0(water_records, 0x24, x, y, 2.0f, 0.2f);
                 }
             }
             for (n = 0; n < 0x24; n++) {
                 FUN_L07_0030cd48_2cd2b0(n);
             }
         }
-        if (d->fC != 0) {
-            m->state = 3;
-            d->timer = scale_game_frames_alt(0x3C);
-            if (m->pos[2] < d->lo) {
-                D_L07_001DCE40_2cd2b0[d->idx].h1E = 0;
+        if (water_data->fC != 0) {
+            water_moby->state = 3;
+            water_data->timer = scale_game_frames_alt(0x3C);
+            if (water_moby->pos[2] < water_data->lo) {
+                D_L07_001DCE40_2cd2b0[water_data->idx].h1E = 0;
             }
-        } else if (d->f8 != 0) {
-            m->state = 1;
+        } else if (water_data->f8 != 0) {
+            water_moby->state = 1;
         } else {
-            m->state = 2;
+            water_moby->state = 2;
         }
         break;
     case WATER_APPROACH_LOW_HEIGHT:
-        if (m->sub & 4) {
-            FUN_L01_0026e0e0_2cd2b0(m->f21, 1);
-        } else if (FUN_L07_00281ef8_2cd2b0(m, m->f21, 1, 0) && m->sub != 1) {
-            FUN_00213ed8_2cd2b0(&m->pos[2], d->lo, D_0015ED6C * 4.0f);
-            FUN_L01_0026e090_2cd2b0(m->f21, 1);
-        } else if (m->sub == 1) {
-            FUN_00213ed8_2cd2b0(&m->pos[2], d->lo, D_0015ED6C * 4.0f);
+        if (water_moby->sub & 4) {
+            FUN_L01_0026e0e0_2cd2b0(water_moby->f21, 1);
+        } else if (FUN_L07_00281ef8_2cd2b0(water_moby, water_moby->f21, 1, 0) && water_moby->sub != 1) {
+            FUN_00213ed8_2cd2b0(&water_moby->pos[2], water_data->lo, D_0015ED6C * 4.0f);
+            FUN_L01_0026e090_2cd2b0(water_moby->f21, 1);
+        } else if (water_moby->sub == 1) {
+            FUN_00213ed8_2cd2b0(&water_moby->pos[2], water_data->lo, D_0015ED6C * 4.0f);
         }
         if (random_integer_below(200) == 0) {
-            float x = D_L07_001DCE40_2cd2b0[d->idx].x + random_float_between(-4.0f, 4.0f);
+            float x = D_L07_001DCE40_2cd2b0[water_data->idx].x + random_float_between(-4.0f, 4.0f);
             float y = random_float_between(-4.0f, 4.0f);
-            Rec_30D8E8 *r = &D_L07_001DCE40_2cd2b0[d->idx];
+            Rec_30D8E8 *r = &D_L07_001DCE40_2cd2b0[water_data->idx];
             FUN_L00_002a3ec8_2cd2b0(r, 1, 1, x, r->y + y, 1.0f, -0.05f);
         }
         break;
     case WATER_APPROACH_HIGH_HEIGHT:
-        if (m->sub & 8) {
-            FUN_L01_0026e0e0_2cd2b0(m->f21, 2);
-        } else if (FUN_L07_00281ef8_2cd2b0(m, m->f21, 1, 0) && m->sub != 2) {
-            FUN_00213ed8_2cd2b0(&m->pos[2], d->hi, D_0015ED6C * 4.0f);
-            FUN_L01_0026e090_2cd2b0(m->f21, 2);
-        } else if (m->sub == 2) {
-            FUN_00213ed8_2cd2b0(&m->pos[2], d->hi, D_0015ED6C * 4.0f);
+        if (water_moby->sub & 8) {
+            FUN_L01_0026e0e0_2cd2b0(water_moby->f21, 2);
+        } else if (FUN_L07_00281ef8_2cd2b0(water_moby, water_moby->f21, 1, 0) && water_moby->sub != 2) {
+            FUN_00213ed8_2cd2b0(&water_moby->pos[2], water_data->hi, D_0015ED6C * 4.0f);
+            FUN_L01_0026e090_2cd2b0(water_moby->f21, 2);
+        } else if (water_moby->sub == 2) {
+            FUN_00213ed8_2cd2b0(&water_moby->pos[2], water_data->hi, D_0015ED6C * 4.0f);
         }
         if (random_integer_below(200) == 0) {
-            float x = D_L07_001DCE40_2cd2b0[d->idx].x + random_float_between(-4.0f, 4.0f);
+            float x = D_L07_001DCE40_2cd2b0[water_data->idx].x + random_float_between(-4.0f, 4.0f);
             float y = random_float_between(-4.0f, 4.0f);
-            Rec_30D8E8 *r = &D_L07_001DCE40_2cd2b0[d->idx];
+            Rec_30D8E8 *r = &D_L07_001DCE40_2cd2b0[water_data->idx];
             FUN_L00_002a3ec8_2cd2b0(r, 1, 1, x, r->y + y, 1.0f, -0.05f);
         }
         break;
     case WATER_WAIT_FOR_HERO_IN_VOLUME:
-        if (d->volume >= 0 && FUN_00214720_2cd2b0(&hero.motion.pos, d->volume)) {
-            d->f1C = 0;
-            FUN_L01_0026e0e0_2cd2b0(m->f21, 4);
+        if (water_data->volume >= 0 && FUN_00214720_2cd2b0(&hero.motion.pos, water_data->volume)) {
+            water_data->f1C = 0;
+            FUN_L01_0026e0e0_2cd2b0(water_moby->f21, 4);
         }
         break;
     case WATER_WAIT_BEFORE_RISING:
-        if (fast_dec_timer(&d->timer)) {
-            d->timer = scale_game_frames_alt(0x708);
-            m->state = 5;
+        if (fast_dec_timer(&water_data->timer)) {
+            water_data->timer = scale_game_frames_alt(0x708);
+            water_moby->state = 5;
         }
         break;
     case WATER_TIMED_RISE:
-        m->pos[2] += D_0015ED6C * 0.32f;
-        if (fast_dec_timer(&d->timer)) {
-            m->state = 6;
+        water_moby->pos[2] += D_0015ED6C * 0.32f;
+        if (fast_dec_timer(&water_data->timer)) {
+            water_moby->state = 6;
         }
         break;
     case WATER_RISE_TO_HEIGHT_54:
-        m->pos[2] += D_0015ED6C * 0.42f;
-        if (m->pos[2] >= 54.0f) {
-            m->state = 7;
+        water_moby->pos[2] += D_0015ED6C * 0.42f;
+        if (water_moby->pos[2] >= 54.0f) {
+            water_moby->state = 7;
         }
         break;
     case WATER_REMOVE_ABOVE_HIGH_HEIGHT:
-        if (d->hi < m->pos[2]) {
-            D_L07_001DCE40_2cd2b0[d->idx].h1E = 0;
-            mark_moby_for_removal_c2(m);
+        if (water_data->hi < water_moby->pos[2]) {
+            D_L07_001DCE40_2cd2b0[water_data->idx].h1E = 0;
+            mark_moby_for_removal_c2(water_moby);
             return;
         }
         break;
     }
-    if (d->idx < 0) {
+    if (water_data->idx < 0) {
         return;
     }
     {
         Cab_30D8E8 *cab = &D_L07_001CA900;
-        D_L07_001DCE40_2cd2b0[d->idx].b1C = cab->b3C;
-        D_L07_001DCE40_2cd2b0[d->idx].b1D = cab->b3D;
+        D_L07_001DCE40_2cd2b0[water_data->idx].b1C = cab->b3C;
+        D_L07_001DCE40_2cd2b0[water_data->idx].b1D = cab->b3D;
     }
-    D_L07_001DCE40_2cd2b0[d->idx].z = m->pos[2];
+    D_L07_001DCE40_2cd2b0[water_data->idx].z = water_moby->pos[2];
     on = 0.0f;
-    if (m->f94 != 0 && FUN_L01_00275690_2cd2b0(m, 48.0f) != -1) {
-        if (!(m->state >= 3 && m->state <= 7) || (m->pos[2] > d->lo && m->pos[2] < d->hi)) {
+    if (water_moby->f94 != 0 && FUN_L01_00275690_2cd2b0(water_moby, 48.0f) != -1) {
+        if (!(water_moby->state >= 3 && water_moby->state <= 7) || (water_moby->pos[2] > water_data->lo && water_moby->pos[2] < water_data->hi)) {
             on = 1.0f;
         }
     }
     if (on == 0.0f) {
-        D_L07_001DCE40_2cd2b0[d->idx].h1E = 0;
+        D_L07_001DCE40_2cd2b0[water_data->idx].h1E = 0;
     } else {
-        D_L07_001DCE40_2cd2b0[d->idx].h1E = D_L07_00204680[d->idx];
+        D_L07_001DCE40_2cd2b0[water_data->idx].h1E = D_L07_00204680[water_data->idx];
     }
-    if (d->idx == 0) {
+    if (water_data->idx == 0) {
         FUN_L01_002b7fe0_2cd2b0(D_L07_001DCE40_2cd2b0, 0x24);
-        enqueue_callback_list_1_c(FUN_L07_0030cd20_2cd2b0, m);
+        enqueue_callback_list_1_c(FUN_L07_0030cd20_2cd2b0, water_moby);
     }
-    if (d->idx == D_L07_00161B30) {
-        D_L07_001DCE40_2cd2b0[d->idx].h1E = D_L07_00161B34;
-        D_L07_00204680[d->idx] = D_L07_00161B34;
+    if (water_data->idx == D_L07_00161B30) {
+        D_L07_001DCE40_2cd2b0[water_data->idx].h1E = D_L07_00161B34;
+        D_L07_00204680[water_data->idx] = D_L07_00161B34;
     }
 }
 /* Level overlay code after unclassified; generated by `decomp overlays stubs`, stubs replaced by C as functions are matched. */
@@ -3441,80 +3441,80 @@ s32 allocate_voice_for_target_entry_c(s32 entry_index, s32 flags,
                                       void *target) __asm__("FUN_0022da68");
 void mark_moby_for_removal_c(void *obj) __asm__("FUN_0020c828");
 
-void FUN_L07_00311bc8(char *m) {
+void FUN_L07_00311bc8(char *moby) {
     enum {
         LEAF_INITIALIZE = 0,
         LEAF_WAIT_FOR_HERO_CONTACT = 1,
         LEAF_TIMED_SWAY_AND_DESCENT = 2,
         LEAF_ACCELERATED_FALL = 3
     };
-    char *d;
+    char *moby_data;
     float prev[4];
     float v[4];
-    float t;
+    float tilt_descent_work_value;
     float g;
-    if (m == 0)
+    if (moby == 0)
         return;
-    d = *(char **)(m + 0x78);
-    if (d == 0)
+    moby_data = *(char **)(moby + 0x78);
+    if (moby_data == 0)
         return;
-    qcopy(prev, m + 0x10);
-    switch (((unsigned char *)m)[0x20]) {
+    qcopy(prev, moby + 0x10);
+    switch (((unsigned char *)moby)[0x20]) {
     case LEAF_INITIALIZE:
-        *(int *)(d + 0x20) = 0;
-        *(short *)(d + 0x24) = 0;
-        d[0x28] = 4;
-        *(short *)(d + 0x3E) = 0xD;
-        set_moby_color(m, 0x50, 0x40, 0x10);
-        *(float *)(m + 0x40) += random_float_between_alt(-0.034906585f, 0.034906585f);
-        *(float *)(m + 0x44) += random_float_between_alt(-0.034906585f, 0.034906585f);
-        *(float *)(m + 0x18) += random_float_between_alt(-0.02f, 0.02f);
-        m[0x20] = 1;
+        *(int *)(moby_data + 0x20) = 0;
+        *(short *)(moby_data + 0x24) = 0;
+        moby_data[0x28] = 4;
+        *(short *)(moby_data + 0x3E) = 0xD;
+        set_moby_color(moby, 0x50, 0x40, 0x10);
+        *(float *)(moby + 0x40) += random_float_between_alt(-0.034906585f, 0.034906585f);
+        *(float *)(moby + 0x44) += random_float_between_alt(-0.034906585f, 0.034906585f);
+        *(float *)(moby + 0x18) += random_float_between_alt(-0.02f, 0.02f);
+        moby[0x20] = 1;
         break;
     case LEAF_WAIT_FOR_HERO_CONTACT:
-        if (FUN_L01_00277fb8(m)) {
-            *(float *)(d + 0xA8) = *(float *)(m + 0x40);
-            *(float *)(d + 0xAC) = *(float *)(m + 0x44);
-            *(short *)(d + 0xA0) = scale_game_frames(0x1E);
-            if (*(short *)(d + 0xA2) != -1)
-                allocate_voice_for_target_entry_c(*(short *)(d + 0xA2), 0, (int)m);
-            m[0x20] = 2;
+        if (FUN_L01_00277fb8(moby)) {
+            *(float *)(moby_data + 0xA8) = *(float *)(moby + 0x40);
+            *(float *)(moby_data + 0xAC) = *(float *)(moby + 0x44);
+            *(short *)(moby_data + 0xA0) = scale_game_frames(0x1E);
+            if (*(short *)(moby_data + 0xA2) != -1)
+                allocate_voice_for_target_entry_c(*(short *)(moby_data + 0xA2), 0, (int)moby);
+            moby[0x20] = 2;
         }
         break;
     case LEAF_TIMED_SWAY_AND_DESCENT:
-        *(float *)(m + 0x40) =
-            fast_sin(normalize_angle(convert_integer_to_float(*(short *)(d + 0xA0)) * 0.75f)) *
+        *(float *)(moby + 0x40) =
+            fast_sin(normalize_angle(convert_integer_to_float(*(short *)(moby_data + 0xA0)) * 0.75f)) *
             DEG_TO_RAD;
         {
             float c =
-                fast_cos(normalize_angle(convert_integer_to_float(*(short *)(d + 0xA0)) * 0.89f));
-            float e = frame_scale;
-            *(float *)(m + 0x44) = c * DEG_TO_RAD;
-            *(float *)(m + 0x18) -= e * 0.002f;
+                fast_cos(normalize_angle(convert_integer_to_float(*(short *)(moby_data + 0xA0)) * 0.89f));
+            float descent_frame_scale = frame_scale;
+            *(float *)(moby + 0x44) = c * DEG_TO_RAD;
+            *(float *)(moby + 0x18) -= descent_frame_scale * 0.002f;
         }
-        if (fast_dec_timer_s16(d + 0xA0)) {
-            *(float *)(d + 0xA4) = frame_scale * 0.002f;
-            m[0x20] = 3;
+        if (fast_dec_timer_s16(moby_data + 0xA0)) {
+            *(float *)(moby_data + 0xA4) = frame_scale * 0.002f;
+            moby[0x20] = 3;
         }
         break;
     case LEAF_ACCELERATED_FALL:
-        t = (1.3962634f - *(float *)(m + 0x40)) * 0.05f;
-        *(float *)(m + 0x40) += t;
-        t = fast_sin(t);
+        tilt_descent_work_value = (1.3962634f - *(float *)(moby + 0x40)) * 0.05f;
+        *(float *)(moby + 0x40) += tilt_descent_work_value;
+        tilt_descent_work_value = fast_sin(tilt_descent_work_value);
         g = frame_time_sq * 9.8f;
-        *(float *)(m + 0x18) -= t + t;
-        *(float *)(d + 0xA4) += g;
-        *(float *)(m + 0x18) -= *(float *)(d + 0xA4);
-        if (*(float *)(m + 0x18) < 2.0f) {
-            mark_moby_for_removal_c(m);
+        *(float *)(moby + 0x18) -= tilt_descent_work_value + tilt_descent_work_value;
+        *(float *)(moby_data + 0xA4) += g;
+        *(float *)(moby + 0x18) -= *(float *)(moby_data + 0xA4);
+        if (*(float *)(moby + 0x18) < 2.0f) {
+            mark_moby_for_removal_c(moby);
             return;
         }
         break;
     case 4:
         break;
     }
-    subtract_vector_xyz(v, m + 0x10, prev);
-    update_entity_matrix(d + 0x60, v, m + 0x40, m + 0x40);
+    subtract_vector_xyz(v, moby + 0x10, prev);
+    update_entity_matrix(moby_data + 0x60, v, moby + 0x40, moby + 0x40);
 }
 /* Ported from rac1-decomp (src/overlays/l07_umbris/vendor_002CE470.c: func_L07_00313298), where it is exact; names translated to the US level program. */
 
@@ -3641,7 +3641,7 @@ extern char D_L07_00173EE0_2cd2b0[] __asm__("D_L07_00173EE0");
 void FUN_L07_00312420(struct Moby *arg)
 {
     float line_endpoint[4], endpoint_work_vector[4], quad_side_offset[4], attachment_position[4], endpoint_to_attachment[4], oscillating_reference_position[4], effect_sample_position[4], c2[4], sample_probe_offset[4], ii[4], jj[4];
-    float f20, t;
+    float f20, oscillation_work_value;
     int flag = 1;
     EffData_313800 *moby_effect_data = ((EffData_313800 *)arg->pvars);
     int k;
@@ -3649,10 +3649,10 @@ void FUN_L07_00312420(struct Moby *arg)
 
     f20 = FUN_001fa6c0_2cd2b0(D_L07_0015F5CC_lui);
     qcopy(oscillating_reference_position, moby_effect_data->f140);
-    t = FUN_001f9dc8_2cd2b0(FUN_L00_0025e310_2cd2b0(f20 / 11.0f));
+    oscillation_work_value = FUN_001f9dc8_2cd2b0(FUN_L00_0025e310_2cd2b0(f20 / 11.0f));
     f20 = f20 / 10.0f;
-    t = FUN_L00_0025e310_2cd2b0(f20 + t * 1.5707964f);
-    oscillating_reference_position[0] = oscillating_reference_position[0] + FUN_001f9de0_2cd2b0(t);
+    oscillation_work_value = FUN_L00_0025e310_2cd2b0(f20 + oscillation_work_value * 1.5707964f);
+    oscillating_reference_position[0] = oscillating_reference_position[0] + FUN_001f9de0_2cd2b0(oscillation_work_value);
     add_vector_xyz_cf(arg, 2, attachment_position);
     subtract_vector_xyz(endpoint_work_vector, oscillating_reference_position, attachment_position);
     FUN_001f9bf8_2cd2b0(endpoint_work_vector, endpoint_work_vector, 30.0f);

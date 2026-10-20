@@ -1492,14 +1492,14 @@ char *load_level_gameplay(int skip_gameplay_read) {
     }
     if (D_L00_0015F600 != 0 && hdr->f8C != 0) {
         int *q = (int *)((char *)hdr + hdr->f8C);
-        int *q0;
+        int *object_mapping_header;
         int tfrag_mapping_count;
         int n2;
         int moby_mapping_count;
         int bad1 = 1;
         int bad2;
 
-        q0 = q;
+        object_mapping_header = q;
         tfrag_mapping_count = q[0];
         n2 = q[1];
         moby_mapping_count = q[2];
@@ -1575,7 +1575,7 @@ char *load_level_gameplay(int skip_gameplay_read) {
         } else {
             int i;
 
-            q = q0 + 4;
+            q = object_mapping_header + 4;
             for (i = 0; i < tfrag_mapping_count; i++) {
                 int w = q[0];
 
@@ -1588,7 +1588,7 @@ char *load_level_gameplay(int skip_gameplay_read) {
             int cnt = 0;
             int k = 0;
 
-            q = &q0[tfrag_mapping_count * 2 + 4];
+            q = &object_mapping_header[tfrag_mapping_count * 2 + 4];
             for (t = D_L00_00160FC0; t != D_L00_00160FC4; t++) {
                 int id = t->f18;
                 int j;
@@ -1612,7 +1612,7 @@ char *load_level_gameplay(int skip_gameplay_read) {
         } else {
             int i;
 
-            q = &q0[tfrag_mapping_count * 2 + 4];
+            q = &object_mapping_header[tfrag_mapping_count * 2 + 4];
             for (i = 0; i < n2; i++) {
                 int w = q[0];
 
@@ -1850,7 +1850,7 @@ s32 FUN_L00_00244110(s32 full, s32 keep) {
     char *sequence_offset_cursor;
     s32 sq;
     char *sp;
-    char *q;
+    char *moby_class_reference_cursor;
     s32 z;
     s32 ci;
     char *x;
@@ -1923,14 +1923,14 @@ s32 FUN_L00_00244110(s32 full, s32 keep) {
             }
         }
         D_L00_0016000C = -1;
-        q = (char *)core_header + core_header[0x21];
+        moby_class_reference_cursor = (char *)core_header + core_header[0x21];
         D_L00_00160010 = 0;
         D_L00_00160008 = core_header[0x20];
-        for (m = 0; m < core_header[0x20]; m++, q += 0x10) {
-            D_L00_001AFBC0[m] = *(s32 *)(q + 4);
-            D_L00_001AFC20[m] = base + *(s32 *)q;
-            D_L00_001AFC80[m] = *(s32 *)(q + 8);
-            { s32 o = D_L00_00197BC0[*(s32 *)(q + 4)] * 32 + 0x10;
+        for (m = 0; m < core_header[0x20]; m++, moby_class_reference_cursor += 0x10) {
+            D_L00_001AFBC0[m] = *(s32 *)(moby_class_reference_cursor + 4);
+            D_L00_001AFC20[m] = base + *(s32 *)moby_class_reference_cursor;
+            D_L00_001AFC80[m] = *(s32 *)(moby_class_reference_cursor + 8);
+            { s32 o = D_L00_00197BC0[*(s32 *)(moby_class_reference_cursor + 4)] * 32 + 0x10;
             qcopy(&D_L00_001AFCE0[m], (char *)core_header + core_header[7] + o); }
         }
         for (i = 0, class_entry_cursor = (char *)core_header + core_header[9]; i < core_header[8]; i++, class_entry_cursor += 0x20)

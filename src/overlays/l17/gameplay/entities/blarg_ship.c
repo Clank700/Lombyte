@@ -429,11 +429,11 @@ void FUN_L17_002f32f0(struct Moby *moby) {
         pkt.uv[6] = fast_sin_c(fast_add_rotations(ang, 1.5707964f)) * 0.5f + 0.5f;
         pkt.uv[7] = fast_cos_c(fast_add_rotations(ang, 1.5707964f)) * 0.5f + 0.5f;
         {
-            int c = fast_tween_color(D_L17_001DE010[k], D_L17_001DE028[k], D_L17_001DE040[k]);
-            pkt.col[3] = c;
-            pkt.col[2] = c;
-            pkt.col[1] = c;
-            pkt.col[0] = c;
+            int interpolated_vertex_color = fast_tween_color(D_L17_001DE010[k], D_L17_001DE028[k], D_L17_001DE040[k]);
+            pkt.col[3] = interpolated_vertex_color;
+            pkt.col[2] = interpolated_vertex_color;
+            pkt.col[1] = interpolated_vertex_color;
+            pkt.col[0] = interpolated_vertex_color;
         }
         draw_geometry_quad(&pkt, 0, 0);
     }
@@ -575,9 +575,9 @@ void blarg_ship_update(struct Moby *moby) {
     float movement_target_position[4];
     float hero_position_delta[4];
     float clamped_euler_angles[4];
-    float m40[4];
-    float m50[4];
-    float m60[4];
+    float rotation_basis_row0[4];
+    float rotation_basis_row1[4];
+    float rotation_basis_row2[4];
     float hero_relative_position[4];
     float firing_target_delta[4];
     float firing_direction[4];
@@ -587,7 +587,7 @@ void blarg_ship_update(struct Moby *moby) {
     char *moby_pvars = (char *)moby->pvars;
     float offset_angle;
     float len;
-    char *p;
+    char *firing_moby;
 
     FUN_L11_0031a1c0(moby);
     switch (moby->state) {
@@ -673,16 +673,16 @@ void blarg_ship_update(struct Moby *moby) {
         } else if (clamped_euler_angles[1] < -0.2617994f) {
             clamped_euler_angles[1] = -0.2617994f;
         }
-        vu_euler_rotation_basis(m40, clamped_euler_angles);
+        vu_euler_rotation_basis(rotation_basis_row0, clamped_euler_angles);
         subtract_vector_xyz(hero_position_delta, &hero.motion.pos, moby_pvars + 0xB0);
         qcopy(moby_pvars + 0xB0, &hero.motion.pos);
         add_vector_xyz(&moby->pos, &moby->pos, hero_position_delta);
         offset_angle = fast_add_rotations(0.7853982f, (float)*(int *)(moby_pvars + 0x88) * 1.5707964f);
-        normalize_vector_xyz(scratch_vector, m50, fast_sin(offset_angle) * 8.0f);
+        normalize_vector_xyz(scratch_vector, rotation_basis_row1, fast_sin(offset_angle) * 8.0f);
         add_vector_xyz(movement_target_position, D_L17_001676C0, scratch_vector);
-        normalize_vector_xyz(scratch_vector, m60, fast_cos(offset_angle) * 8.0f);
+        normalize_vector_xyz(scratch_vector, rotation_basis_row2, fast_cos(offset_angle) * 8.0f);
         add_vector_xyz(movement_target_position, movement_target_position, scratch_vector);
-        normalize_vector_xyz(scratch_vector, m40, 20.0f);
+        normalize_vector_xyz(scratch_vector, rotation_basis_row0, 20.0f);
         add_vector_xyz(movement_target_position, movement_target_position, scratch_vector);
         subtract_vector_xyz(scratch_vector, movement_target_position, &moby->pos);
         len = vector_length_xyz(scratch_vector);
@@ -733,11 +733,11 @@ void blarg_ship_update(struct Moby *moby) {
                 subtract_vector_xyz(firing_target_delta, sB0, sA0);
                 normalize_vector_xyz(firing_direction, firing_target_delta, D_L17_001623E8 * frame_time);
                 add_vector_xyz(firing_direction, firing_direction, hero_position_delta);
-                p = FUN_L11_00308f48((int)moby, firing_direction, sA0, 128.0f, -1.0f, 10.0f);
-                if (p) {
+                firing_moby = FUN_L11_00308f48((int)moby, firing_direction, sA0, 128.0f, -1.0f, 10.0f);
+                if (firing_moby) {
                     subtract_vector_xyz(firing_direction, firing_direction, hero_position_delta);
-                    *(float *)(p + 0x44) = -fast_arc_tan(vector_length_xy(firing_direction), firing_direction[2]);
-                    *(float *)(p + 0x48) = fast_arc_tan(firing_direction[0], firing_direction[1]);
+                    *(float *)(firing_moby + 0x44) = -fast_arc_tan(vector_length_xy(firing_direction), firing_direction[2]);
+                    *(float *)(firing_moby + 0x48) = fast_arc_tan(firing_direction[0], firing_direction[1]);
                 }
             }
             if (moby->visible == 0) {

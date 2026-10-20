@@ -105,7 +105,7 @@ void snow_plow_update(struct Moby *moby) {
         SNOW_PLOW_CLASS_OFFSET_WITH_TARGET_VOICE_SELECTOR_ZERO = 0x59
     };
     Vec4 old;
-    Vec4 delta, *d;
+    Vec4 delta, *return_delta_ptr;
     /* The sphere query is its position followed by the record; the hit cases pass one or the other. */
     Vec4 sphere_pos;
     struct {
@@ -209,14 +209,14 @@ void snow_plow_update(struct Moby *moby) {
             fast_vec_sub(&delta, data + 0x160, &moby->pos);
             length = fast_vec_length(&delta);
             step = frame_time * 3.0f;
-            d = &delta;
+            return_delta_ptr = &delta;
             if (length < step) {
                 speed = length;
             } else {
                 length -= step; /* distance left after this step */
                 speed = step;
             }
-            normalize_vector_xyz(d, d, speed);
+            normalize_vector_xyz(return_delta_ptr, return_delta_ptr, speed);
             add_vector_xyz(&moby->pos, &moby->pos, &delta);
             break;
         }
@@ -557,7 +557,7 @@ extern void FUN_L04_002923b8(void *, char *);
 
 void FUN_L04_002d1418(void *moby) {
     char *moby_vars = *(char **)(moby + 0x78);
-    char *p = moby_vars + 0x160;
+    char *movement_data = moby_vars + 0x160;
     float speed;
     float angleHalf;
     float angleFull;
@@ -578,7 +578,7 @@ void FUN_L04_002d1418(void *moby) {
     *(int *)(moby_vars + 0x1f8) = *(int *)(*(char **)(*(char **)(moby + 0x24) + 0x70) + 0x14);
     *(int *)(moby_vars + 0x1fc) = *(int *)(*(char **)(*(char **)(moby + 0x24) + 0x70) + 0x14);
     *(int *)(moby_vars + 0x200) = *(int *)(*(char **)(*(char **)(moby + 0x24) + 0x70) + 0x14);
-    FUN_L04_00292370(moby, p);
+    FUN_L04_00292370(moby, movement_data);
     frameScale = frame_time_sq;
     otherScale = frame_time;
     angleFull = frameScale * 6.2831855f;
@@ -606,7 +606,7 @@ void FUN_L04_002d1418(void *moby) {
     *(unsigned char *)(moby_vars + 0x303) = 13;
     *(unsigned char *)(moby_vars + 0x302) = 15;
     *(float *)(moby_vars + 0x240) = 0.5f;
-    FUN_L04_002923b8(moby, p);
+    FUN_L04_002923b8(moby, movement_data);
 }
 #include "sda.h"
 
@@ -865,7 +865,7 @@ void woodcut_bot_update(WBMoby *m) {
         d->fE8 = 0.35f;
         if (p != 0 && damage != 0.0f && m->state != 0 && d->t3C4 == 0) {
             unsigned char *src;
-            float a;
+            float knockback_gravity_step;
             float b;
             float c;
 
@@ -885,11 +885,11 @@ void woodcut_bot_update(WBMoby *m) {
                 angle = fast_arc_tan(m->pos[0] - h->motion.pos.f[0],
                                      m->pos[1] - h->motion.pos.f[1]);
             }
-            a = frame_time_sq * 30.0f;
+            knockback_gravity_step = frame_time_sq * 30.0f;
             b = frame_time_sq * 10.0f;
             c = frame_time * 5.5f;
             d->fE4 = 9;
-            d->fD0 = a;
+            d->fD0 = knockback_gravity_step;
             d->fFD = 0;
             d->fD4 = b;
             d->fD8 = c;
@@ -1441,20 +1441,20 @@ void FUN_L04_002d6f68(char *moby) {
     char *dst = base + moby_vars[1] * 256;
     float weighted_first_point[4];
     float b[4];
-    float f, g;
+    float path_interpolation_factor, g;
     int idx;
     int second_point_index = 1;
     float one = 1.0f;
 
-    f = convert_integer_to_float(path_data[0] - 1);
-    g = (one - src[0]) * f;
-    f = FUN_L00_00200260(g, one);
+    path_interpolation_factor = convert_integer_to_float(path_data[0] - 1);
+    g = (one - src[0]) * path_interpolation_factor;
+    path_interpolation_factor = FUN_L00_00200260(g, one);
     idx = func_001FA898_r(g);
-    if (f == 0.0f)
+    if (path_interpolation_factor == 0.0f)
         second_point_index = 0;
     second_point_index += idx;
-    scale_vector_xyz(weighted_first_point, (char *)path_data + (idx * 16 + 0x10), one - f);
-    scale_vector_xyz(b, (char *)path_data + (second_point_index * 16 + 0x10), f);
+    scale_vector_xyz(weighted_first_point, (char *)path_data + (idx * 16 + 0x10), one - path_interpolation_factor);
+    scale_vector_xyz(b, (char *)path_data + (second_point_index * 16 + 0x10), path_interpolation_factor);
     add_vector_xyz(moby + 0x10, weighted_first_point, b);
     qcopy(dst + 0x10, moby + 0x10);
 }
@@ -1787,12 +1787,12 @@ void FUN_L04_002e1d00(char *moby) {
     func_001F9BD8_298940(d, d, moby + 0x10);
     *(float *)(moby + 0x18) -= 0.25f;
     for (i = 0; i < 4; i++) {
-        float h = sprite_data->a[i] + sprite_data->b[i];
-        sprite_data->a[i] = h;
-        if (255.0f <= h) {
-            sprite_data->a[i] = h - 255.0f;
-        } else if (h <= 0.0f) {
-            sprite_data->a[i] = h + 255.0f;
+        float sprite_attribute_sum = sprite_data->a[i] + sprite_data->b[i];
+        sprite_data->a[i] = sprite_attribute_sum;
+        if (255.0f <= sprite_attribute_sum) {
+            sprite_data->a[i] = sprite_attribute_sum - 255.0f;
+        } else if (sprite_attribute_sum <= 0.0f) {
+            sprite_data->a[i] = sprite_attribute_sum + 255.0f;
         }
         if (func_001F9908_298940(&sprite_data->c[i])) {
             sprite_data->c[i] = func_001F9850_298940(0xFF);

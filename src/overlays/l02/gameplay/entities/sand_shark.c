@@ -61,12 +61,12 @@ extern void FUN_L02_002a40f0(void *);
 
 void FUN_L02_002a4818(int a, int b, int c, int d, float x, float y, float z, float w, int e, int f,
                       int g);
-void FUN_L02_002a4818(int a, int b, int c, int ticks_per_frame, float x, float y, float z, float w, int frame_table_start_index, int frame_count,
+void FUN_L02_002a4818(int fog_red, int b, int fog_blue, int ticks_per_frame, float x, float y, float z, float w, int frame_table_start_index, int frame_count,
                       int g) {
     char scratch[0x40];
-    scratch[0x30] = a;
+    scratch[0x30] = fog_red;
     scratch[0x31] = b;
-    scratch[0x32] = c;
+    scratch[0x32] = fog_blue;
     *(float *)(scratch + 0x20) = x;
     *(float *)(scratch + 0x24) = y;
     *(float *)(scratch + 0x28) = z;
@@ -103,7 +103,7 @@ void FUN_L02_002d3a50(void *moby, void *segment_start, void *b, int puff_count, 
     int r, g, color;
     int spin;
     float scale;
-    float d;
+    float size_delta_per_puff;
     unsigned char *dust_puff;
     unsigned char *p;
 
@@ -112,7 +112,7 @@ void FUN_L02_002d3a50(void *moby, void *segment_start, void *b, int puff_count, 
     *(OvlQuad *)vel = (OvlQuad)0;
     vel[2] = 0.01f;
     vel[3] = 1.0f;
-    d = (sb - sa) / (float)puff_count;
+    size_delta_per_puff = (sb - sa) / (float)puff_count;
     for (i = 0; i < puff_count; i++) {
         fast_vec_scale(pos, step, convert_integer_to_float(i));
         fast_vec_add(pos, segment_start, pos);
@@ -124,7 +124,7 @@ void FUN_L02_002d3a50(void *moby, void *segment_start, void *b, int puff_count, 
         vel[0] = randf_sym(0.0f, 0.0025f);
         vel[1] = randf_sym(0.0f, 0.0025f);
         vel[2] = random_float_between_alt(D_L02_001619D4 * 0.1f, D_L02_001619D4);
-        dust_puff = FUN_L00_0026d000(pos, D_L02_001619DC, 1.0f, scale, spin, vel, d + sa * 210000.0f, r << 24 | color);
+        dust_puff = FUN_L00_0026d000(pos, D_L02_001619DC, 1.0f, scale, spin, vel, size_delta_per_puff + sa * 210000.0f, r << 24 | color);
         if (dust_puff) {
             p = dust_puff + 0x20;
             if (random_integer_below(2)) {
@@ -317,6 +317,7 @@ void sand_shark_update(struct Moby *moby) {
         SAND_SHARK_WANDER_AROUND_HOME = 2,
         SAND_SHARK_WAIT_FOR_TARGET_IN_VOLUME = 3,
         SAND_SHARK_APPROACH_TARGET = 5,
+        SAND_SHARK_CLOSE_RANGE_ATTACK = 6,
         SAND_SHARK_RETURN_HOME = 7,
         SAND_SHARK_KNOCKBACK_UNTIL_LANDING = 8,
         SAND_SHARK_WAIT_FOR_HERO_LAUNCH_TRIGGER = 12,
@@ -339,9 +340,9 @@ void sand_shark_update(struct Moby *moby) {
     Varsd3e50 *vars;
     OvlVec4 v0;
     OvlVec4 v1;
-    OvlVec4 v2;
+    OvlVec4 target_home_delta;
     OvlVec4 navigation_point;
-    OvlVec4 v4;
+    OvlVec4 particle_position_or_forward_step;
     float f;
 
     if (D_L02_001619A8 != 0) {
@@ -500,7 +501,7 @@ void sand_shark_update(struct Moby *moby) {
         v0.f[1] = 2.0f * fast_sin_e50(moby->rot.z);
         v0.f[2] = 0.0f;
         fast_vec_add(&v0, &v0, &moby->pos);
-        FUN_L00_00258b50(moby, &vars->walk_mode, &v0, &v2, 1.0f);
+        FUN_L00_00258b50(moby, &vars->walk_mode, &v0, &target_home_delta, 1.0f);
         FUN_L02_002d63c0_e50(moby);
         if (FUN_L00_00261b48(vars->path, &moby->pos, &v1, &navigation_point) && distance_e50(&moby->pos, &navigation_point) < vars->unk294) {
             hit14 = 1;
@@ -610,8 +611,8 @@ void sand_shark_update(struct Moby *moby) {
         if (moby->state == 0x16) {
             moby->pos.z += D_L02_0016191C;
             if (rand_below_e50(0xFF) & 1) {
-                v4.q = *(OvlQuad *)&moby->pos;
-                FUN_L02_002d5a68_e50(&v4);
+                particle_position_or_forward_step.q = *(OvlQuad *)&moby->pos;
+                FUN_L02_002d5a68_e50(&particle_position_or_forward_step);
             }
         }
         qcopy(&navigation_point, &vars->target);
@@ -630,7 +631,7 @@ void sand_shark_update(struct Moby *moby) {
             if (vars->unk278 >= 0 && !inside_e50(&vars->target, vars->unk278)) {
                 moby->state = 7;
             } else {
-            fast_vec_sub(&v2, &vars->target, &vars->home);
+            fast_vec_sub(&target_home_delta, &vars->target, &vars->home);
             if (FUN_001f9b80_e50(&moby->pos, &navigation_point) < 12.0f && moby->state == 0x16) {
                 moby->state = 0x13;
                 sound_e50(4, 0, moby);
@@ -652,7 +653,7 @@ void sand_shark_update(struct Moby *moby) {
             moby->state = 0x12;
         }
         break;
-    case 6:
+    case SAND_SHARK_CLOSE_RANGE_ATTACK:
         FUN_L00_00258278_c(moby, atan2_e50(vars->target.f[0] - moby->pos.x, vars->target.f[1] - moby->pos.y), &vars->turn_vel,
                  0.05f, 0.3f, 0.2f);
         if (moby->seq == moby->prev_seq && in_window_e50(moby, 13.0f)) {
@@ -682,8 +683,8 @@ void sand_shark_update(struct Moby *moby) {
         if (moby->state == 0x17) {
             moby->pos.z += D_L02_0016191C;
             if (rand_below_e50(0xFF) & 1) {
-                v4.q = *(OvlQuad *)&moby->pos;
-                FUN_L02_002d5a68_e50(&v4);
+                particle_position_or_forward_step.q = *(OvlQuad *)&moby->pos;
+                FUN_L02_002d5a68_e50(&particle_position_or_forward_step);
             }
         }
         qcopy(&navigation_point, &vars->home);
@@ -721,13 +722,13 @@ void sand_shark_update(struct Moby *moby) {
         }
         if (vars->unk298 == 0) {
             if (vars->unk214 != 2) {
-                fast_vec_sub(&v2, &vars->target, &vars->home);
+                fast_vec_sub(&target_home_delta, &vars->target, &vars->home);
                 if (vars->unk278 >= 0) {
                     if (inside_e50(&vars->target, vars->unk278)) {
                         moby->state = 5;
                         vars->walk_step = vars->unk254 * D_0015ED6C;
                     }
-                } else if (FUN_001f9af0_e50(&v2) < vars->unk24C) {
+                } else if (FUN_001f9af0_e50(&target_home_delta) < vars->unk24C) {
                     if (moby->state == 7) {
                         moby->state = 5;
                     } else {
@@ -748,8 +749,8 @@ void sand_shark_update(struct Moby *moby) {
             }
         } else {
             extern float D_0015ED6C_e50s __asm__("D_0015ED6C") __attribute__((sda));
-            FUN_001f9bf8_e50(&v4, &moby->rot_row0, D_0015ED6C_e50s * 0.5f);
-            fast_vec_add(&moby->pos, &moby->pos, &v4);
+            FUN_001f9bf8_e50(&particle_position_or_forward_step, &moby->rot_row0, D_0015ED6C_e50s * 0.5f);
+            fast_vec_add(&moby->pos, &moby->pos, &particle_position_or_forward_step);
         }
         break;
     case SAND_SHARK_KNOCKBACK_UNTIL_LANDING:
@@ -2239,7 +2240,7 @@ void sand_shark_nest_update(unsigned char *moby) {
     };
     Varscb38 *nest_vars = *(Varscb38 **)(moby + 0x78);
     char *launched_shark;
-    int n;
+    int spawn_delay_factor;
     OvlVec4 v;
     OvlVec4 launch_position;
 
@@ -2285,11 +2286,11 @@ void sand_shark_nest_update(unsigned char *moby) {
                 blend_moby_animation_c3(moby, 0, 0, scale_ticks(10));
             }
         } else if (compute_interpolated_record_value(moby) == 12.0f) {
-            n = D_0014EE90[moby[0xB0]];
-            if (n > 20) {
-                n = 20;
+            spawn_delay_factor = D_0014EE90[moby[0xB0]];
+            if (spawn_delay_factor > 20) {
+                spawn_delay_factor = 20;
             }
-            nest_vars->timer = scale_ticks(nest_vars->delay + scale_ticks(n * 15));
+            nest_vars->timer = scale_ticks(nest_vars->delay + scale_ticks(spawn_delay_factor * 15));
             launched_shark = FUN_L02_002dd2a8_c(moby);
             if (launched_shark) {
                 char *od = *(char **)(launched_shark + 0x78);
@@ -2631,7 +2632,7 @@ void transport_pod_update(unsigned char *moby) {
     int i;
     int *path;
     int lim;
-    int t;
+    int adjusted_help_ticks;
     float s;
     OvlVec4 delta;
     OvlVec4 rot;
@@ -2856,10 +2857,10 @@ void transport_pod_update(unsigned char *moby) {
         if (absolute_float_dc88(*(float *)(transport_pod_vars->rail_a + 0x18) - ((struct Moby *)moby)->pos.z - 2.0f) < 0.01f &&
             absolute_float_dc88(*(float *)(transport_pod_vars->rail_b + 0x18) - ((struct Moby *)moby)->pos.z + 4.0f) < 0.01f) {
             {
-                t = scale_ticks(D_0015EEA4_gp) - usage_stats.stat[9].unk2 * 600;
+                adjusted_help_ticks = scale_ticks(D_0015EEA4_gp) - usage_stats.stat[9].unk2 * 600;
             }
             lim = scale_ticks(3600) * 60.0f;
-            if (lim < t) {
+            if (lim < adjusted_help_ticks) {
                 extern int D_0015ED84_dc88 __asm__("D_0015ED84") __attribute__((sda));
                 if (!(D_00141BAC & (1 << D_0015ED84_dc88))) {
                     help_request(0x7DD, 0x48);

@@ -24,7 +24,7 @@ void subtract_vector_xyz(Vec4 *, void *, void *) __asm__("FUN_001f9a28");
 void transform_vector(Vec4 *, Vec4 *, Mtx *) __asm__("FUN_001f9d20");
 void fast_vec_scale(Vec4 *, Vec4 *, float) __asm__("FUN_001f9a68");
 void FUN_L00_0024eed8(char *p, int idx, void *v, float a, float b);
-void FUN_L00_0024eed8(char *moby, int idx, void *v, float a, float b) {
+void FUN_L00_0024eed8(char *moby, int idx, void *v, float unscaled_entry_w, float b) {
     Mtx transposed_rotation;
     Vec4 local_offset;
     Ent32 *e = &(*(Tbl **)(moby + 0x94))->e[idx];
@@ -35,7 +35,7 @@ void FUN_L00_0024eed8(char *moby, int idx, void *v, float a, float b) {
     fast_vec_scale(&local_offset, &local_offset, k);
     qcopy(&e->v, &local_offset);
     e->b = b * k;
-    e->v.w = a * k;
+    e->v.w = unscaled_entry_w * k;
 }
 #define NOT_SDA
 
@@ -45,10 +45,10 @@ void FUN_L00_0024eed8(char *moby, int idx, void *v, float a, float b) {
 
 /* Offsets the point pairs of each of the a[4] + a[5] entries by dx, dy. */
 void FUN_L00_0024efb0(unsigned char *a, int dx, int dy);
-void FUN_L00_0024efb0(unsigned char *a, int dx, int dy) {
+void FUN_L00_0024efb0(unsigned char *moby_class, int dx, int dy) {
     int i;
-    int entry_count = a[4] + a[5];
-    int *entry_cursor = *(int **)a;
+    int entry_count = moby_class[4] + moby_class[5];
+    int *entry_cursor = *(int **)moby_class;
     for (i = 0; i < entry_count; i++, entry_cursor += 4) {
         unsigned short *point_pair_cursor = *(unsigned short **)entry_cursor;
         int point_pair_count = ((unsigned char *)point_pair_cursor)[2];
@@ -288,9 +288,9 @@ extern void FUN_00118a80_24f440(int) __asm__("FUN_00118a80");
  * with a generic prototype for its callers. */
 void FUN_L00_0024f440_c(char *obj, int i, int j, Packet_24f440 *out) __asm__("FUN_L00_0024f440");
 void FUN_L00_0024f440_c(char *obj, int i, int j, Packet_24f440 *out) {
-    char *t = *(char **)(obj + 0x18);
+    char *frame_table_container = *(char **)(obj + 0x18);
     char *u = *(char **)(obj + 0x14);
-    int nb = (unsigned char)t[8];
+    int nb = (unsigned char)frame_table_container[8];
     int na = (unsigned char)u[8];
     Frame_24f440 *selected_frame;
     unsigned short a;
@@ -301,7 +301,7 @@ void FUN_L00_0024f440_c(char *obj, int i, int j, Packet_24f440 *out) {
     u64_24f440 *q;
 
     {
-        char **tt = (char **)(t + 0x48);
+        char **tt = (char **)(frame_table_container + 0x48);
         char *r = tt[i];
         Frame_24f440 **ss = (Frame_24f440 **)(r + 0x1C);
         selected_frame = ss[j];

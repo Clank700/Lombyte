@@ -462,30 +462,30 @@ extern void fast_vec_scale(float, void *, void *) __asm__("FUN_001f9a68");
 extern void draw_2baae0(void *, void *, int) __asm__("FUN_001f7d30");
 extern void gsreg_2baae0(int, long) __asm__("FUN_00233980");
 
-void FUN_L00_002baae0(void *mv, int a, int b, int point_count, float sx, float sy, float sz) {
+void FUN_L00_002baae0(void *mv, int first_pass_alpha, int b, int point_count, float sx, float sy, float sz) {
     char *point_bytes = mv;
     RW_2baae0 *v = mv;
-    RW_2baae0 q[4];
-    RT_2baae0 t;
+    RW_2baae0 first_pass_corners[4];
+    RT_2baae0 first_pass_render_attributes;
     RW_2baae0 q2[4];
     RT_2baae0 u;
     RW_2baae0 w120, w130, w140, w150, adjusted_segment_start, adjusted_segment_end, segment_start_camera_offset, b190, s1A0, s1B0;
     int i, col0, col1;
     float len, len0, l0, l1, l2;
-    t.q0 = tex_2baae0(D_L00_00161638);
-    col0 = D_L00_001615F4 | (a << 24);
-    t.q2 = 0x8000000048L;
-    t.q1 = 0xFF9000000260L;
-    t.z4 = 0;
-    t.c[3] = col0;
-    t.c[2] = col0;
-    t.c[1] = col0;
-    t.c[0] = col0;
+    first_pass_render_attributes.q0 = tex_2baae0(D_L00_00161638);
+    col0 = D_L00_001615F4 | (first_pass_alpha << 24);
+    first_pass_render_attributes.q2 = 0x8000000048L;
+    first_pass_render_attributes.q1 = 0xFF9000000260L;
+    first_pass_render_attributes.z4 = 0;
+    first_pass_render_attributes.c[3] = col0;
+    first_pass_render_attributes.c[2] = col0;
+    first_pass_render_attributes.c[1] = col0;
+    first_pass_render_attributes.c[0] = col0;
     u.q0 = tex_2baae0(D_L00_0016163C);
     col1 = D_L00_001615F8 | (b << 24);
-    u.q2 = t.q2;
-    u.q1 = t.q1;
-    u.z4 = t.z4;
+    u.q2 = first_pass_render_attributes.q2;
+    u.q1 = first_pass_render_attributes.q1;
+    u.z4 = first_pass_render_attributes.z4;
     u.c[3] = col1;
     u.c[2] = col1;
     u.c[1] = col1;
@@ -498,14 +498,14 @@ void FUN_L00_002baae0(void *mv, int a, int b, int point_count, float sx, float s
     u.f[5] = 0;
     u.f[6] = 1.0f;
     u.f[7] = 1.0f;
-    t.f[0] = D_L00_001615EC + 0;
-    t.f[1] = 0;
-    t.f[2] = D_L00_001615EC + 0;
-    t.f[3] = 1.0f;
-    t.f[4] = D_L00_001615EC + 1.0f;
-    t.f[5] = 0;
-    t.f[6] = D_L00_001615EC + 1.0f;
-    t.f[7] = 1.0f;
+    first_pass_render_attributes.f[0] = D_L00_001615EC + 0;
+    first_pass_render_attributes.f[1] = 0;
+    first_pass_render_attributes.f[2] = D_L00_001615EC + 0;
+    first_pass_render_attributes.f[3] = 1.0f;
+    first_pass_render_attributes.f[4] = D_L00_001615EC + 1.0f;
+    first_pass_render_attributes.f[5] = 0;
+    first_pass_render_attributes.f[6] = D_L00_001615EC + 1.0f;
+    first_pass_render_attributes.f[7] = 1.0f;
     fast_vec_sub(w140, point_bytes, g_debug_camera);
     fast_vec_sub(w150, point_bytes + 0x10, point_bytes);
     fast_vec_cross(w120, w150, w140);
@@ -513,8 +513,8 @@ void FUN_L00_002baae0(void *mv, int a, int b, int point_count, float sx, float s
     if (len0 != 0)
         len0 = 1.0f / len0;
     fast_vec_scale(D_L00_001615FC * len0, w120, w120);
-    fast_vec_add(q[0], point_bytes, w120);
-    fast_vec_sub(q[1], point_bytes, w120);
+    fast_vec_add(first_pass_corners[0], point_bytes, w120);
+    fast_vec_sub(first_pass_corners[1], point_bytes, w120);
     for (i = 1; i < point_count - 1; i++) {
         fast_vec_sub(w140, v[i], g_debug_camera);
         fast_vec_sub(w150, v[i + 1], v[i]);
@@ -523,21 +523,21 @@ void FUN_L00_002baae0(void *mv, int a, int b, int point_count, float sx, float s
         if (len != 0)
             len = 1.0f / len;
         fast_vec_scale(D_L00_001615FC * len, w120, w120);
-        fast_vec_add(q[2], v[i], w120);
-        fast_vec_sub(q[3], v[i], w120);
+        fast_vec_add(first_pass_corners[2], v[i], w120);
+        fast_vec_sub(first_pass_corners[3], v[i], w120);
         if (i == 1) {
-            t.c[1] = D_L00_001615F4;
-            t.c[0] = D_L00_001615F4;
+            first_pass_render_attributes.c[1] = D_L00_001615F4;
+            first_pass_render_attributes.c[0] = D_L00_001615F4;
         } else if (i == point_count - 2) {
-            t.c[3] = D_L00_001615F4;
-            t.c[2] = D_L00_001615F4;
+            first_pass_render_attributes.c[3] = D_L00_001615F4;
+            first_pass_render_attributes.c[2] = D_L00_001615F4;
         } else if (i == 2) {
-            t.c[1] = col0;
-            t.c[0] = col0;
+            first_pass_render_attributes.c[1] = col0;
+            first_pass_render_attributes.c[0] = col0;
         }
-        draw_2baae0(q, 0, 0);
-        qcopy(q[0], q[2]);
-        qcopy(q[1], q[3]);
+        draw_2baae0(first_pass_corners, 0, 0);
+        qcopy(first_pass_corners[0], first_pass_corners[2]);
+        qcopy(first_pass_corners[1], first_pass_corners[3]);
     }
     for (i = 0; i < point_count - 1; i++) {
         fast_vec_sub(segment_start_camera_offset, point_bytes + i * 16, g_debug_camera);
@@ -619,7 +619,7 @@ void FUN_L00_002bb0b0(void *mv) {
     Q_2bb0b0 quad;
     V_2bb0b0 mat[4];
     V_2bb0b0 *pos = *(V_2bb0b0 **)((char *)mv + 0x78);
-    unsigned int c;
+    unsigned int quad_color;
     float corner_scale;
     int i;
     quad.tex = tex_2bb0b0(0xB);
@@ -635,11 +635,11 @@ void FUN_L00_002bb0b0(void *mv) {
     cross_2bb0b0(&mat[1], &mat[0], &(*(V_2bb0b0 *)D_0013F5E0));
     fast_vec_normalize(&mat[1], &mat[1], -1.0f);
     cross_2bb0b0(&mat[2], &mat[1], &mat[0]);
-    c = D_L00_00161640;
-    quad.color[3] = c;
-    quad.color[2] = c;
-    quad.color[1] = c;
-    quad.color[0] = c;
+    quad_color = D_L00_00161640;
+    quad.color[3] = quad_color;
+    quad.color[2] = quad_color;
+    quad.color[1] = quad_color;
+    quad.color[0] = quad_color;
     corner_scale = D_L00_00161648 + rnd_2bb0b0(0.0f, 0.025f);
     for (i = 0; i < 4; i++) {
         vmul_2bb0b0(corner_scale, &quad.corner[i], &D_L00_001DB560[i]);
@@ -648,11 +648,11 @@ void FUN_L00_002bb0b0(void *mv) {
         quad.uv[i].v = D_L00_001DB5A0[i].v;
     }
     draw_2bb0b0(&quad, 0, 0);
-    c = D_L00_001615F8_2bb0b0;
-    quad.color[3] = c;
-    quad.color[2] = c;
-    quad.color[1] = c;
-    quad.color[0] = c;
+    quad_color = D_L00_001615F8_2bb0b0;
+    quad.color[3] = quad_color;
+    quad.color[2] = quad_color;
+    quad.color[1] = quad_color;
+    quad.color[0] = quad_color;
     corner_scale = D_L00_0016164C + rnd_2bb0b0(0.0f, 0.05f);
     for (i = 0; i < 4; i++) {
         vmul_2bb0b0(corner_scale, &quad.corner[i], &D_L00_001DB560[i]);
@@ -1009,29 +1009,29 @@ extern void scale_vector_xyz(void *, void *, float);
 extern void subtract_vector_xyz(void *, void *, void *);
 extern void vu1_add_g_sregister(int, long) __asm__("FUN_00233980");
 
-void FUN_L00_002bbbc8(void *mv, int a, int b, int point_count, float sx, float sy, float sz) {
+void FUN_L00_002bbbc8(void *mv, int first_pass_alpha, int b, int point_count, float sx, float sy, float sz) {
     char *point_bytes = mv;
-    RW q[4];
-    RT t;
+    RW first_pass_corners[4];
+    RT first_pass_render_attributes;
     RW q2[4];
     RT u;
     RW w120, w130, w140, w150, adjusted_segment_start, adjusted_segment_end, segment_start_camera_offset, b190, s1A0, s1B0;
     int i, col0, col1;
     float len, len0, l0, l1;
-    t.q0 = get_effect_texture(*(int *)&D_L00_001616B0);
-    col0 = *(int *)&D_L00_00161680 | (a << 24);
-    t.q2 = 0x8000000048L;
-    t.q1 = 0xFF9000000260L;
-    t.z4 = 0;
-    t.c[3] = col0;
-    t.c[2] = col0;
-    t.c[1] = col0;
-    t.c[0] = col0;
+    first_pass_render_attributes.q0 = get_effect_texture(*(int *)&D_L00_001616B0);
+    col0 = *(int *)&D_L00_00161680 | (first_pass_alpha << 24);
+    first_pass_render_attributes.q2 = 0x8000000048L;
+    first_pass_render_attributes.q1 = 0xFF9000000260L;
+    first_pass_render_attributes.z4 = 0;
+    first_pass_render_attributes.c[3] = col0;
+    first_pass_render_attributes.c[2] = col0;
+    first_pass_render_attributes.c[1] = col0;
+    first_pass_render_attributes.c[0] = col0;
     u.q0 = get_effect_texture(*(int *)&D_L00_001616B4);
     col1 = *(int *)&D_L00_00161684 | (b << 24);
-    u.q2 = t.q2;
-    u.q1 = t.q1;
-    u.z4 = t.z4;
+    u.q2 = first_pass_render_attributes.q2;
+    u.q1 = first_pass_render_attributes.q1;
+    u.z4 = first_pass_render_attributes.z4;
     u.c[3] = col1;
     u.c[2] = col1;
     u.c[1] = col1;
@@ -1044,14 +1044,14 @@ void FUN_L00_002bbbc8(void *mv, int a, int b, int point_count, float sx, float s
     u.f[5] = 0;
     u.f[6] = 1.0f;
     u.f[7] = 1.0f;
-    t.f[0] = 0;
-    t.f[1] = 0;
-    t.f[2] = 0;
-    t.f[3] = 1.0f;
-    t.f[4] = 1.0f;
-    t.f[5] = 0;
-    t.f[6] = 1.0f;
-    t.f[7] = 1.0f;
+    first_pass_render_attributes.f[0] = 0;
+    first_pass_render_attributes.f[1] = 0;
+    first_pass_render_attributes.f[2] = 0;
+    first_pass_render_attributes.f[3] = 1.0f;
+    first_pass_render_attributes.f[4] = 1.0f;
+    first_pass_render_attributes.f[5] = 0;
+    first_pass_render_attributes.f[6] = 1.0f;
+    first_pass_render_attributes.f[7] = 1.0f;
     subtract_vector_xyz(w140, point_bytes, D_L00_00166DC0);
     subtract_vector_xyz(w150, point_bytes + 0x10, point_bytes);
     cross_vectors_xyz(w120, w150, w140);
@@ -1059,8 +1059,8 @@ void FUN_L00_002bbbc8(void *mv, int a, int b, int point_count, float sx, float s
     if (len0 != 0)
         len0 = 1.0f / len0;
     scale_vector_xyz(w120, w120, sx * len0);
-    add_vector_xyz(q[0], point_bytes, w120);
-    subtract_vector_xyz(q[1], point_bytes, w120);
+    add_vector_xyz(first_pass_corners[0], point_bytes, w120);
+    subtract_vector_xyz(first_pass_corners[1], point_bytes, w120);
     for (i = 1; i < point_count - 1; i++) {
         subtract_vector_xyz(w140, point_bytes + i * 16, D_L00_00166DC0);
         subtract_vector_xyz(w150, point_bytes + i * 16 + 16, point_bytes + i * 16);
@@ -1069,21 +1069,21 @@ void FUN_L00_002bbbc8(void *mv, int a, int b, int point_count, float sx, float s
         if (len != 0)
             len = 1.0f / len;
         scale_vector_xyz(w120, w120, sx * len);
-        add_vector_xyz(q[2], point_bytes + i * 16, w120);
-        subtract_vector_xyz(q[3], point_bytes + i * 16, w120);
+        add_vector_xyz(first_pass_corners[2], point_bytes + i * 16, w120);
+        subtract_vector_xyz(first_pass_corners[3], point_bytes + i * 16, w120);
         if (i == 1) {
-            t.c[1] = *(int *)&D_L00_00161680;
-            t.c[0] = *(int *)&D_L00_00161680;
+            first_pass_render_attributes.c[1] = *(int *)&D_L00_00161680;
+            first_pass_render_attributes.c[0] = *(int *)&D_L00_00161680;
         } else if (i == point_count - 2) {
-            t.c[3] = *(int *)&D_L00_00161680;
-            t.c[2] = *(int *)&D_L00_00161680;
+            first_pass_render_attributes.c[3] = *(int *)&D_L00_00161680;
+            first_pass_render_attributes.c[2] = *(int *)&D_L00_00161680;
         } else if (i == 2) {
-            t.c[1] = col0;
-            t.c[0] = col0;
+            first_pass_render_attributes.c[1] = col0;
+            first_pass_render_attributes.c[0] = col0;
         }
-        draw_geometry_quad(q, 0, 0);
-        qcopy(q[0], q[2]);
-        qcopy(q[1], q[3]);
+        draw_geometry_quad(first_pass_corners, 0, 0);
+        qcopy(first_pass_corners[0], first_pass_corners[2]);
+        qcopy(first_pass_corners[1], first_pass_corners[3]);
     }
     for (i = 0; i < point_count - 1; i++) {
         subtract_vector_xyz(segment_start_camera_offset, point_bytes + i * 16, D_L00_00166DC0);
@@ -1163,7 +1163,7 @@ extern unsigned int D_L00_001616C0 __attribute__((sda));
 extern unsigned int D_L00_001616C4 __attribute__((sda));
 extern V_2bc1a0 D_L00_001DBB60[] __attribute__((section(".data")));
 void FUN_L00_002bc1a0(void *mv) {
-    char *m = mv;
+    char *moby_bytes = mv;
     Q_2bc1a0 quad;
     V_2bc1a0 mat[4];
     V_2bc1a0 scaled_corner;
@@ -1171,8 +1171,8 @@ void FUN_L00_002bc1a0(void *mv) {
     V_2bc1a0 e;
     unsigned int c;
     int i;
-    FUN_001f9a68_2bc1a0(D_L00_001616BC, &scaled_basis_offset, m + 0xD0);
-    FUN_001f9a10_2bc1a0(&mat[3], &scaled_basis_offset, m + 0x10);
+    FUN_001f9a68_2bc1a0(D_L00_001616BC, &scaled_basis_offset, moby_bytes + 0xD0);
+    FUN_001f9a10_2bc1a0(&mat[3], &scaled_basis_offset, moby_bytes + 0x10);
     quad.tex = FUN_001f44b8_2bc1a0(D_L00_001616C8);
     quad.unk88 = 0x8000000048L;
     quad.unk80 = 0xFF9000000260L;
@@ -2087,7 +2087,7 @@ void fast_draw_quad_real(void *, void *, int) __asm__("FUN_001f7d30");
 /* scrolls the two texture-offset accumulators and draws the 10x20 band of
    textured quads between the D_L00_001DC060/001DC1A0 rings, skipping
    back-facing ones */
-void FUN_L00_002bdc50(void *o) {
+void FUN_L00_002bdc50(void *moby) {
     Quad quad;
     OvlVec4 edge_to_corner0, edge_to_corner2, face_normal, camera_to_corner1;
     float y, a, b, texture_scroll_step;
@@ -2097,8 +2097,8 @@ void FUN_L00_002bdc50(void *o) {
     if (D_L00_0016178C <= -8.0f) D_L00_0016178C += 8.0f;
     FUN_L00_002be078(D_L00_001DC020, D_L00_0016176C, D_L00_00161770, 12, D_L00_00161774, D_L00_00161778, D_L00_0016177C, D_L00_00161784);
     FUN_L00_002be078(D_L00_001DC0E0, D_L00_0016176C, D_L00_00161770, 12, D_L00_00161774, D_L00_00161778, D_L00_0016177C, D_L00_00161788);
-    FUN_L00_002be650(o);
-    FUN_L00_002be890(o);
+    FUN_L00_002be650(moby);
+    FUN_L00_002be890(moby);
     k = D_0013E535;
     c = k ? D_L00_00161798 : D_L00_00161794;
     quad.tex = FUN_001f44b8(D_L00_0016179C);
@@ -2365,7 +2365,7 @@ extern float D_L00_001617AC __attribute__((sda));
 extern float D_L00_001617B0 __attribute__((sda));
 extern int D_L00_001617B8 __attribute__((sda));
 void FUN_L00_002be890(void *mv) {
-    char *m = mv;
+    char *moby_bytes = mv;
     Q_2be890 quad;
     V_2be890 mat[4];
     V_2be890 scaled_corner;
@@ -2389,7 +2389,7 @@ void FUN_L00_002be890(void *mv) {
     quad.unk64 = 0;
     quad.unk68 = 1.0f;
     quad.unk6C = 1.0f;
-    FUN_001f9bf8_2be890(&e, m + 0xD0, D_L00_001617B4);
+    FUN_001f9bf8_2be890(&e, moby_bytes + 0xD0, D_L00_001617B4);
     FUN_001f9a10_2be890(&mat[3], &D_L00_001DBF60_2be890, &e);
     FUN_001f9a28_2be890(&e, &(*(V_2be890 *)g_debug_camera), &mat[3]);
     FUN_001f9bf8_2be890(&mat[0], &e, 1.0f);
@@ -2526,24 +2526,24 @@ typedef struct {
 extern int D_L00_00173E40[] __attribute__((section(".data")));
 int FUN_001efa68_002bec80(Vec4_2bec80 *, Vec4_2bec80 *, int, void *, int) __asm__("FUN_001efa68");
 unsigned int FUN_001f0b58_002bec80(void) __asm__("FUN_001f0b58");
-float FUN_L00_002bec80(Vec4_2bec80 *p, void *q) {
+float FUN_L00_002bec80(Vec4_2bec80 *probe_position, void *probing_moby) {
     enum {
         COLLISION_MATERIAL_WATER = 0
     };
-    Vec4_2bec80 a, b;
-    float f, t;
-    qcopy(&a, p);
-    qcopy(&b, p);
-    t = a.f[2] - 5.0f;
-    if (t < 0.1f)
+    Vec4_2bec80 lower_probe_point, b;
+    float f, unclamped_lower_z;
+    qcopy(&lower_probe_point, probe_position);
+    qcopy(&b, probe_position);
+    unclamped_lower_z = lower_probe_point.f[2] - 5.0f;
+    if (unclamped_lower_z < 0.1f)
         f = 0.1f;
     else
-        f = t;
-    a.f[2] = f;
+        f = unclamped_lower_z;
+    lower_probe_point.f[2] = f;
     b.f[2] = f + 6.0f;
-    if (FUN_001efa68_002bec80(&b, &a, 6, q, 0)) {
-        char *o = (*(S173E40_2bec80 *)D_L00_00173E40).o18;
-        if (o && *(char **)(o + 0x24) && *(short *)(*(char **)(o + 0x24) + 0x46) == 5) {
+    if (FUN_001efa68_002bec80(&b, &lower_probe_point, 6, probing_moby, 0)) {
+        char *hit_moby = (*(S173E40_2bec80 *)D_L00_00173E40).o18;
+        if (hit_moby && *(char **)(hit_moby + 0x24) && *(short *)(*(char **)(hit_moby + 0x24) + 0x46) == 5) {
             return (*(S173E40_2bec80 *)D_L00_00173E40).f28;
         }
         switch (FUN_001f0b58_002bec80()) {
@@ -2676,8 +2676,8 @@ extern f32 fast_vec_dist(void *, void *) __asm__("FUN_001f9b48");
 extern s32 FUN_001efa68_c(void *, void *, s32, void *, s32) __asm__("FUN_001efa68");
 extern f32 FUN_L00_002bec80_c(void *, void *) __asm__("FUN_L00_002bec80");
 
-f32 FUN_L00_002bf050(Mob *m, VU *pos, f32 *tgt, f32 *out, f32 ang, f32 arc, f32 step, f32 probe_height_offset, f32 r2,
-                     f32 r1) {
+f32 FUN_L00_002bf050(Mob *moby, VU *pos, f32 *tgt, f32 *out, f32 ang, f32 arc, f32 step, f32 probe_height_offset, f32 horizontal_probe_distance,
+                     f32 probe_start_horizontal_offset) {
     VU probe_start;
     VU probe_end;
     f32 da;
@@ -2698,11 +2698,11 @@ f32 FUN_L00_002bf050(Mob *m, VU *pos, f32 *tgt, f32 *out, f32 ang, f32 arc, f32 
     best = ang;
     sweep_probe_count = FUN_001fa6d0_c(step);
     bestDist = 0.0f;
-    x = m->p78;
+    x = moby->p78;
     bestDiff = 6.2831855f;
     *out = bestDist;
     if (tgt != 0) {
-        cur = FUN_001f9e90_c(tgt[0] - m->f10, tgt[1] - m->f14);
+        cur = FUN_001f9e90_c(tgt[0] - moby->f10, tgt[1] - moby->f14);
     } else {
         cur = ang;
     }
@@ -2711,18 +2711,18 @@ f32 FUN_L00_002bf050(Mob *m, VU *pos, f32 *tgt, f32 *out, f32 ang, f32 arc, f32 
     arc = fast_subtract_rotations(ang, arc);
 
     qcopy(&probe_start, pos);
-    probe_start.f[1] += fast_sin(cur) * r1;
-    probe_start.f[0] += fast_cos(cur) * r1;
+    probe_start.f[1] += fast_sin(cur) * probe_start_horizontal_offset;
+    probe_start.f[0] += fast_cos(cur) * probe_start_horizontal_offset;
     probe_start.f[2] += probe_height_offset;
     qcopy(&probe_end, pos);
-    probe_end.f[1] += fast_sin(cur) * r2;
-    probe_end.f[0] += fast_cos(cur) * r2;
+    probe_end.f[1] += fast_sin(cur) * horizontal_probe_distance;
+    probe_end.f[0] += fast_cos(cur) * horizontal_probe_distance;
     probe_end.f[2] += probe_height_offset + probe_height_offset;
-    if (FUN_001efa68_c(&probe_start, &probe_end, 4, m, 0) == 0) {
-        if (FUN_L00_002bec80_c(&probe_end, m) != 0.0f) {
+    if (FUN_001efa68_c(&probe_start, &probe_end, 4, moby, 0) == 0) {
+        if (FUN_L00_002bec80_c(&probe_end, moby) != 0.0f) {
             best = cur;
-            bestDist = r2;
-            *out = r2;
+            bestDist = horizontal_probe_distance;
+            *out = horizontal_probe_distance;
         }
     } else {
         if (D_L00_00173E58_bf == x->p38 || (D_L00_00173E58_bf != 0 && D_L00_00173E58_bf->p24 != 0 &&
@@ -2740,22 +2740,22 @@ f32 FUN_L00_002bf050(Mob *m, VU *pos, f32 *tgt, f32 *out, f32 ang, f32 arc, f32 
 
     for (i = 0; i < sweep_probe_count; i++) {
         qcopy(&probe_start, pos);
-        probe_start.f[1] += fast_sin(arc) * r1;
-        probe_start.f[0] += fast_cos(arc) * r1;
+        probe_start.f[1] += fast_sin(arc) * probe_start_horizontal_offset;
+        probe_start.f[0] += fast_cos(arc) * probe_start_horizontal_offset;
         probe_start.f[2] += probe_height_offset;
         qcopy(&probe_end, pos);
-        probe_end.f[1] += fast_sin(arc) * r2;
-        probe_end.f[0] += fast_cos(arc) * r2;
+        probe_end.f[1] += fast_sin(arc) * horizontal_probe_distance;
+        probe_end.f[0] += fast_cos(arc) * horizontal_probe_distance;
         probe_end.f[2] += probe_height_offset + probe_height_offset;
-        if (FUN_001efa68_c(&probe_start, &probe_end, 4, m, 0) == 0) {
-            if (FUN_L00_002bec80_c(&probe_end, m) != 0.0f) {
+        if (FUN_001efa68_c(&probe_start, &probe_end, 4, moby, 0) == 0) {
+            if (FUN_L00_002bec80_c(&probe_end, moby) != 0.0f) {
                 diff = fast_difference_between_rotations(arc, cur);
-                if (diff < bestDiff || bestDist < r2) {
+                if (diff < bestDiff || bestDist < horizontal_probe_distance) {
                     bestDiff = diff;
                     best = arc;
-                    bestDist = r2;
-                    if (*out < r2) {
-                        *out = r2;
+                    bestDist = horizontal_probe_distance;
+                    if (*out < horizontal_probe_distance) {
+                        *out = horizontal_probe_distance;
                     }
                 }
             }
@@ -2791,40 +2791,40 @@ f32 FUN_L00_002bf050(Mob *m, VU *pos, f32 *tgt, f32 *out, f32 ang, f32 arc, f32 
 
     ang = fast_subtract_rotations(best, 1.5707964f);
     qcopy(&probe_start, pos);
-    probe_start.f[1] += fast_sin(ang) * r1;
-    probe_start.f[0] += fast_cos(ang) * r1;
+    probe_start.f[1] += fast_sin(ang) * probe_start_horizontal_offset;
+    probe_start.f[0] += fast_cos(ang) * probe_start_horizontal_offset;
     probe_start.f[2] += probe_height_offset * 0.125f;
     qcopy(&probe_end, &probe_start);
-    probe_end.f[1] += fast_sin(best) * r2;
-    probe_end.f[0] += fast_cos(best) * r2;
+    probe_end.f[1] += fast_sin(best) * horizontal_probe_distance;
+    probe_end.f[0] += fast_cos(best) * horizontal_probe_distance;
     probe_end.f[2] += 0.12f;
-    if (FUN_001efa68_c(&probe_start, &probe_end, 4, m, 0) != 0) {
+    if (FUN_001efa68_c(&probe_start, &probe_end, 4, moby, 0) != 0) {
         if (D_L00_00173E58_bf != x->p38 &&
             !(D_L00_00173E58_bf != 0 && D_L00_00173E58_bf->p24 != 0 &&
               D_L00_00173E58_bf->p24->h46 == 5)) {
             hit_distance = fast_vec_dist(&probe_start, &D_L00_00173E60);
-            best = fast_add_rotations(best, (r2 - hit_distance) * 3.1415927f / (r2 * 3.0f));
+            best = fast_add_rotations(best, (horizontal_probe_distance - hit_distance) * 3.1415927f / (horizontal_probe_distance * 3.0f));
         }
     }
     ang = fast_add_rotations(ang, 3.1415927f);
     qcopy(&probe_start, pos);
-    probe_start.f[1] += fast_sin(ang) * r1;
-    probe_start.f[0] += fast_cos(ang) * r1;
+    probe_start.f[1] += fast_sin(ang) * probe_start_horizontal_offset;
+    probe_start.f[0] += fast_cos(ang) * probe_start_horizontal_offset;
     probe_start.f[2] += probe_height_offset * 0.125f;
     qcopy(&probe_end, &probe_start);
-    probe_end.f[1] += fast_sin(best) * r2;
-    probe_end.f[0] += fast_cos(best) * r2;
+    probe_end.f[1] += fast_sin(best) * horizontal_probe_distance;
+    probe_end.f[0] += fast_cos(best) * horizontal_probe_distance;
     probe_end.f[2] += 0.12f;
-    if (FUN_001efa68_c(&probe_start, &probe_end, 4, m, 0) != 0) {
+    if (FUN_001efa68_c(&probe_start, &probe_end, 4, moby, 0) != 0) {
         if (D_L00_00173E58_bf != x->p38 &&
             !(D_L00_00173E58_bf != 0 && D_L00_00173E58_bf->p24 != 0 &&
               D_L00_00173E58_bf->p24->h46 == 5)) {
             hit_distance = fast_vec_dist(&probe_start, &D_L00_00173E60);
-            best = fast_subtract_rotations(best, (r2 - hit_distance) * 3.1415927f / (r2 * 3.0f));
+            best = fast_subtract_rotations(best, (horizontal_probe_distance - hit_distance) * 3.1415927f / (horizontal_probe_distance * 3.0f));
         }
     }
-    if (2.5132742f < fast_difference_between_rotations(best, m->f48)) {
-        best = fast_add_rotations(m->f48, fast_subtract_rotations(best, m->f48) * 0.5f);
+    if (2.5132742f < fast_difference_between_rotations(best, moby->f48)) {
+        best = fast_add_rotations(moby->f48, fast_subtract_rotations(best, moby->f48) * 0.5f);
     }
     return best;
 }
@@ -3064,19 +3064,19 @@ unsigned char *FUN_L00_002bfe08(int a, u128 *b, u128 *initial_vector) {
 extern char *D_L00_00173E58 __attribute__((section(".data")));
 int FUN_001efa68(Vec4 *, Vec4 *, int, void *, int);
 unsigned int collision_hit_material(void) __asm__("FUN_001f0b58");
-int FUN_L00_002bfec8(unsigned char *p) {
+int FUN_L00_002bfec8(unsigned char *moby) {
     enum {
         COLLISION_MATERIAL_WATER = 0
     };
-    Vec4 a, b;
-    int r = p[0x20];
-    qcopy(&a, p + 0x10);
-    qcopy(&b, p + 0x10);
-    a.f[2] -= 0.3f;
+    Vec4 lower_probe_point, b;
+    int r = moby[0x20];
+    qcopy(&lower_probe_point, moby + 0x10);
+    qcopy(&b, moby + 0x10);
+    lower_probe_point.f[2] -= 0.3f;
     b.f[2] += 1.0f;
-    if (FUN_001efa68(&b, &a, 6, p, 0)) {
-        char *o = D_L00_00173E58;
-        if (o && *(char **)(o + 0x24) && *(short *)(*(char **)(o + 0x24) + 0x46) == 5) {
+    if (FUN_001efa68(&b, &lower_probe_point, 6, moby, 0)) {
+        char *hit_moby = D_L00_00173E58;
+        if (hit_moby && *(char **)(hit_moby + 0x24) && *(short *)(*(char **)(hit_moby + 0x24) + 0x46) == 5) {
             r = 11;
         } else {
             switch (collision_hit_material()) {

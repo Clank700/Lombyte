@@ -103,7 +103,7 @@ int f122298_28e9c8(int) __asm__("FUN_00122298");
 int f215b10_28e9c8(void) __asm__("FUN_00215b10");
 void FUN_L00_0028e9c8(int a) {
     O_28e9c8 *moby;
-    int secondary_track_index, n, m, m2, u;
+    int secondary_track_index, base_audio_selection_index, audio_stream_table_index, alternate_audio_stream_table_index, u;
     D_0013E030_28e9c8.x24 = -1;
     D_L00_0015F5D8 = 1;
     D_0013E030_28e9c8.x20 = a;
@@ -128,40 +128,40 @@ void FUN_L00_0028e9c8(int a) {
             moby->flags |= 0x80;
     }
     if (a == 0) {
-        n = D_0013E030_28e9c8.x26;
-        m = n + 1;
-        secondary_track_index = n + 6;
-        if (current_level_index == 10 && n == 1 && D_0013D4C6_28e9c8 == 0) {
-            m = 0;
+        base_audio_selection_index = D_0013E030_28e9c8.x26;
+        audio_stream_table_index = base_audio_selection_index + 1;
+        secondary_track_index = base_audio_selection_index + 6;
+        if (current_level_index == 10 && base_audio_selection_index == 1 && D_0013D4C6_28e9c8 == 0) {
+            audio_stream_table_index = 0;
             secondary_track_index = 11;
         } else if (current_level_index == 14 && D_0013E030_28e9c8.x26 == 2) {
-            m = 8;
+            audio_stream_table_index = 8;
             secondary_track_index = 14;
         }
-        FUN_L00_00245610(m, fr_28e9c8(6));
+        FUN_L00_00245610(audio_stream_table_index, fr_28e9c8(6));
     } else {
         int k, r;
-        n = D_0013E030_28e9c8.x26;
+        base_audio_selection_index = D_0013E030_28e9c8.x26;
         k = D_0013E030_28e9c8.x2c;
-        secondary_track_index = n + 3;
+        secondary_track_index = base_audio_selection_index + 3;
         if (k)
-            secondary_track_index = n;
-        m2 = n + 5;
-        if (current_level_index == 10 && n == 1 && D_0013D4C6_28e9c8 == 0) {
+            secondary_track_index = base_audio_selection_index;
+        alternate_audio_stream_table_index = base_audio_selection_index + 5;
+        if (current_level_index == 10 && base_audio_selection_index == 1 && D_0013D4C6_28e9c8 == 0) {
             secondary_track_index = 10;
             if (k)
                 secondary_track_index = 9;
-            m2 = 4;
+            alternate_audio_stream_table_index = 4;
         } else if (current_level_index == 14 && D_0013E030_28e9c8.x26 == 2) {
             secondary_track_index = 13;
             if (D_0013E030_28e9c8.x2c)
                 secondary_track_index = 12;
-            m2 = 9;
+            alternate_audio_stream_table_index = 9;
         }
         r = 0;
         if (!D_0013E030_28e9c8.x2c)
             r = fr_28e9c8(6);
-        FUN_L00_00245610(m2, r);
+        FUN_L00_00245610(alternate_audio_stream_table_index, r);
     }
     music_stream_state.queued_secondary_track = secondary_track_index + 40000;
     f2049f0_28e9c8(0);
@@ -226,34 +226,34 @@ void FUN_002049f0_0028ed58(s32) __asm__("FUN_002049f0");
 s32 FUN_0020b178_0028ed58(s32, s32) __asm__("FUN_0020b178");
 extern s32 D_L00_00160570[1] __attribute__((sda));
 void FUN_L00_0028ed58(s32 target_level_index) {
-    A_0028ed58 *p = &D_0013E030_0028ed58;
+    A_0028ed58 *shared_state_record = &D_0013E030_0028ed58;
     C_0028ed58 *c;
-    s32 t;
+    s32 shared_table_offset;
     (&D_L00_0015F5C4)[5] = 1; /* D_L00_0015F5D8: the unit declares it sda */
     D_L00_0015F5C4 = 6;
     fade_level = 1.0f;
     D_L00_0015F400 = 0;
-    p->i20 = 0;
-    p->h24 = -1;
+    shared_state_record->i20 = 0;
+    shared_state_record->h24 = -1;
     FUN_002335a0_0028ed58();
-    t = D_L00_001611CC - 0x60000;
+    shared_table_offset = D_L00_001611CC - 0x60000;
     c = &D_L00_0016C860_0028ed58;
-    c->i58 = D_L00_00173E00_0028ed58.i4 + t;
-    c->i5C = D_L00_00173E00_0028ed58.i8 + t;
-    D_L00_001611CC = t;
+    c->i58 = D_L00_00173E00_0028ed58.i4 + shared_table_offset;
+    c->i5C = D_L00_00173E00_0028ed58.i8 + shared_table_offset;
+    D_L00_001611CC = shared_table_offset;
     if (current_level_index == target_level_index) {
         s32 divisor;
         FUN_L00_0028e9c8_0028ed58(8);
         divisor = pal_mode ? 0x50 : 0x60;
-        c->i34 = FUN_001f96f8_0028ed58(D_L00_00160570[p->h26]);
+        c->i34 = FUN_001f96f8_0028ed58(D_L00_00160570[shared_state_record->h26]);
         c->i3C = c->i34 / divisor;
         FUN_002049f0_0028ed58(c->i3C);
         c->i38 = c->i34 % divisor;
     } else {
         FUN_0020b178_0028ed58(0, target_level_index);
         D_L00_0015F5C0 = target_level_index;
-        p->i20 = 3;
-        p->h24 = -1;
+        shared_state_record->i20 = 3;
+        shared_state_record->h24 = -1;
     }
 }
 typedef struct {

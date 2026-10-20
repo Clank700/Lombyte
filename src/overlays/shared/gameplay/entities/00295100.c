@@ -241,12 +241,12 @@ void handle_pause_input(void) {
         hud_keep_visible(x, FUN_001f96f8_c(0xB4));
     }
     if (D_L00_00184214) {
-        struct UsageStats *h = &usage_stats;
-        if (h->stat[9].count < 0xFFFF)
-            h->stat[9].count++;
-        if (FUN_001f96f8_c(D_0015EEA4) / 600 > h->stat[9].unk2)
-            h->stat[9].unk2 = FUN_001f96f8_c(D_0015EEA4) / 600;
-        h->stat[9].level_mask = h->stat[9].level_mask | (1 << current_level_index) | 0x80000000;
+        struct UsageStats *usage_stats_ptr = &usage_stats;
+        if (usage_stats_ptr->stat[9].count < 0xFFFF)
+            usage_stats_ptr->stat[9].count++;
+        if (FUN_001f96f8_c(D_0015EEA4) / 600 > usage_stats_ptr->stat[9].unk2)
+            usage_stats_ptr->stat[9].unk2 = FUN_001f96f8_c(D_0015EEA4) / 600;
+        usage_stats_ptr->stat[9].level_mask = usage_stats_ptr->stat[9].level_mask | (1 << current_level_index) | 0x80000000;
     }
     if (D_L00_0015F630) {
         D_L00_0015F630 = 0;
@@ -361,7 +361,7 @@ extern float D_L00_0015F59C;
 void start_scene(int a) __asm__("FUN_L00_00298840");
 void start_scene(int scene_id) {
     O_298840 *moby;
-    int t, i;
+    int scene_buffer_base, i;
     if (scene_id < 0)
         return;
     if (hero.health.hp == 0) {
@@ -377,15 +377,15 @@ void start_scene(int scene_id) {
     memset_298840(D_L00_0017C380_lui, 0, 0x40);
     memset_298840(D_L00_0017C400_298840, 0, 0x40);
     memset_298840(D_L00_0017C3C0_298840, 0, 0x40);
-    t = D_L00_001611CC - 0x3C000;
+    scene_buffer_base = D_L00_001611CC - 0x3C000;
     D_L00_0016C860_298840.x30 = scene_id;
     D_L00_0015F59C = 1.0f;
     D_L00_0015F5A0_298840 = 0;
     D_L00_0016C860_298840.x34 = 0;
     D_L00_0016C860_298840.x3c = 0;
-    D_L00_001611CC = t;
-    D_L00_0016C860_298840.x58 = D_L00_00173E00_298840.x4 + t;
-    D_L00_0016C860_298840.x5c = D_L00_00173E00_298840.x8 + t;
+    D_L00_001611CC = scene_buffer_base;
+    D_L00_0016C860_298840.x58 = D_L00_00173E00_298840.x4 + scene_buffer_base;
+    D_L00_0016C860_298840.x5c = D_L00_00173E00_298840.x8 + scene_buffer_base;
     f2039a0_298840();
     fade_level = 1.0f;
     D_L00_0015F5C0_m[1] = 2;
@@ -553,10 +553,10 @@ int FUN_L00_00298de8(void) {
     char *camera_position;
     char *camera_state;
     float k;
-    float f = v[3];
-    *(float *)(x + 0xB0) = f;
+    float unscaled_camera_value = v[3];
+    *(float *)(x + 0xB0) = unscaled_camera_value;
     if (D_0015EDB0_298de8)
-        *(float *)(x + 0xB0) = f * D_L00_0015F59C;
+        *(float *)(x + 0xB0) = unscaled_camera_value * D_L00_0015F59C;
     f1f2d98_298de8();
     camera_position = D_L00_00166C80_298de8 + 0x140;
     qcopy(camera_position, camera_key);
@@ -1499,7 +1499,7 @@ extern void f12e418_29ab70(int) __asm__("FUN_0012e418");
 extern void f216088_29ab70(void) __asm__("FUN_00216088");
 extern void f12dc80_29ab70(void) __asm__("FUN_0012dc80");
 extern int D_L00_00161070 __attribute__((sda));
-void FUN_L00_0029ab70(int a) {
+void FUN_L00_0029ab70(int exit_cutscene_completed) {
     Vec4_29ab70 v;
     Vec4_29ab70 r;
     char *g = D_L00_001CA4C0_29ab70;
@@ -1521,7 +1521,7 @@ void FUN_L00_0029ab70(int a) {
         r.x = 0.0f;
         r.y = 0.0f;
         r.z = f1fa580_29ab70(*(float *)(*(char **)(g + 0x1C) + 0x48), 3.1415927f);
-        if (a == 0) {
+        if (exit_cutscene_completed == 0) {
             f216f90_29ab70(&v, &r, 0, 0);
             f2eac18_29ab70(2);
         } else {
@@ -1696,8 +1696,8 @@ void FUN_L00_0029b4d8(int vendor_event) {
     unsigned char *auxiliary_moby;
     int auxiliary_moby_state;
     int moby_state;
-    int r0;
-    int r1;
+    int selection_variant_index;
+    int ready_variant_index;
     if (D_L00_00161188 == 0)
         return;
     b = D_L00_001CA4C0;
@@ -1709,22 +1709,22 @@ void FUN_L00_0029b4d8(int vendor_event) {
             if (random_integer_below(4) == 0) {
                 if (*(int *)(b + 0x30) + scale_game_frames(0x168) < D_L00_0015F3F8) {
                     *(int *)(b + 0x30) = D_L00_0015F3F8;
-                    r0 = random_integer_below(2);
-                    *(int *)(b + 0x3C) = r0;
+                    selection_variant_index = random_integer_below(2);
+                    *(int *)(b + 0x3C) = selection_variant_index;
                     D_L00_00161190 = 1;
                     D_L00_00161194 = 0;
-                    *(int *)(D_001516EC) = (r0 * 3 + 2) * 6 + *(int *)(b + 0x38) + 10000;
+                    *(int *)(D_001516EC) = (selection_variant_index * 3 + 2) * 6 + *(int *)(b + 0x38) + 10000;
                     auxiliary_moby[0x20] = 0xB;
                 }
             }
         }
         break;
     case VENDOR_AUXILIARY_MOBY_READY:
-        r1 = random_integer_below(2);
-        *(int *)(b + 0x3C) = r1;
+        ready_variant_index = random_integer_below(2);
+        *(int *)(b + 0x3C) = ready_variant_index;
         D_L00_00161190 = vendor_event;
         D_L00_00161194 = 0;
-        *(int *)(D_001516EC) = r1 * 0x12 + *(int *)(b + 0x38) + 10000;
+        *(int *)(D_001516EC) = ready_variant_index * 0x12 + *(int *)(b + 0x38) + 10000;
         if (auxiliary_moby[0x53] != vendor_event)
             blend_moby_animation(auxiliary_moby, 1, 0, 10);
         auxiliary_moby[0x20] = 10;
@@ -1733,8 +1733,8 @@ void FUN_L00_0029b4d8(int vendor_event) {
     case VENDOR_AMMO_PURCHASE:
         moby_state = auxiliary_moby[0x20];
         if (moby_state == 2 || moby_state == 0) {
-            char *q = D_L00_001CA4C0;
-            *(int *)(q + 0x34) = 0;
+            char *vendor_state = D_L00_001CA4C0;
+            *(int *)(vendor_state + 0x34) = 0;
         }
         break;
     }
@@ -2028,7 +2028,7 @@ extern void FUN_L00_0023a7a8_2ba78(void) __asm__("FUN_L00_0023a7a8");
 void FUN_L00_0029ba78(void) {
     u128 lv;
     s32 st;
-    s32 n, k, m;
+    s32 purchase_cost, k, last_row_index;
 
     st = vendor_menu.f5c;
     if (st == 0) {
@@ -2042,9 +2042,9 @@ void FUN_L00_0029ba78(void) {
         lv = 0;
         FUN_001f9a10_2ba78(&vendor_menu.f20[4].pos, &lv, &vendor_menu.f1c->pos);
         {
-            VendorMoby *p = vendor_menu.f20;
-            qcopy(&p[4].rot, &vendor_menu.f1c->rot);
-            FUN_00212ed8_2ba78(&p[4], 0, 0);
+            VendorMoby *menu_mobys = vendor_menu.f20;
+            qcopy(&menu_mobys[4].rot, &vendor_menu.f1c->rot);
+            FUN_00212ed8_2ba78(&menu_mobys[4], 0, 0);
         }
         if (((u8 *)vendor_menu.f20[4].pclass->slots[0])[0x10] < 2) {
             vendor_menu.f20[4].f58 = 0.0f;
@@ -2162,21 +2162,21 @@ void FUN_L00_0029ba78(void) {
                 FUN_0022da68_2ba78(0, 0, vendor_menu.f1c);
             } else if (CUR_ITEM.fD4 == 1) {
                 s32 i;
-                VendorItemInfo *t;
+                VendorItemInfo *selected_item_info;
 
-                if (weapon_ammo_counts[CUR_ITEM.fD0] < (t = &CUR_TB)->hE) {
-                    n = (vendor_menu.f40 ? t->hA : t->h8) * D_L00_00161E34;
-                    if (D_0015ED98 >= n) {
+                if (weapon_ammo_counts[CUR_ITEM.fD0] < (selected_item_info = &CUR_TB)->hE) {
+                    purchase_cost = (vendor_menu.f40 ? selected_item_info->hA : selected_item_info->h8) * D_L00_00161E34;
+                    if (D_0015ED98 >= purchase_cost) {
                         i = CUR_ITEM.fD0;
                         if (weapon_ammo_counts[i] > D_L00_001C40B0[i].hE) {
                             weapon_ammo_counts[i] = D_L00_001C40B0[i].hE;
                         }
                         k = D_L00_00161E34;
                         k -= FUN_L00_00233e40_2ba78(CUR_ITEM.fD0, k);
-                        n = (vendor_menu.f40 ? CUR_TB.hA : CUR_TB.h8) * k;
+                        purchase_cost = (vendor_menu.f40 ? CUR_TB.hA : CUR_TB.h8) * k;
                         ammo_bought_stats[CUR_ITEM.fD0] += k;
                         FUN_L00_0029b4d8_2ba78(3);
-                        D_0015ED98 = D_0015ED98 - n;
+                        D_0015ED98 = D_0015ED98 - purchase_cost;
                         FUN_L00_0029a400_2ba78(vendor_menu.f40 != 0);
                         set_scrolling_status_message(get_help_message_text(0x4F5F));
                         FUN_0022da68_2ba78(7, 0, vendor_menu.f1c);
@@ -2188,15 +2188,15 @@ void FUN_L00_0029ba78(void) {
                     FUN_0022da68_2ba78(0, 0, vendor_menu.f1c);
                 }
             } else {
-                n = D_0013D4E3[0] ? CUR_TB.f4 : CUR_TB.f0;
-                if (D_0015ED98 >= n) {
+                purchase_cost = D_0013D4E3[0] ? CUR_TB.f4 : CUR_TB.f0;
+                if (D_0015ED98 >= purchase_cost) {
                     FUN_L00_0029b4d8_2ba78(2);
                     FUN_L00_00260860_2ba78(CUR_ITEM.fD0, 1);
                     vendor_menu.f48 = CUR_ITEM.fD0;
                     if (CUR_ITEM.fD0 == 0x18) {
                         D_00141345[0] = 1;
                     }
-                    D_0015ED98 = D_0015ED98 - n;
+                    D_0015ED98 = D_0015ED98 - purchase_cost;
                     FUN_L00_0029a400_2ba78(vendor_menu.f40 != 0);
                     if (vendor_menu.f50 != -1) {
                         FUN_001ff570_2ba78(vendor_menu.f50, 0);
@@ -2209,9 +2209,9 @@ void FUN_L00_0029ba78(void) {
                                            FUN_L00_00235ea0_2ba78, FUN_L00_0023a7a8_2ba78,
                                            &weapon_ammo_counts[i], D_L00_001C40B0[i].hE);
                     } else {
-                        m = vendor_menu.f210 - 1;
-                        if (m < vendor_menu.f58) {
-                            vendor_menu.f58 = m;
+                        last_row_index = vendor_menu.f210 - 1;
+                        if (last_row_index < vendor_menu.f58) {
+                            vendor_menu.f58 = last_row_index;
                         }
                         FUN_L00_0029b680_2ba78();
                     }
@@ -2239,7 +2239,7 @@ void FUN_L00_0029c648(void) {
     };
     Vec4 a;
     Vec4 b;
-    f32 m[4][4];
+    f32 camera_rotation_matrix[4][4];
     s32 st;
     s32 ok;
     s32 i;
@@ -2256,7 +2256,7 @@ void FUN_L00_0029c648(void) {
     CutsceneCameraKey *cam;
     f32 *rot;
     VendorMoby *mb;
-    VendorMoby *m2;
+    VendorMoby *cutscene_moby_to_remove;
     Vec4 *keys;
     s32 lim;
     u8 flag;
@@ -2566,11 +2566,11 @@ void FUN_L00_0029c648(void) {
             D_L00_0016CAF0_lui = 0.63f;
             update_view_context();
             for (j = 0; j < D_L00_0016C860.h44; j++) {
-                m2 = D_L00_0016C860.f178[j];
-                if (m2 != 0) {
-                    m2->pclass->count--;
-                    m2->pclass->slots[m2->pclass->count] = 0;
-                    mark_moby_for_removal(m2);
+                cutscene_moby_to_remove = D_L00_0016C860.f178[j];
+                if (cutscene_moby_to_remove != 0) {
+                    cutscene_moby_to_remove->pclass->count--;
+                    cutscene_moby_to_remove->pclass->slots[cutscene_moby_to_remove->pclass->count] = 0;
+                    mark_moby_for_removal(cutscene_moby_to_remove);
                 }
             }
             if (vendor_menu.f28 != 0) {
@@ -2594,19 +2594,19 @@ void FUN_L00_0029c648(void) {
         transform_vector_by_basis(D_L00_00166C80.pos.f, D_L00_00166C80.pos.f, vendor_menu.f80);
         add_vector_xyz(D_L00_00166C80.pos.f, D_L00_00166C80.pos.f, &vendor_menu.fC0);
         ang = fast_add_rotations(rot[2], vendor_menu.f80[3].f[2]);
-        sce_vu0_unit_matrix(m);
-        sce_vu0_rot_matrix_x(m, m, rot[0]);
-        sce_vu0_rot_matrix_y(m, m, rot[1]);
-        sceVu0RotMatrixZ(m, m, ang);
-        D_L00_00166C80.basis[0] = -m[2][0];
-        D_L00_00166C80.basis[4] = -m[0][0];
-        D_L00_00166C80.basis[8] = m[1][0];
-        D_L00_00166C80.basis[1] = -m[2][1];
-        D_L00_00166C80.basis[5] = -m[0][1];
-        D_L00_00166C80.basis[9] = m[1][1];
-        D_L00_00166C80.basis[2] = -m[2][2];
-        D_L00_00166C80.basis[6] = -m[0][2];
-        D_L00_00166C80.basis[10] = m[1][2];
+        sce_vu0_unit_matrix(camera_rotation_matrix);
+        sce_vu0_rot_matrix_x(camera_rotation_matrix, camera_rotation_matrix, rot[0]);
+        sce_vu0_rot_matrix_y(camera_rotation_matrix, camera_rotation_matrix, rot[1]);
+        sceVu0RotMatrixZ(camera_rotation_matrix, camera_rotation_matrix, ang);
+        D_L00_00166C80.basis[0] = -camera_rotation_matrix[2][0];
+        D_L00_00166C80.basis[4] = -camera_rotation_matrix[0][0];
+        D_L00_00166C80.basis[8] = camera_rotation_matrix[1][0];
+        D_L00_00166C80.basis[1] = -camera_rotation_matrix[2][1];
+        D_L00_00166C80.basis[5] = -camera_rotation_matrix[0][1];
+        D_L00_00166C80.basis[9] = camera_rotation_matrix[1][1];
+        D_L00_00166C80.basis[2] = -camera_rotation_matrix[2][2];
+        D_L00_00166C80.basis[6] = -camera_rotation_matrix[0][2];
+        D_L00_00166C80.basis[10] = camera_rotation_matrix[1][2];
         for (i = 0; i < D_L00_0016C860.h44; i++) {
             mb = D_L00_0016C860.f178[i];
             id = D_L00_0016C860.f38 >> 1;

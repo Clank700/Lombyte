@@ -228,9 +228,9 @@ void FUN_L10_00295c20(struct Moby *moby) {
     case PLATFORM_STATE_RETURN_TO_ORIGINAL_HEIGHT: {
         float vz = *(float *)(platform_vars + 0xA4);
         float g = frame_time_sq;
-        float dist, sq, t;
-        if (vz < 0.0f || (t = g + g, dist = *(float *)(platform_vars + 0xA0) - moby->pos.z, sq = vz * vz,
-                          sq / (t + t) < dist)) {
+        float dist, sq, twice_return_acceleration;
+        if (vz < 0.0f || (twice_return_acceleration = g + g, dist = *(float *)(platform_vars + 0xA0) - moby->pos.z, sq = vz * vz,
+                          sq / (twice_return_acceleration + twice_return_acceleration) < dist)) {
             float a = vz + g;
             float mx = frame_time + frame_time;
             *(float *)(platform_vars + 0xA4) = a;
@@ -837,14 +837,14 @@ void FUN_L10_002c9c70(struct Moby *moby) {
         LINKED_HITBOX_STATE_WAIT_FOR_TARGET_STATE_OR_TIMER = 2,
         LINKED_HITBOX_STATE_REMOVE = 3
     };
-    char *d = (char *)moby->pvars;
+    char *linked_hitbox_vars = (char *)moby->pvars;
     int differences = 0;
     struct Moby *target = 0;
-    int *slot = (int *)(d + 0x18);
+    int *slot = (int *)(linked_hitbox_vars + 0x18);
     unsigned char state;
 
-    if (*(int *)(d + 0x10) != -1) {
-        target = &D_L10_0015FFD8[*(int *)(d + 0x10)];
+    if (*(int *)(linked_hitbox_vars + 0x10) != -1) {
+        target = &D_L10_0015FFD8[*(int *)(linked_hitbox_vars + 0x10)];
     }
     if ((moby->mission == 0xff ||
          D_0014C050_2c9c70[moby->mission + (D_0015ED84 << 4)] != 0xff) &&
@@ -872,16 +872,16 @@ void FUN_L10_002c9c70(struct Moby *moby) {
     case LINKED_HITBOX_STATE_INITIALIZE:
         /* Position flags select opposite copy directions; rotation flags have priority. */
         if (target != 0) {
-            *(short *)(d + 0x14) = target->oclass;
-            *(float *)(d + 0x44) = FUN_001fa6c0_2c9c70(target->alpha);
-            if ((*(int *)(d + 8) & 0x10) != 0) {
+            *(short *)(linked_hitbox_vars + 0x14) = target->oclass;
+            *(float *)(linked_hitbox_vars + 0x44) = FUN_001fa6c0_2c9c70(target->alpha);
+            if ((*(int *)(linked_hitbox_vars + 8) & 0x10) != 0) {
                 qcopy(&moby->pos, &target->pos);
-            } else if ((*(int *)(d + 8) & 0x40) != 0) {
+            } else if ((*(int *)(linked_hitbox_vars + 8) & 0x40) != 0) {
                 qcopy(&target->pos, &moby->pos);
             }
-            if ((*(int *)(d + 8) & 0x20) != 0) {
+            if ((*(int *)(linked_hitbox_vars + 8) & 0x20) != 0) {
                 qcopy_nc(&moby->rot, &target->rot);
-            } else if ((*(int *)(d + 8) & 0x80) != 0) {
+            } else if ((*(int *)(linked_hitbox_vars + 8) & 0x80) != 0) {
                 qcopy_nc(&target->rot, &moby->rot);
             }
         } else {
@@ -905,8 +905,8 @@ void FUN_L10_002c9c70(struct Moby *moby) {
             }
         }
         {
-            float initial = *(float *)(d + 4);
-            float now = *(float *)d;
+            float initial = *(float *)(linked_hitbox_vars + 4);
+            float now = *(float *)linked_hitbox_vars;
             float scale = moby->pclass->scale;
             float size = (now < initial ? initial * scale : now * scale);
             moby->state = 1;
@@ -915,30 +915,30 @@ void FUN_L10_002c9c70(struct Moby *moby) {
         break;
     case LINKED_HITBOX_STATE_WAIT_FOR_LINKED_MOBIES:
         if (differences == 0) {
-            if (target != 0 && *(signed char *)(d + 0x16) != -1)
-                target->state = *(unsigned char *)(d + 0x16);
-            *(int *)(d + 0x40) = *(int *)(d + 0xc);
+            if (target != 0 && *(signed char *)(linked_hitbox_vars + 0x16) != -1)
+                target->state = *(unsigned char *)(linked_hitbox_vars + 0x16);
+            *(int *)(linked_hitbox_vars + 0x40) = *(int *)(linked_hitbox_vars + 0xc);
             moby->state = 2;
         }
-        FUN_L10_002c9958(moby, (HitBox *)d);
+        FUN_L10_002c9958(moby, (HitBox *)linked_hitbox_vars);
         return;
     case LINKED_HITBOX_STATE_WAIT_FOR_TARGET_STATE_OR_TIMER:
         if (target != 0) {
-            if ((*(int *)(d + 8) & 2) == 0) {
-                float now = FUN_001fa6c0_2c9c70(*(int *)(d + 0x40));
-                float initial = FUN_001fa6c0_2c9c70(*(int *)(d + 0xc));
-                target->alpha = FUN_001fa6d0_2c9c70(*(float *)(d + 0x44) * now / initial);
+            if ((*(int *)(linked_hitbox_vars + 8) & 2) == 0) {
+                float now = FUN_001fa6c0_2c9c70(*(int *)(linked_hitbox_vars + 0x40));
+                float initial = FUN_001fa6c0_2c9c70(*(int *)(linked_hitbox_vars + 0xc));
+                target->alpha = FUN_001fa6d0_2c9c70(*(float *)(linked_hitbox_vars + 0x44) * now / initial);
             }
         }
-        if ((*(int *)(d + 8) & 4) == 0 && target != 0 &&
-            *(signed char *)(d + 0x17) != -1 && target->state == *(signed char *)(d + 0x17))
+        if ((*(int *)(linked_hitbox_vars + 8) & 4) == 0 && target != 0 &&
+            *(signed char *)(linked_hitbox_vars + 0x17) != -1 && target->state == *(signed char *)(linked_hitbox_vars + 0x17))
             moby->state = 3;
-        if ((*(int *)(d + 8) & 8) == 0 && FUN_001f9740_2c9c70((int *)(d + 0x40)) != 0)
+        if ((*(int *)(linked_hitbox_vars + 8) & 8) == 0 && FUN_001f9740_2c9c70((int *)(linked_hitbox_vars + 0x40)) != 0)
             moby->state = 3;
-        FUN_L10_002c9958(moby, (HitBox *)d);
+        FUN_L10_002c9958(moby, (HitBox *)linked_hitbox_vars);
         return;
     case LINKED_HITBOX_STATE_REMOVE:
-        if (target != 0 && (*(int *)(d + 8) & 1) == 0) delete_moby(target);
+        if (target != 0 && (*(int *)(linked_hitbox_vars + 8) & 1) == 0) delete_moby(target);
         delete_moby(moby);
         break;
     case 4:
@@ -2324,12 +2324,12 @@ extern void send_blast_hits(void *,void *,void *,int,int,int,int,int,float,float
 extern void FUN_L00_00262360_c(int,float *,float *,void *,float,float) __asm__("FUN_L00_00262360");
 
 void FUN_L10_002dd3d8(char *moby) {
- float old[4],pos[4],a,b;
+ float old[4],pos[4],path_segment_index,b;
  char *effect_data=*(char **)(moby+0x78);
  *(OvlQuad *)old=*(OvlQuad *)(moby+0x10);
  ((EffectData *)effect_data)->phase+=((EffectData *)effect_data)->speed;
  ((EffectData *)effect_data)->speed*=(((EffectData *)effect_data)->growth-1.0f)*frame_scale+1.0f;
- FUN_L00_00262360_c(((EffectData *)effect_data)->owner,&a,&b,moby+0x10,((EffectData *)effect_data)->phase,((EffectData *)effect_data)->size);
+ FUN_L00_00262360_c(((EffectData *)effect_data)->owner,&path_segment_index,&b,moby+0x10,((EffectData *)effect_data)->phase,((EffectData *)effect_data)->size);
  *(float *)(moby+0x40)=random_angle_radians();
  *(float *)(moby+0x44)=random_angle_radians();
  *(float *)(moby+0x48)=random_angle_radians();
@@ -2363,7 +2363,7 @@ void mark_moby_for_removal_d650(struct Obj *obj) __asm__("FUN_0020c828");
 void block_cave_update(struct Moby *m) __asm__("FUN_L10_002dd650");
 void block_cave_update(struct Moby *moby) {
     int i;
-    char *e;
+    char *table_entry;
     float w[16];
     float v[4];
     unsigned short id = moby->save_id;
@@ -2373,11 +2373,11 @@ void block_cave_update(struct Moby *moby) {
         return;
     }
     moby->draw_dist = 0x80;
-    e = D_L10_00178580;
-    for (i = 0; i < 0x40; i++, e += 0x40) {
-        if (*(char **)(e + 0x34) == moby) {
-            if (*(int *)(e + 0x24) & 0x20000) {
-                char *other_moby = *(char **)(e + 0x20);
+    table_entry = D_L10_00178580;
+    for (i = 0; i < 0x40; i++, table_entry += 0x40) {
+        if (*(char **)(table_entry + 0x34) == moby) {
+            if (*(int *)(table_entry + 0x24) & 0x20000) {
+                char *other_moby = *(char **)(table_entry + 0x20);
                 if (*(short *)(other_moby + 0xA6) == 0xAC || *(short *)(other_moby + 0xA6) == 0x99) {
                     subtract_vector_xyz(v, &moby->pos, other_moby + 0x10);
                     transpose_rotation_matrix(w, &moby->rot_row0);
@@ -2391,9 +2391,9 @@ void block_cave_update(struct Moby *moby) {
                         mark_moby_for_removal_d650(moby);
                         return;
                     }
-                    *(int *)(e + 0x34) = 0;
+                    *(int *)(table_entry + 0x34) = 0;
                 } else {
-                    *(int *)(e + 0x34) = 0;
+                    *(int *)(table_entry + 0x34) = 0;
                 }
             }
         }

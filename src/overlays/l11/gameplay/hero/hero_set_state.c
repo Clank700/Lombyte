@@ -82,6 +82,7 @@ extern char D_L11_0017C960[];
 extern char D_L11_0017C920[];
 int hero_set_state(int a, int b) {
     enum {
+        HERO_STATE_FALL_CLEAR_MOTION_VECTOR = 0x2D,
         HERO_STATE_UNDERWATER_ENTRY = 0x33,
         HERO_STATE_WATER_SURFACE_ENTRY = 0x37,
         HERO_STATE_HURT_UPWARD_LAUNCH = 0x42,
@@ -90,6 +91,8 @@ int hero_set_state(int a, int b) {
         HERO_STATE_VEHICLE_FALL = 0x55,
         HERO_STATE_VEHICLE_HURT = 0x56,
         HERO_STATE_VEHICLE_DYING = 0x57,
+        HERO_STATE_STOP_GRAVITY_XY = 0x66,
+        HERO_STATE_IDLE_CLEAR_MOTION_VECTOR = 0x67,
         HERO_STATE_DROWN = 0x6A
     };
     int old2088;
@@ -173,7 +176,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x67: {
+    case HERO_STATE_IDLE_CLEAR_MOTION_VECTOR: {
         struct Hero *p = &hero;
         p->state.control_mode = 0;
         p->unk2284 = 0;
@@ -631,7 +634,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x66: {
+    case HERO_STATE_STOP_GRAVITY_XY: {
         struct Hero *p = &hero;
         char *v = (char *)&p->motion.unk110;
         p->state.control_mode = 1;
@@ -787,7 +790,7 @@ int hero_set_state(int a, int b) {
         }
         break;
     }
-    case 0x2D: {
+    case HERO_STATE_FALL_CLEAR_MOTION_VECTOR: {
         struct Hero *p = &hero;
         p->state.control_mode = 2;
         p->unk2284 = 7;

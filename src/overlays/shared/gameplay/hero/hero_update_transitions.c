@@ -161,7 +161,10 @@ void hero_update_transitions(void) __asm__("FUN_L00_00229b70");
 void hero_update_transitions(void) {
     enum {
         HERO_STATE_DOUBLE_JUMP = 14,
+        HERO_STATE_LEDGE_HANG_ENTRY = 24,
         HERO_STATE_LEDGE_HANG = 25,
+        HERO_STATE_LEDGE_SHIMMY_YAW_PLUS_90 = 26,
+        HERO_STATE_LEDGE_SHIMMY_YAW_MINUS_90 = 27,
         HERO_STATE_GRIND_JUMP = 41,
         HERO_STATE_GRIND_RAIL_TRANSFER = 42,
         HERO_STATE_GRIND_ATTACK = 43,
@@ -169,6 +172,9 @@ void hero_update_transitions(void) {
         HERO_STATE_APPROACH_TARGET_POSE = 101,
         HERO_STATE_AT_TARGET_POSE = 103,
         HERO_STATE_DROWNING = 106
+    };
+    enum {
+        HERO_VEHICLE_MODE_NONE = 0
     };
     unsigned char *moby;
     int prevSub;
@@ -214,7 +220,7 @@ void hero_update_transitions(void) {
                     (hero.unk20AC == 0 || hero.vehicle_mode == 1 || hero.unk1B2 != 0) &&
                     (hero.unk20A7 == 0 || hero.vehicle_mode == 1 || hero.unk1B2 != 0)) {
                     switch (hero.vehicle_mode) {
-                    case 0:
+                    case HERO_VEHICLE_MODE_NONE:
                     case 3: {
                         int id;
 
@@ -1641,7 +1647,7 @@ void hero_update_transitions(void) {
                         hero.unk1E4 = scale_game_frames(8);
                     }
                     break;
-                case 24:
+                case HERO_STATE_LEDGE_HANG_ENTRY:
                     if (13.5f < hero.anim_frame) {
                         hero_set_state(0x19, 0);
                     }
@@ -1699,8 +1705,8 @@ void hero_update_transitions(void) {
                         }
                     }
                     break;
-                case 26:
-                case 27: {
+                case HERO_STATE_LEDGE_SHIMMY_YAW_PLUS_90:
+                case HERO_STATE_LEDGE_SHIMMY_YAW_MINUS_90: {
                     float ang;
 
                     qcopy(v0, hero.motion.pos.f);

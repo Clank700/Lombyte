@@ -89,8 +89,8 @@ void FUN_L01_0030acb8(struct Moby *moby) {
         TUTORIAL_HINT_STATE_UPDATE = 1
     };
     s32 *data;
-    struct Moby *m;
-    struct Moby *m2;
+    struct Moby *hint_candidate_moby;
+    struct Moby *health_hint_candidate_moby;
     s32 t;
 
     data = (s32 *)moby->pvars;
@@ -147,9 +147,9 @@ void FUN_L01_0030acb8(struct Moby *moby) {
         }
         if (help_records[0x42].id < 2 && is_point_inside_clip_volume(&hero.motion.pos, data[12]) && hero.state.prev == 0x3B &&
             hero.state_timer == 0) {
-            for (m = moby_list; m != 0; m = m->next) {
-                if (m->oclass == 0x118 && distance_xyz(&m->pos, &hero.motion.pos) < 3.0f &&
-                    *(f32 *)m->pvars != 1.0f) {
+            for (hint_candidate_moby = moby_list; hint_candidate_moby != 0; hint_candidate_moby = hint_candidate_moby->next) {
+                if (hint_candidate_moby->oclass == 0x118 && distance_xyz(&hint_candidate_moby->pos, &hero.motion.pos) < 3.0f &&
+                    *(f32 *)hint_candidate_moby->pvars != 1.0f) {
                     data[13]++;
                     if (data[13] == 3 || data[13] == 6) {
                         help_request(0x3EE, 0x42);
@@ -189,10 +189,10 @@ void FUN_L01_0030acb8(struct Moby *moby) {
         } else {
             data[11] = 0;
         }
-        for (m2 = moby_list; m2 != 0; m2 = m2->next) {
-            if (m2->oclass == 0x326 && distance_xyz(&m2->pos, &hero.motion.pos) < 10.0f && help_state.state == 0 &&
+        for (health_hint_candidate_moby = moby_list; health_hint_candidate_moby != 0; health_hint_candidate_moby = health_hint_candidate_moby->next) {
+            if (health_hint_candidate_moby->oclass == 0x326 && distance_xyz(&health_hint_candidate_moby->pos, &hero.motion.pos) < 10.0f && help_state.state == 0 &&
                 help_state.cur == -1 && help_records[1].id == 0 && help_records[2].id == 0 &&
-                usage_stats.stat[13].count == 0 && FUN_L00_002d8128(m2) == 0) {
+                usage_stats.stat[13].count == 0 && FUN_L00_002d8128(health_hint_candidate_moby) == 0) {
                 if (hero.health.hp < hero_max_health) {
                     if (usage_stats.stat[13].count < 0xFFFF) {
                         usage_stats.stat[13].count++;
@@ -203,7 +203,7 @@ void FUN_L01_0030acb8(struct Moby *moby) {
                     }
                     usage_stats.stat[13].level_mask = usage_stats.stat[13].level_mask | (1 << current_level_index_macro) | 0x80000000;
                     help_request(1, 1);
-                } else if (FUN_L01_00275690(255.0f, m2) != 0) {
+                } else if (FUN_L01_00275690(255.0f, health_hint_candidate_moby) != 0) {
                     help_request(2, 2);
                 }
             }
@@ -261,7 +261,7 @@ void FUN_L01_0030ba18(struct Moby *moby) {
     s32 grey;
     f32 s;
     u8 *puff;
-    u8 *q;
+    u8 *puff_data;
 
     v = (BlobVars *)moby->pvars;
     if (random_integer_below(2)) {
@@ -315,11 +315,11 @@ void FUN_L01_0030ba18(struct Moby *moby) {
         puff = spawn_puff(&moby->pos, 0.025f, 1.0f, 1.0f, n, &D_L01_0015F580, s, grey_intensity | ((grey_intensity << 16) | grey));
         if (puff != NULL) {
             puff[3] = 0x44;
-            q = puff + 0x20;
+            puff_data = puff + 0x20;
             *(s16 *)(puff + 0xA) = scale_game_frames(60);
-            *(s32 *)(q + 4) = 2;
-            q[0xA] = 0x60;
-            q[0xB] = puff[0xA];
+            *(s32 *)(puff_data + 4) = 2;
+            puff_data[0xA] = 0x60;
+            puff_data[0xB] = puff[0xA];
         }
     }
 }
@@ -449,7 +449,7 @@ void FUN_L01_0030c190(struct Moby *moby) {
     FxVec a;
     FxVec b;
     FxVec c;
-    FxVec d;
+    FxVec secondary_effect_position;
     struct Moby *cutscene_moby;
     char *splash;
     FxSpark *spark;
@@ -555,21 +555,21 @@ void FUN_L01_0030c190(struct Moby *moby) {
                     if (fx_cutscene.frame == scale_game_frames(118)) {
                         clear_vector(&c);
                         spawn_explosion(cutscene_moby, &c, &b, 0.0f, 0.0f, 3, 200, 200, 5.0f, 2.5f, 9.0f, 1.0f, -1, 60.0f, 0, 60, -1, 0);
-                        qcopy(&d, &b);
-                        d.f[2] = d.f[2] - 1.0f;
-                        spawn_explosion(cutscene_moby, &c, &d, 0.0f, 0.0f, 300, 2, 2, 1.0f, 0.5f, 9.0f, 1.0f, -1, 60.0f, 0, 0, -1, 0);
+                        qcopy(&secondary_effect_position, &b);
+                        secondary_effect_position.f[2] = secondary_effect_position.f[2] - 1.0f;
+                        spawn_explosion(cutscene_moby, &c, &secondary_effect_position, 0.0f, 0.0f, 300, 2, 2, 1.0f, 0.5f, 9.0f, 1.0f, -1, 60.0f, 0, 0, -1, 0);
                     }
                     enqueue_callback_list_1(render_environment_mapped_object, cutscene_moby);
                     moby_point_position(cutscene_moby, 1, &c);
-                    moby_point_position(cutscene_moby, 2, &d);
+                    moby_point_position(cutscene_moby, 2, &secondary_effect_position);
                     subtract_vector_xyz(&c, &c, &a);
-                    subtract_vector_xyz(&d, &d, &a);
+                    subtract_vector_xyz(&secondary_effect_position, &secondary_effect_position, &a);
                     scale_vector_xyz(&a, &a, 0.25f);
                     for (step = 0; step < 4; step++) {
                         draw_trail(&c, &c, &D_L01_0015F580, 150000.0f, 60000.0f);
-                        draw_trail(&d, &d, &D_L01_0015F580, 150000.0f, 60000.0f);
+                        draw_trail(&secondary_effect_position, &secondary_effect_position, &D_L01_0015F580, 150000.0f, 60000.0f);
                         add_vector_xyz(&c, &c, &a);
-                        add_vector_xyz(&d, &d, &a);
+                        add_vector_xyz(&secondary_effect_position, &secondary_effect_position, &a);
                     }
                 }
             }

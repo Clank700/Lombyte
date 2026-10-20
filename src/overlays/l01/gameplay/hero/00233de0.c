@@ -50,7 +50,7 @@ void FUN_L01_00233de0(void)
     Vec4 movement_vector_scratch;
     Vec4 projection_velocity;
     f32 limit;
-    f32 d;
+    f32 velocity_scalar;
     f32 w;
 
     qcopy(&old_pos, &hero.motion.pos);
@@ -59,24 +59,24 @@ void FUN_L01_00233de0(void)
     /* cap the speed; states 0x22 and 0x14 cap the horizontal part and the fall speed */
     if (hero.state.current == 0x22 || hero.state.current == HERO_STATE_WRENCH_SLAM) {
         if (hero.unk1CC == 0) {
-            d = gravity_length_xy(&hero.motion.velocity);
+            velocity_scalar = gravity_length_xy(&hero.motion.velocity);
             limit = hero.unk234 - 0.02f;
-            if (limit < d) {
+            if (limit < velocity_scalar) {
                 normalize_vector_xyz(&hero.motion.velocity, &hero.motion.velocity, limit);
             }
         }
-        d = gravity_z(&hero.motion.velocity);
+        velocity_scalar = gravity_z(&hero.motion.velocity);
         limit = -hero.ground_distance;
-        if (d < limit) {
+        if (velocity_scalar < limit) {
             if (0.0f < limit) {
                 limit = 0.0f;
             }
             gravity_set_z(&hero.motion.velocity, &hero.motion.velocity, limit);
         }
     } else if (hero.unk1CC == 0) {
-        d = vector_length_xyz(&hero.motion.velocity);
+        velocity_scalar = vector_length_xyz(&hero.motion.velocity);
         limit = hero.unk234 - 0.02f;
-        if (limit < d) {
+        if (limit < velocity_scalar) {
             normalize_vector_xyz(&hero.motion.velocity, &hero.motion.velocity, limit);
         }
     }
@@ -101,31 +101,31 @@ void FUN_L01_00233de0(void)
     qcopy(&hero.motion.unk130, &hero.motion.unk110);
     qcopy(&hero.motion.unk120, &hero.motion.unk110);
     normalize_vector_xyz(&hero.motion.unk110, &hero.motion.unk110, 1.0f);
-    d = dot_vectors_xyz(&hero.motion.unk110, &hero.motion.velocity);
-    if (d < 0.0f) {
-        d = 0.0f;
+    velocity_scalar = dot_vectors_xyz(&hero.motion.unk110, &hero.motion.velocity);
+    if (velocity_scalar < 0.0f) {
+        velocity_scalar = 0.0f;
     }
-    normalize_vector_xyz(&hero.motion.unk110, &hero.motion.velocity, d);
+    normalize_vector_xyz(&hero.motion.unk110, &hero.motion.velocity, velocity_scalar);
 
     qcopy(&movement_vector_scratch, &hero.motion.velocity);
     gravity_flatten(&movement_vector_scratch, &movement_vector_scratch);
     gravity_flatten(&hero.motion.unk130, &hero.motion.unk130);
     normalize_vector_xyz(&hero.motion.unk130, &hero.motion.unk130, 1.0f);
-    d = dot_vectors_xyz(&hero.motion.unk130, &movement_vector_scratch);
-    if (d < 0.0f) {
-        d = 0.0f;
+    velocity_scalar = dot_vectors_xyz(&hero.motion.unk130, &movement_vector_scratch);
+    if (velocity_scalar < 0.0f) {
+        velocity_scalar = 0.0f;
     }
-    normalize_vector_xyz(&hero.motion.unk130, &movement_vector_scratch, d);
+    normalize_vector_xyz(&hero.motion.unk130, &movement_vector_scratch, velocity_scalar);
 
     qcopy(&projection_velocity, &hero.motion.velocity);
     FUN_L00_00233ba0((float *)&projection_velocity, (float *)&projection_velocity, 0.0f);
     FUN_L00_00233ba0((float *)&hero.motion.unk120, (float *)&hero.motion.unk120, 0.0f);
     normalize_vector_xyz(&hero.motion.unk120, &hero.motion.unk120, 1.0f);
-    d = dot_vectors_xyz(&hero.motion.unk120, &projection_velocity);
-    if (d < 0.0f) {
-        d = 0.0f;
+    velocity_scalar = dot_vectors_xyz(&hero.motion.unk120, &projection_velocity);
+    if (velocity_scalar < 0.0f) {
+        velocity_scalar = 0.0f;
     }
-    normalize_vector_xyz(&hero.motion.unk120, &projection_velocity, d);
+    normalize_vector_xyz(&hero.motion.unk120, &projection_velocity, velocity_scalar);
 
     hero.motion.speed_xy = vector_length_xyz(&hero.motion.unk110);
     hero.motion.unk164 = vector_length_xy(&hero.motion.unk110);
@@ -516,10 +516,13 @@ void FUN_L01_002370b8(void) {
         HERO_STATE_MOVE_TOWARD_PROBE_POSITION = 0x18,
         HERO_STATE_MOVE_VIA_POSITIVE_LATERAL_PROBE = 0x1A,
         HERO_STATE_MOVE_VIA_NEGATIVE_LATERAL_PROBE = 0x1B,
+        HERO_STATE_MOVE_WITH_MINIMUM_TARGET_SPEED = 0x54,
         HERO_STATE_FALL_WITH_LIMITED_DESCENT = 0x55,
+        HERO_STATE_DAMP_PLANAR_VELOCITY = 0x56,
         HERO_STATE_DOWNHILL_SLIDE = 0x58,
         HERO_STATE_MOVE_TO_TARGET_POSITION = 0x65,
-        HERO_STATE_BRAKE_AT_TARGET_POSITION = 0x66
+        HERO_STATE_BRAKE_AT_TARGET_POSITION = 0x66,
+        HERO_STATE_CLEAR_MOVEMENT_VELOCITY = 0x67
     };
     FVec4 vec[6];
     Moby *moby;
@@ -2164,7 +2167,7 @@ void FUN_L01_002370b8(void) {
         }
     } break;
     case HERO_STATE_FIDGET:
-    case 0x67:
+    case HERO_STATE_CLEAR_MOVEMENT_VELOCITY:
         clear_vector(hero.motion.velocity.f);
         break;
     case 0x53:
@@ -2200,7 +2203,7 @@ void FUN_L01_002370b8(void) {
             hero.motion.velocity.f[2] = frame_time * -15.0f;
         }
         break;
-    case 0x54: {
+    case HERO_STATE_MOVE_WITH_MINIMUM_TARGET_SPEED: {
         float d;
         float k;
         float t;
@@ -2231,7 +2234,7 @@ void FUN_L01_002370b8(void) {
             FUN_L00_002334d0(hero.motion.velocity.f, hero.motion.velocity.f, frame_time_sq * 54.0f);
         }
     } break;
-    case 0x56: {
+    case HERO_STATE_DAMP_PLANAR_VELOCITY: {
         float len;
 
         vel = hero.motion.velocity.f;

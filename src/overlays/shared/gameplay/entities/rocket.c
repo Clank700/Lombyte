@@ -23,19 +23,19 @@ extern float func_001F9B88_298940(float) __asm__("FUN_001f99c0");
 extern unsigned char *func_L00_00273E08_298940(void *, int, unsigned char, int, int, int, int,
                                                float) __asm__("FUN_L00_00272f68");
 extern int func_001FA898_298940(float) __asm__("FUN_001fa6d0");
-void FUN_L10_00298940(char *m) {
-    L10SpriteData_298940 *sprite_data = *(L10SpriteData_298940 **)(m + 0x78);
+void FUN_L10_00298940(char *moby) {
+    L10SpriteData_298940 *sprite_data = *(L10SpriteData_298940 **)(moby + 0x78);
     float d[4] __attribute__((aligned(16)));
     float e[4] __attribute__((aligned(16)));
     int i, col;
     float f;
 
-    *(float *)(m + 0x18) += 0.5f;
-    func_001F9BF0_298940(d, D_L10_00167240, m + 0x10);
+    *(float *)(moby + 0x18) += 0.5f;
+    func_001F9BF0_298940(d, D_L10_00167240, moby + 0x10);
     func_L00_001FF4B0_298940(d, d, -0.3f);
     func_L00_001FF4B0_298940(e, d, 0.1f);
-    func_001F9BD8_298940(d, d, m + 0x10);
-    *(float *)(m + 0x18) -= 0.5f;
+    func_001F9BD8_298940(d, d, moby + 0x10);
+    *(float *)(moby + 0x18) -= 0.5f;
     for (i = 0; i < 4; i++) {
         float phase_sum = sprite_data->a[i] + sprite_data->b[i];
         sprite_data->a[i] = phase_sum;
@@ -63,7 +63,7 @@ extern float func_001F9D10_cc1b8(void *, void *) __asm__("FUN_001f9b48");
 extern float func_L00_001FF860_cc1b8(float, float) __asm__("FUN_001f9e90");
 extern float func_001F9CE8_cc1b8(void *) __asm__("FUN_001f9b20");
 extern void func_L00_00251E30_cc1b8(void *) __asm__("FUN_L00_00250df8");
-char *FUN_L10_002cc1b8(float scale, void *vel, void *pos, int owner, int b, int c) {
+char *FUN_L10_002cc1b8(float scale, void *vel, void *pos, int owner, int b, int timer_duration) {
     char *rocket = (char *)func_0020D348_m_cc1b8(0x333);
     char *shot_data;
     if (rocket) {
@@ -75,7 +75,7 @@ char *FUN_L10_002cc1b8(float scale, void *vel, void *pos, int owner, int b, int 
         rocket[0x20] = 1;
         qcopy(rocket + 0x10, pos);
         qcopy(shot_data, vel);
-        *(int *)(shot_data + 0x18) = func_001F9850_cc1b8(c);
+        *(int *)(shot_data + 0x18) = func_001F9850_cc1b8(timer_duration);
         *(int *)(shot_data + 0x10) = owner;
         *(int *)(shot_data + 0x14) = b;
         *(int *)(shot_data + 0x28) = 0;
@@ -154,7 +154,7 @@ void rocket_update(char *rocket) {
     float hv[4] __attribute__((aligned(16)));
     float tp[4] __attribute__((aligned(16)));
     float aim[4] __attribute__((aligned(16)));
-    float speed, a, b, discriminant_sqrt, r1, r2, intercept_time, yaw, pitch, dist;
+    float speed, a, b, discriminant_sqrt, intercept_time_plus_root, intercept_time_minus_root, intercept_time, yaw, pitch, dist;
     char *rocket_position;
     unsigned char *g;
     char *tg;
@@ -182,19 +182,19 @@ void rocket_update(char *rocket) {
             a = speed * speed - lensq_cc2e8(hv);
             b = (hv[0] * diff[0] + hv[1] * diff[1] + hv[2] * diff[2]) * -2.0f;
             discriminant_sqrt = sqrt_cc2e8(b * b - a * 4.0f * -lensq_cc2e8(diff));
-            r1 = (-b + discriminant_sqrt) / (a + a);
-            r2 = (-b - discriminant_sqrt) / (a + a);
-            if (r1 > 0.0f && r2 > 0.0f) {
-                if (r1 > r2)
-                    intercept_time = r1;
+            intercept_time_plus_root = (-b + discriminant_sqrt) / (a + a);
+            intercept_time_minus_root = (-b - discriminant_sqrt) / (a + a);
+            if (intercept_time_plus_root > 0.0f && intercept_time_minus_root > 0.0f) {
+                if (intercept_time_plus_root > intercept_time_minus_root)
+                    intercept_time = intercept_time_plus_root;
                 else
-                    intercept_time = r2;
-            } else if (r1 > 0.0f) {
-                intercept_time = r1;
+                    intercept_time = intercept_time_minus_root;
+            } else if (intercept_time_plus_root > 0.0f) {
+                intercept_time = intercept_time_plus_root;
             } else {
                 intercept_time = -1.0f;
-                if (r2 > 0.0f)
-                    intercept_time = r2;
+                if (intercept_time_minus_root > 0.0f)
+                    intercept_time = intercept_time_minus_root;
             }
             if (intercept_time > 0.0f) {
                 vscale_cc2e8(aim, hv, intercept_time);

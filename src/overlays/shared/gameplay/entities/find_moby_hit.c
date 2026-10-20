@@ -36,8 +36,8 @@ int point_in_path_xy(float *test_point, float *v, int vertex_count) {
 }
 /* True when the pointer at a+0x94 is set and its word at +8 is non-zero. */
 int FUN_L00_00259830(char *moby) {
-    char *p = *(char **)(moby + 0x94);
-    if (p && *(int *)(p + 8))
+    char *moby_linked_record = *(char **)(moby + 0x94);
+    if (moby_linked_record && *(int *)(moby_linked_record + 8))
         return 1;
     return 0;
 }
@@ -51,20 +51,20 @@ extern void clear_u64_value(void *) __asm__("FUN_001f99f8");
 
 /* Fills a record with b, c, d and flag 0, and clears the 64-bit value at its start. */
 void FUN_L00_00259858(char *a, int b, int c, float d);
-void FUN_L00_00259858(char *hit_descriptor, int b, int c, float d) {
+void FUN_L00_00259858(char *hit_descriptor, int b, int hit_mask, float hit_priority) {
     *(int *)(hit_descriptor + 0x10) = b;
-    *(int *)(hit_descriptor + 0x14) = c;
-    *(float *)(hit_descriptor + 0x1C) = d;
+    *(int *)(hit_descriptor + 0x14) = hit_mask;
+    *(float *)(hit_descriptor + 0x1C) = hit_priority;
     *(int *)(hit_descriptor + 0x20) = 0;
     clear_u64_value(hit_descriptor);
 }
 #include "qcopy.h"
 /* Fills a record with b, c, d and flag 1, and copies the vector q into its start. */
 void make_hit_descriptor(char *a, int b, int c, float d, void *q) __asm__("FUN_L00_00259888");
-void make_hit_descriptor(char *hit_descriptor, int b, int c, float d, void *direction_vector) {
+void make_hit_descriptor(char *hit_descriptor, int b, int hit_mask, float hit_priority, void *direction_vector) {
     *(int *)(hit_descriptor + 0x10) = b;
-    *(int *)(hit_descriptor + 0x14) = c;
-    *(float *)(hit_descriptor + 0x1C) = d;
+    *(int *)(hit_descriptor + 0x14) = hit_mask;
+    *(float *)(hit_descriptor + 0x1C) = hit_priority;
     *(int *)(hit_descriptor + 0x20) = 1;
     qcopy(hit_descriptor, direction_vector);
 }
@@ -72,7 +72,7 @@ void make_hit_descriptor(char *hit_descriptor, int b, int c, float d, void *dire
 #include "rnc/math/fast_math.h"
 extern int collect_mobies_in_sphere(void *, float, int, void *, void *) __asm__("FUN_L00_001f2868");
 int play_entity_sound(void *moby, void *position, int c, float d, float e, float f, int g, int h, int i) __asm__("FUN_L00_002598b0");
-int play_entity_sound(void *moby, void *position, int c, float sphere_radius, float e, float direction_scale, int g, int h, int i) {
+int play_entity_sound(void *moby, void *position, int hit_mask, float sphere_radius, float hit_priority, float direction_scale, int g, int hit_payload_byte, int i) {
     float direction[4] __attribute__((aligned(16)));
     char descriptor[0x30] __attribute__((aligned(16)));
     if (*(unsigned short *)((char *)moby + 0x34) & 0x100) {
@@ -85,19 +85,19 @@ int play_entity_sound(void *moby, void *position, int c, float sphere_radius, fl
     fast_vec_scale(direction, direction, direction_scale);
     direction[2] = 1.0f;
     direction[3] = 5627.9248046875f;
-    make_hit_descriptor(descriptor, (int)moby, c, e, direction);
+    make_hit_descriptor(descriptor, (int)moby, hit_mask, hit_priority, direction);
     descriptor[0x18] = g;
-    descriptor[0x19] = h;
+    descriptor[0x19] = hit_payload_byte;
     *(unsigned short *)(descriptor + 0x1a) = *(unsigned short *)((char *)moby + 0xa6);
     return collect_mobies_in_sphere(position, sphere_radius, i, moby, descriptor);
 }
 extern void moby_point_position(void *, int, void *) __asm__("FUN_L00_0024f7c8");
 extern int play_entity_sound(void *, void *, int, float, float, float, int, int, int) __asm__("FUN_L00_002598b0");
 /* Calls play_entity_sound at a moby point; the f13 argument is ignored and c is passed again as a float. */
-int FUN_L00_002599e8(void *moby, int point, int c, float sphere_radius, float unused, float direction_scale, int g, int h, int i) {
+int FUN_L00_002599e8(void *moby, int point, int hit_mask, float sphere_radius, float unused, float direction_scale, int g, int hit_payload_byte, int i) {
     float position[4] __attribute__((aligned(16)));
     moby_point_position(moby, point, position);
-    return play_entity_sound(moby, position, c, sphere_radius, (float)c, direction_scale, g, h, i);
+    return play_entity_sound(moby, position, hit_mask, sphere_radius, (float)hit_mask, direction_scale, g, hit_payload_byte, i);
 }
 typedef unsigned int u128_259a88 __attribute__((mode(TI), aligned(16)));
 typedef struct {
@@ -178,7 +178,7 @@ extern T_259bc8 moby_hits[] __asm__("D_L00_00178100") __attribute__((section(".d
 extern float fast_vec_length(void *) __asm__("FUN_001f9af0");
 
 void spawn_nearby_effect(unsigned char *m, int x, int y, u128 *p, u128 *q, float f) __asm__("FUN_L00_00259bc8");
-void spawn_nearby_effect(unsigned char *owner_moby, int x, int y, u128 *p, u128 *q, float f) {
+void spawn_nearby_effect(unsigned char *owner_moby, int x, int y, u128 *p, u128 *direction_vector, float f) {
     int i = D_L00_00173E40.idx;
     T_259bc8 *hit_record;
     if (owner_moby[0xA4] != 0xFF) {
@@ -192,13 +192,13 @@ void spawn_nearby_effect(unsigned char *owner_moby, int x, int y, u128 *p, u128 
     hit_record->f = f;
     hit_record->owner = owner_moby;
     hit_record->z = 0;
-    if (fast_vec_length(q) > 0.0001f) {
+    if (fast_vec_length(direction_vector) > 0.0001f) {
         hit_record->flag = 1;
     } else {
         hit_record->flag = 0;
     }
     qcopy(&moby_hits[i].a, p);
-    qcopy(&moby_hits[i].b, q);
+    qcopy(&moby_hits[i].b, direction_vector);
     owner_moby[0xA4] = i;
     D_L00_00173E40.idx = (i + 1) & 0x3F;
 }
@@ -209,19 +209,19 @@ void FUN_001f9a10_00259d08(void *, void *, void *) __asm__("FUN_001f9a10");
 void FUN_001f9a28_00259d08(void *, void *, void *) __asm__("FUN_001f9a28");
 int FUN_001efa68_00259d08(void *, void *, int, void *, int) __asm__("FUN_001efa68");
 int sweep_hit_segment(void *a, void *b, void *c, void *d, void *e, int f, int n) __asm__("FUN_L00_00259d08");
-int sweep_hit_segment(void *a, void *b, void *c, void *d, void *e, int f, int sample_count) {
+int sweep_hit_segment(void *first_endpoint_end, void *b, void *first_endpoint_start, void *second_endpoint_start, void *e, int f, int sample_count) {
     V4_259d08 da, db, va, vb;
     float k, t;
     int i = 0;
     k = 1.0f / FUN_001fa6c0_00259d08(sample_count);
-    FUN_001f9a28_00259d08(da, a, c);
-    FUN_001f9a28_00259d08(db, b, d);
+    FUN_001f9a28_00259d08(da, first_endpoint_end, first_endpoint_start);
+    FUN_001f9a28_00259d08(db, b, second_endpoint_start);
     t = k;
     for (; i < sample_count; i++) {
         FUN_001f9a68_00259d08(va, da, t);
         FUN_001f9a68_00259d08(vb, db, t);
-        FUN_001f9a10_00259d08(va, va, c);
-        FUN_001f9a10_00259d08(vb, vb, d);
+        FUN_001f9a10_00259d08(va, va, first_endpoint_start);
+        FUN_001f9a10_00259d08(vb, vb, second_endpoint_start);
         if (FUN_001efa68_00259d08(va, vb, 0, e, f))
             return 1;
         t += k;
@@ -302,9 +302,9 @@ void FUN_L00_0025a120(char *moby) {
     qcopy(b, moby_position);
     b[2] = b[2] + 0.5f;
     if (collision_line(b, probe_end, 0x22, 0, 0) != 0) {
-        float *t = (float *)D_L00_00173E40_25a120;
-        *(float *)(moby + 0x84) = t[10] - 0.2f;
-        *(float *)(moby + 0x88) = t[10] + 0.2f;
+        float *output_bounds_source = (float *)D_L00_00173E40_25a120;
+        *(float *)(moby + 0x84) = output_bounds_source[10] - 0.2f;
+        *(float *)(moby + 0x88) = output_bounds_source[10] + 0.2f;
     } else {
         *(int *)(moby + 0x84) = 0;
         *(int *)(moby + 0x88) = 0;
@@ -508,6 +508,13 @@ extern float FUN_002132a8_25aca0(float, float) __asm__("FUN_002132a8");
 extern float FUN_00213308_25aca0(void) __asm__("FUN_00213308");
 
 int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25aca0 *out, int mask) {
+    enum {
+        SHAPE_INDEXED_CENTER_SPHERE = 2,
+        SHAPE_ENDPOINT_SEGMENT_WITH_BALL_OFFSET = 4
+    };
+    enum {
+        SHAPE_XY_DISK_WITH_Z_EXTENT = 3
+    };
     float weights[20];
     unsigned char *entries[20];
     Vec4_25aca0 first, second, third, fourth, fifth;
@@ -545,7 +552,7 @@ int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25a
                     switch (type) {
                     case 0:
                     case 1:
-                    case 2: {
+                    case SHAPE_INDEXED_CENTER_SPHERE: {
                         if (type < 2) {
                             qcopy(&first, (void *)((entry + 0x10)));
                             FUN_001f9a80_25aca0(*(float *)(entity + 0x2c) * 0.0009765625f, &first, &first);
@@ -561,7 +568,7 @@ int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25a
                         weights[count] = radius * 4.1887903f * radius * radius;
                         break;
                     }
-                    case 3: {
+                    case SHAPE_XY_DISK_WITH_Z_EXTENT: {
                         float radius, extent;
                         qcopy(&first, (void *)((entry + 0x10)));
                         FUN_001f9a68_25aca0(*(float *)(entity + 0x2c), &first, &first);
@@ -571,7 +578,7 @@ int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25a
                           weights[count] = radius * 4.187743f * radius * radius + radius * 1.5707964f * radius * extent;
                         break;
                     }
-                    case 4: {
+                    case SHAPE_ENDPOINT_SEGMENT_WITH_BALL_OFFSET: {
                         FUN_001251e8_25aca0(*(float *)(entity + 0x2c) * 0.0009765625f, &first, (void *)(0x70000000 + (*(short *)list << 4)));
                         FUN_001251e8_25aca0(*(float *)(entity + 0x2c) * 0.0009765625f, &second, (void *)(0x70000000 + (*(short *)(list + 2) << 4)));
                         FUN_001f9a28_25aca0(&third, &first, &second);
@@ -602,7 +609,7 @@ int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25a
         switch (type = *entry) {
         case 0:
         case 1:
-        case 2: {
+        case SHAPE_INDEXED_CENTER_SPHERE: {
             float radius, extent;
             if (type < 2) {
                 qcopy(&first, (void *)((entry + 0x10)));
@@ -631,7 +638,7 @@ int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25a
             } while (0);
             break;
         }
-        case 3: {
+        case SHAPE_XY_DISK_WITH_Z_EXTENT: {
             float radius, extent, weight, random, angle;
             qcopy(&first, (void *)((entry + 0x10)));
             FUN_001f9a68_25aca0(*(float *)(entity + 0x2c), &first, &first);
@@ -651,7 +658,7 @@ int FUN_L00_0025aca0(float density, unsigned char *entity, int maximum, Vec4_25a
             FUN_001f9a10_25aca0(&out[emitted], &first, &second);
             break;
         }
-        case 4: {
+        case SHAPE_ENDPOINT_SEGMENT_WITH_BALL_OFFSET: {
             float extent, weight;
             list = entry + 4;
             FUN_001251e8_25aca0(*(float *)(entity + 0x2c), &first, (void *)(0x70000000 + (*(short *)list << 4)));
@@ -724,7 +731,7 @@ int FUN_L00_0025b440(O_25b440 *moving_object, S_25b440 *arc_motion_state) {
         WAIT_AFTER_GROUND_CLAMP = 3
     };
     float v[4];
-    float t;
+    float prediction_time;
     float g;
 
     switch (arc_motion_state->state) {
@@ -747,8 +754,8 @@ int FUN_L00_0025b440(O_25b440 *moving_object, S_25b440 *arc_motion_state) {
         FUN_001f9a10_25b440(moving_object->pos, moving_object->pos, v);
         arc_motion_state->f10 -= arc_motion_state->f1C;
         if (arc_motion_state->f10 < 0.0f) {
-            t = FUN_001f96b0_25b440(arc_motion_state->f28 + arc_motion_state->f28 + 10.0f);
-            if (moving_object->z <= arc_motion_state->f8 - (arc_motion_state->f10 * t - arc_motion_state->f1C * 0.5f * t * t)) {
+            prediction_time = FUN_001f96b0_25b440(arc_motion_state->f28 + arc_motion_state->f28 + 10.0f);
+            if (moving_object->z <= arc_motion_state->f8 - (arc_motion_state->f10 * prediction_time - arc_motion_state->f1C * 0.5f * prediction_time * prediction_time)) {
                 FUN_00212f90_25b440(moving_object, arc_motion_state->b2E, 0, 10);
                 arc_motion_state->state = 2;
             }
@@ -777,8 +784,8 @@ int FUN_L00_0025b440(O_25b440 *moving_object, S_25b440 *arc_motion_state) {
 }
 /* Linear interpolation: a + (b - a) * t. */
 f32 FUN_L00_0025b6a8(f32 a, f32 b, f32 t);
-f32 FUN_L00_0025b6a8(f32 a, f32 b, f32 t) {
-    return a + (b - a) * t;
+f32 FUN_L00_0025b6a8(f32 start_value, f32 b, f32 interpolation_factor) {
+    return start_value + (b - start_value) * interpolation_factor;
 }
 #include "rnc/math/vector.h"
 

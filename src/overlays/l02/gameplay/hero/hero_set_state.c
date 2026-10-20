@@ -79,6 +79,8 @@ extern int hero_set_state(int, int) __asm__("FUN_L02_0022b728");
 extern char D_L02_0017C520[];
 int hero_set_state(int a, int b) {
     enum {
+        HERO_STATE_DOUBLE_JUMP = 0xE,
+        HERO_STATE_LOOK_ALT = 0x1E,
         HERO_STATE_HELD_ITEM_ATTACK = 0x20,
         HERO_STATE_VEHICLE_IDLE = 0x53,
         HERO_STATE_VEHICLE_RUN = 0x54,
@@ -90,7 +92,8 @@ int hero_set_state(int a, int b) {
         HERO_STATE_STOP_AT_TARGET = 0x66,
         HERO_STATE_IDLE_AT_TARGET = 0x67,
         HERO_STATE_WRENCH_COMBO_ALT = 0x70,
-        HERO_STATE_DEATH_FALL = 0x77
+        HERO_STATE_DEATH_FALL = 0x77,
+        HERO_STATE_DYING_ALT = 0x80
     };
     int old2088;
     char *moby;
@@ -208,7 +211,7 @@ int hero_set_state(int a, int b) {
             set_hero_animation(0x45, 0, (float)scale_game_frames(0xC));
         break;
     }
-    case 0x80: {
+    case HERO_STATE_DYING_ALT: {
         struct Hero *p = &hero;
         p->state.control_mode = 0x14;
         p->unk2284 = 0;
@@ -710,7 +713,7 @@ int hero_set_state(int a, int b) {
     case HERO_STATE_HIGH_JUMP:
     case 0xC:
     case 0xD:
-    case 0xE:
+    case HERO_STATE_DOUBLE_JUMP:
     case 0xF:
     case HERO_STATE_PACK_LONG_JUMP:
     case 0x11:
@@ -1446,7 +1449,7 @@ int hero_set_state(int a, int b) {
         set_hero_animation(FUN_L01_00226f10(0), 0, (float)scale_game_frames(0xA));
         break;
     }
-    case 0x1E: {
+    case HERO_STATE_LOOK_ALT: {
         struct Hero *p = &hero;
         p->unk2284 = 0x51;
         p->state.control_mode = 0;
@@ -1890,7 +1893,9 @@ extern f32 frame_scale_gp __asm__("D_0015ED60") __attribute__((sda));
 void FUN_L02_00230988(void) {
     enum {
         HERO_STATE_DOUBLE_JUMP = 14,
+        HERO_STATE_LOOK_ALT = 30,
         HERO_STATE_HELD_ITEM_ATTACK = 32,
+        HERO_STATE_ITEM_RELEASE_FALL = 45,
         HERO_STATE_VEHICLE_IDLE = 83,
         HERO_STATE_VEHICLE_RUN = 84,
         HERO_STATE_VEHICLE_FALL = 85,
@@ -1901,7 +1906,8 @@ void FUN_L02_00230988(void) {
         HERO_STATE_STOP_AT_TARGET = 102,
         HERO_STATE_IDLE_AT_TARGET = 103,
         HERO_STATE_WRENCH_COMBO_ALT = 112,
-        HERO_STATE_DEATH_FALL = 119
+        HERO_STATE_DEATH_FALL = 119,
+        HERO_STATE_DYING_ALT = 128
     };
     unsigned char *moby;
     int prevSub;
@@ -2220,7 +2226,7 @@ void FUN_L02_00230988(void) {
                 case HERO_STATE_VEHICLE_DYING:
                 case 98:
                 case 106:
-                case 128:
+                case HERO_STATE_DYING_ALT:
                 case 130:
                     if (hero.unkA98 & 2) {
                         hero_respawn();
@@ -2864,7 +2870,7 @@ void FUN_L02_00230988(void) {
                     hero_set_state(HERO_STATE_IDLE, 1);
                     break;
                 case HERO_STATE_FALL:
-                case 45:
+                case HERO_STATE_ITEM_RELEASE_FALL:
                     if (hero.state.step == 0) {
                         if (!(scale_game_frames(0x12) > hero.state_timer) ||
                             hero.ground_distance > 1.75f) {
@@ -3579,7 +3585,7 @@ void FUN_L02_00230988(void) {
                         hero_set_state(0x53, 0);
                     }
                     break;
-                case 30:
+                case HERO_STATE_LOOK_ALT:
                     if (hero.vehicle_mode == 0) {
                         if (hero.unk20AA == 0 || hero.unk20A5 != 0) {
                             if (controller_state.held & 0xA) {

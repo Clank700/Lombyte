@@ -491,9 +491,9 @@ void FUN_L00_002325e0(int bank, int seq) {
 }
 /* Sets the word at 0xAB0 of hero to -1 and clears the one at 0xAB8. */
 void FUN_L00_00232628(void) {
-    struct Hero *p = &hero;
-    p->unkAB0 = -1;
-    p->unkAB8 = 0;
+    struct Hero *hero_base = &hero;
+    hero_base->unkAB0 = -1;
+    hero_base->unkAB8 = 0;
 }
 #define NOT_SDA
 
@@ -541,7 +541,7 @@ f32 FUN_L00_00232b90(f32 prediction_frames, f32 b, f32 target_height) {
     V4_32b90 v;
     V4_32b90 trajectory_work_vector;
     V4_32b90 hero_position_copy;
-    f32 o[6];
+    f32 trajectory_solver_outputs[6];
     f32 x, y, z;
 
     switch (hero.unk20B3) {
@@ -560,10 +560,10 @@ f32 FUN_L00_00232b90(f32 prediction_frames, f32 b, f32 target_height) {
             }
         }
         if (target_height > 0.0f) {
-            if (FUN_L00_002595a0_32b90(&o[0], &o[1], b * -0.5f, hero.motion.velocity.f[2] - b * -0.5f,
+            if (FUN_L00_002595a0_32b90(&trajectory_solver_outputs[0], &trajectory_solver_outputs[1], b * -0.5f, hero.motion.velocity.f[2] - b * -0.5f,
                                        hero.motion.pos.f[2] - target_height) > 0 &&
-                o[0] > 0.0f) {
-                return o[0];
+                trajectory_solver_outputs[0] > 0.0f) {
+                return trajectory_solver_outputs[0];
             }
         }
         break;
@@ -583,8 +583,8 @@ f32 FUN_L00_00232b90(f32 prediction_frames, f32 b, f32 target_height) {
             z = FUN_L00_00233a78_32b90(&hero.motion.velocity) - nb;
             x = FUN_L00_00233a78_32b90(&hero.motion.pos);
             y = FUN_L00_00233a78_32b90(&collision_hit_point);
-            if (FUN_L00_002595a0_32b90(&o[2], &o[3], nb, z, x - y) > 0 && o[2] > 0.0f) {
-                return o[2];
+            if (FUN_L00_002595a0_32b90(&trajectory_solver_outputs[2], &trajectory_solver_outputs[3], nb, z, x - y) > 0 && trajectory_solver_outputs[2] > 0.0f) {
+                return trajectory_solver_outputs[2];
             }
         }
         break;
@@ -607,8 +607,8 @@ f32 FUN_L00_00232b90(f32 prediction_frames, f32 b, f32 target_height) {
             z = FUN_L00_00233a78_32b90(&hero.motion.velocity) - nb;
             x = FUN_L00_00233a78_32b90(&hero.motion.pos);
             y = FUN_L00_00233a78_32b90(&collision_hit_point);
-            if (FUN_L00_002595a0_32b90(&o[4], &o[5], nb, z, x - y) > 0 && o[4] > 0.0f) {
-                return o[4];
+            if (FUN_L00_002595a0_32b90(&trajectory_solver_outputs[4], &trajectory_solver_outputs[5], nb, z, x - y) > 0 && trajectory_solver_outputs[4] > 0.0f) {
+                return trajectory_solver_outputs[4];
             }
         }
         break;
@@ -780,14 +780,14 @@ void FUN_L00_00233248(void) {
  * Ported from rac1-decomp (shared level code), where it is
  * exact; names translated to the US level program. */
 /* Stores two floats, an index and a byte, and sets the bits of a byte mask in a flag halfword. */
-void FUN_L00_00233288(float a, float b, short c, unsigned char d, unsigned char flags_to_set,
+void FUN_L00_00233288(float random_value_base, float b, short remaining_updates, unsigned char count_per_point, unsigned char flags_to_set,
                       unsigned char flags_to_clear) {
     struct Hero *base = &hero;
 
-    base->items[6].unk38 = c;
-    base->items[6].unk3C = d;
+    base->items[6].unk38 = remaining_updates;
+    base->items[6].unk3C = count_per_point;
     base->items[6].unk3E = (base->items[6].unk3E & ~flags_to_clear) | flags_to_set;
-    base->items[6].unk30 = a;
+    base->items[6].unk30 = random_value_base;
     base->items[6].unk34 = b;
 }
 
@@ -1623,15 +1623,15 @@ extern void FUN_L00_0020f580(void);
 extern void FUN_L00_00234808_u(void) __asm__("FUN_L00_00234808");
 
 void FUN_L00_00234a50(int moby_override) {
-    char *d;
+    char *moby_collection_base;
     struct Hero *base;
     char *listed_moby;
     char *item_moby;
     int i;
     if (D_L00_0015F5C4 == 2 || D_L00_0015F5C4 == 6) {
-        d = D_L00_0016C860;
-        for (i = 0; i < *(short *)(d + 0x44); i++) {
-            listed_moby = *(char **)(d + 0x178 + i * 4);
+        moby_collection_base = D_L00_0016C860;
+        for (i = 0; i < *(short *)(moby_collection_base + 0x44); i++) {
+            listed_moby = *(char **)(moby_collection_base + 0x178 + i * 4);
             if ((unsigned short)(*(unsigned short *)(listed_moby + 0xA6) - 0x509) < 2) {
                 *(unsigned short *)(listed_moby + 0x34) |= 0x800;
             }
@@ -1696,8 +1696,8 @@ void FUN_L00_00234b38(void *a) {
         for (i = 0; i < b->n; i++) {
             u8 *e = b->e[i];
             if (e != 0) {
-                s16 t = *(s16 *)(e + 0xA6);
-                if (t == 0x1B1 || t == 0x50A || t == 0x509) {
+                s16 object_type_id = *(s16 *)(e + 0xA6);
+                if (object_type_id == 0x1B1 || object_type_id == 0x50A || object_type_id == 0x509) {
                     *(f32 *)(e + 0x2C) = *(f32 *)(*(u8 **)(e + 0x24) + 0x24) * scale_factor;
                 }
             }

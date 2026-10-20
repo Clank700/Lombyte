@@ -275,30 +275,30 @@ void *FUN_L07_00313350(void *unused, void *dp, void *op) {
     char *data = dp;
     int *out = op;
     int output_count = 0;
-    int a = *(int *)(data + 0x170);
-    int b, c, d, e, f;
-    if (a != -1)
-        out[output_count++] = a;
+    int output_candidate_0 = *(int *)(data + 0x170);
+    int b, output_candidate_2, output_candidate_3, output_candidate_4, output_candidate_5;
+    if (output_candidate_0 != -1)
+        out[output_count++] = output_candidate_0;
     b = *(int *)(data + 0x174);
     if (b != -1)
         out[output_count++] = b;
-    c = *(int *)(data + 0x178);
-    if (c != -1)
-        out[output_count++] = c;
+    output_candidate_2 = *(int *)(data + 0x178);
+    if (output_candidate_2 != -1)
+        out[output_count++] = output_candidate_2;
     if ((((unsigned char)data[0x19C] ^ 1) & 1)) {
-        d = *(int *)(data + 0x17C);
-        if (d != -1)
-            out[output_count++] = d;
+        output_candidate_3 = *(int *)(data + 0x17C);
+        if (output_candidate_3 != -1)
+            out[output_count++] = output_candidate_3;
     }
     if (!((unsigned char)data[0x19C] & 2)) {
-        e = *(int *)(data + 0x180);
-        if (e != -1)
-            out[output_count++] = e;
+        output_candidate_4 = *(int *)(data + 0x180);
+        if (output_candidate_4 != -1)
+            out[output_count++] = output_candidate_4;
     }
     if (!((unsigned char)data[0x19C] & 4)) {
-        f = *(int *)(data + 0x184);
-        if (f != -1)
-            out[output_count++] = f;
+        output_candidate_5 = *(int *)(data + 0x184);
+        if (output_candidate_5 != -1)
+            out[output_count++] = output_candidate_5;
     }
     return (void *)output_count;
 }
@@ -322,6 +322,11 @@ extern char *D_L07_001600EC;
 extern char D_0013E5C4[];
 
 void FUN_L07_00313420(char *moby, char *data, float *health) {
+    enum {
+        SNAGGLEBEAST_HIT_KIND_FORCE_UNIT_DAMAGE = 0x79,
+        SNAGGLEBEAST_HIT_KIND_UNIT_DAMAGE_OVERRIDE = 0xba,
+        SNAGGLEBEAST_HIT_KIND_REDUCED_DAMAGE = 0x131
+    };
     char *hit;
     char *owner;
     struct { int contact; float threshold; } scratch;
@@ -342,8 +347,8 @@ void FUN_L07_00313420(char *moby, char *data, float *health) {
             if (0.0f < *(float *)(hit + 0x2c)) {
                 unsigned short kind = *(unsigned short *)(hit + 0x2a);
                 switch (kind) {
-                case 0x131: *(float *)(hit + 0x2c) = 0.2f; break;
-                case 0x79: case 0xba: *(float *)(hit + 0x2c) = 1.0f; break;
+                case SNAGGLEBEAST_HIT_KIND_REDUCED_DAMAGE: *(float *)(hit + 0x2c) = 0.2f; break;
+                case SNAGGLEBEAST_HIT_KIND_FORCE_UNIT_DAMAGE: case SNAGGLEBEAST_HIT_KIND_UNIT_DAMAGE_OVERRIDE: *(float *)(hit + 0x2c) = 1.0f; break;
                 }
             }
             owner = *(char **)(hit + 0x20);
@@ -718,6 +723,21 @@ extern void jet_animate(struct Moby *, float) __asm__("FUN_L00_00259fe8");
 extern void FUN_L07_00312150(char *);
 void snagglebeast_update(unsigned char *moby) __asm__("FUN_L07_00314150");
 void snagglebeast_update(unsigned char *moby) {
+    enum {
+        SNAGGLEBEAST_INITIALIZE = 0,
+        SNAGGLEBEAST_IDLE = 1,
+        SNAGGLEBEAST_TURN_TOWARD_TARGET = 7,
+        SNAGGLEBEAST_ROPE_ATTACK = 9,
+        SNAGGLEBEAST_DEATH_EXPLOSION = 10
+    };
+    enum {
+        SNAGGLEBEAST_ROPE_START_ATTACK_ANIMATION = 0,
+        SNAGGLEBEAST_ROPE_WAIT_FOR_ORIGIN_FRAME = 1,
+        SNAGGLEBEAST_ROPE_WAIT_FOR_EXTENSION_FRAME = 2,
+        SNAGGLEBEAST_ROPE_EXTEND = 3,
+        SNAGGLEBEAST_ROPE_RETRACT = 4,
+        SNAGGLEBEAST_ROPE_RETURN_TO_IDLE = 5
+    };
     Vec4 oldpos;
     ChaserSight sight;
     Vec4 position;
@@ -882,7 +902,7 @@ void snagglebeast_update(unsigned char *moby) {
                                             (*(short *)(data + 0x24) << 4) | 0xF);
     }
     switch (moby[0x20]) {
-    case 0:
+    case SNAGGLEBEAST_INITIALIZE:
         *(int *)&D_L07_00161B64 = 0;
         moby[0x20] = 1;
         moby[0xBC] = 0;
@@ -928,7 +948,7 @@ void snagglebeast_update(unsigned char *moby) {
         data[0x58] = truncate_float_to_s32(30.0f);
         data[0x5A] = truncate_float_to_s32(40.0f);
         break;
-    case 1:
+    case SNAGGLEBEAST_IDLE:
         if (moby[0x70] & 2) {
             if (moby[0x53] != (FUN_001160d8() & 1)) {
                 int r1 = FUN_001160d8() & 1;
@@ -1254,7 +1274,7 @@ void snagglebeast_update(unsigned char *moby) {
         }
         break;
     }
-    case 7: {
+    case SNAGGLEBEAST_TURN_TOWARD_TARGET: {
         float diff;
         if (data[0x1F5] == 0) qcopy(data + 0xC0, ((char *)&hero) + 0x80);
         diff = fast_subtract_rotations(fast_arc_tan(*(float *)(data + 0xC0) - *(float *)(moby + 0x10), *(float *)(data + 0xC4) - *(float *)(moby + 0x14)), *(float *)(moby + 0x48));
@@ -1612,19 +1632,19 @@ void snagglebeast_update(unsigned char *moby) {
         }
         break;
     }
-    case 9:
+    case SNAGGLEBEAST_ROPE_ATTACK:
         if (*(int *)(data + 0x164) <= 0) {
             if (FUN_L07_00313de8(moby, data, (float *)(data + 0x150), 7, 1)) break;
         }
         FUN_L00_00258278((struct Moby *)moby, fast_arc_tan(*(float *)(data + 0x150) - *(float *)(moby + 0x10), *(float *)(data + 0x154) - *(float *)(moby + 0x14)),
                           (float *)(data + 0x168), frame_time_sq * 2.0943952f, frame_time_sq * 0.6981317f, frame_time * 2.0943952f);
         switch (*(int *)(data + 0x164)) {
-        case 0:
+        case SNAGGLEBEAST_ROPE_START_ATTACK_ANIMATION:
             if (moby[0x53] != 7) FUN_00212f90(moby, 7, 0, random_int_between(0xA, 0xD));
             *(int *)(data + 0x160) = 0;
             *(int *)(data + 0x164) = 1;
             break;
-        case 1:
+        case SNAGGLEBEAST_ROPE_WAIT_FOR_ORIGIN_FRAME:
             if ((*(u64 *)(moby + 0x50) & 0xFFFF0000) != 0x07070000 && moby[0x53] != 7) {
                 FUN_00212f90(moby, 7, 0, random_int_between(0xA, 0xD));
             }
@@ -1641,7 +1661,7 @@ void snagglebeast_update(unsigned char *moby) {
                 }
             }
             break;
-        case 2:
+        case SNAGGLEBEAST_ROPE_WAIT_FOR_EXTENSION_FRAME:
             if ((*(u64 *)(moby + 0x50) & 0xFFFF0000) != 0x07070000 && moby[0x53] != 7) {
                 FUN_00212f90(moby, 7, 0, random_int_between(7, 0xA));
             }
@@ -1656,7 +1676,7 @@ void snagglebeast_update(unsigned char *moby) {
                 *(int *)(data + 0x11C) = 0;
             }
             break;
-        case 3: {
+        case SNAGGLEBEAST_ROPE_EXTEND: {
             float r = vector_distance(moby + 0x10, &sight.position30);
             *(float *)(data + 0x16C) += frame_scale;
             if (r <= *(float *)(data + 0x16C)) *(int *)(data + 0x164) = 4;
@@ -1664,7 +1684,7 @@ void snagglebeast_update(unsigned char *moby) {
             enqueue_callback_list_1(FUN_L07_003131b0, moby);
             break;
         }
-        case 4:
+        case SNAGGLEBEAST_ROPE_RETRACT:
             subtract_vector_xyz(&position, data + 0x120, data + 0x110);
             normalize_vector_xyz(&position, &position, frame_scale);
             add_vector_xyz(data + 0x110, data + 0x110, &position);
@@ -1674,7 +1694,7 @@ void snagglebeast_update(unsigned char *moby) {
             }
             enqueue_callback_list_1(FUN_L07_003131b0, moby);
             break;
-        case 5:
+        case SNAGGLEBEAST_ROPE_RETURN_TO_IDLE:
             *(float *)(moby + 0x58) = 1.0f;
             *(int *)(data + 0x164) = 0;
             *(int *)(data + 0x160) = 0;
@@ -1687,7 +1707,7 @@ void snagglebeast_update(unsigned char *moby) {
             break;
         }
         break;
-    case 10:
+    case SNAGGLEBEAST_DEATH_EXPLOSION:
         if (*(int *)(data + 0x1B0) != -1) {
             set_animation_parameter(*(int *)(data + 0x1B0), 0);
             *(int *)(data + 0x1B0) = -1;

@@ -27,7 +27,7 @@ typedef struct {
 extern Rec D_L17_0017A3C0[];
 extern int hero_slot_item_id(int) __asm__("FUN_L00_0020d498");
 
-int FUN_L17_002020a8(int a) {
+int FUN_L17_002020a8(int allow_slot_item_help) {
     struct Hero *g = &hero;
     switch (g->vehicle_mode) {
     case 1:
@@ -43,7 +43,7 @@ int FUN_L17_002020a8(int a) {
         if (g2->unk12E2 != 0) {
             return 0x6E;
         }
-        if (a == 0) {
+        if (allow_slot_item_help == 0) {
             return 0;
         }
         if (g2->unk20A8 == 0) {
@@ -80,12 +80,12 @@ void FUN_L00_00210c80_8(void *, s32, f32, f32) __asm__("FUN_L00_00210c80");
 
 extern OvlMobyEntry40 D_L17_00178A00[];
 s32 FUN_L17_0020dbe8(s32 arg) {
-    u8 *m;
+    u8 *hero_moby;
     OvlMobyEntry40 *tbl;
     u8 *mob;
     s32 flag;
     s32 id;
-    f32 a, b, e;
+    f32 xy_scale, b, frame_duration;
     OvlVec4 v;
 
     if (G.state.control_mode == 0x14) {
@@ -104,12 +104,12 @@ s32 FUN_L17_0020dbe8(s32 arg) {
         return 0;
     }
     G.unk2280 = 0;
-    m = (u8 *)G.moby;
-    if (m[0xA4] == 0xFF) {
+    hero_moby = (u8 *)G.moby;
+    if (hero_moby[0xA4] == 0xFF) {
         return 0;
     }
-    tbl = &D_L17_00178A00[m[0xA4]];
-    if (tbl->owner != m) {
+    tbl = &D_L17_00178A00[hero_moby[0xA4]];
+    if (tbl->owner != hero_moby) {
         return 0;
     }
     if ((tbl->unk24 ^ 1) & 1) {
@@ -186,14 +186,14 @@ s32 FUN_L17_0020dbe8(s32 arg) {
         } else {
             hero_set_state(HERO_STATE_HURT, 1);
         }
-        e = frame_time;
-        a = e * 5.7f;
-        b = e * 2.4f;
+        frame_duration = frame_time;
+        xy_scale = frame_duration * 5.7f;
+        b = frame_duration * 2.4f;
         if (G.unk12E7 != 0) {
-            a = 0.0f;
-            b = e * 1.7f;
+            xy_scale = 0.0f;
+            b = frame_duration * 1.7f;
         }
-        FUN_L00_00210c80_8(&v, flag, a, b);
+        FUN_L00_00210c80_8(&v, flag, xy_scale, b);
         if (flag != 0 && tbl->unk28 == 4) {
             v.f[2] += v.f[2];
         }
@@ -255,11 +255,11 @@ void FUN_L17_0020e1c0(void) {
     }
     if (!hero.wall_hit || hero.state.prev_control_mode == 0x12 || hero.state.control_mode == 0x11 || hero.base_condition ||
         FUN_001f9b80_211380(hero.unk210.f, hero.motion.pos.f) > hero.unk234 * 0.5f) {
-        f32 *q = D_0013F570;
-        struct Hero *b = (struct Hero *)((u8 *)q - 0x220);
-        approach_value_211380(b->unk228, frame_scale * 0.02f, q);
-        approach_value_211380(b->unk22C, frame_scale * 0.02f, q + 1);
-        FUN_L00_0025b8c0_211380(q + 5, q + 6, b->unk230, frame_scale_sq * 0.02f,
+        f32 *smoothing_state = D_0013F570;
+        struct Hero *b = (struct Hero *)((u8 *)smoothing_state - 0x220);
+        approach_value_211380(b->unk228, frame_scale * 0.02f, smoothing_state);
+        approach_value_211380(b->unk22C, frame_scale * 0.02f, smoothing_state + 1);
+        FUN_L00_0025b8c0_211380(smoothing_state + 5, smoothing_state + 6, b->unk230, frame_scale_sq * 0.02f,
                                 frame_scale_sq * 0.3f, frame_time * 4.0f);
     }
 }

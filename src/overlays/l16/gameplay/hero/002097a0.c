@@ -112,7 +112,7 @@ void FUN_L16_002097a0(void) {
     }
     {
         struct Hero *q = &hero;
-        struct Hero *h;
+        struct Hero *hero_ptr;
         if (q->unk12E3 != 0 && q->grounded_frames != 0) {
             int k = q->state.control_mode;
             if (k != 0x10 && k != 0x14 && k != 7) {
@@ -120,11 +120,11 @@ void FUN_L16_002097a0(void) {
                 return;
             }
         }
-        h = &hero;
-        if (h->selector_13 != 0 && h->state.current != 0x7F) {
-            if (absolute_float(h->water_surface_z - (h->motion.pos.f[2] + 0.25f)) < 1.0f) {
-                if (h->water_surface_z - h->motion.pos.f[2] > 0.0f) {
-                    if (h->motion.displacement.f[2] < 0.0f) {
+        hero_ptr = &hero;
+        if (hero_ptr->selector_13 != 0 && hero_ptr->state.current != 0x7F) {
+            if (absolute_float(hero_ptr->water_surface_z - (hero_ptr->motion.pos.f[2] + 0.25f)) < 1.0f) {
+                if (hero_ptr->water_surface_z - hero_ptr->motion.pos.f[2] > 0.0f) {
+                    if (hero_ptr->motion.displacement.f[2] < 0.0f) {
                         FUN_L00_0020b930();
                         hero_set_state(HERO_STATE_SINK, 1);
                     }
@@ -149,13 +149,13 @@ extern void FUN_L00_0025f730(void *a, float x);
 void FUN_L16_0020f8b0(void) {
     char normalized_vector[16];
     char *accumulated_vector = D_0013E533 + 0x158D;
-    char *q;
+    char *normalization_source;
     qcopy(accumulated_vector, accumulated_vector - 0x670);
-    q = accumulated_vector - 0x770;
-    fast_vec_normalize(normalized_vector, q, *(float *)(q + 0x194));
+    normalization_source = accumulated_vector - 0x770;
+    fast_vec_normalize(normalized_vector, normalization_source, *(float *)(normalization_source + 0x194));
     fast_vec_add(accumulated_vector, accumulated_vector, normalized_vector);
     qcopy(accumulated_vector - 0x690, accumulated_vector);
-    FUN_L00_0025f730(accumulated_vector - 0x690, *(float *)(q + 0x85C) + *(float *)(q + 0x868));
+    FUN_L00_0025f730(accumulated_vector - 0x690, *(float *)(normalization_source + 0x85C) + *(float *)(normalization_source + 0x868));
 }
 typedef union {
     OvlQuad q;
@@ -200,7 +200,7 @@ void FUN_L16_0020ffb0(void) {
     s32 r;
     s32 i;
     f32 side_probe_angle;
-    u8 *p;
+    u8 *hit_moby_record;
 
     s32 k;
     f32 g;
@@ -268,8 +268,8 @@ void FUN_L16_0020ffb0(void) {
                 FUN_L00_002334d0((u8 *)&HH.point, (u8 *)&HH.point, 1.0f);
             }
         }
-        p = suck_get_aim_height(HH.moby);
-        if (p != 0 && (*(u16 *)(p + 0x1E) & 8)) {
+        hit_moby_record = suck_get_aim_height(HH.moby);
+        if (hit_moby_record != 0 && (*(u16 *)(hit_moby_record + 0x1E) & 8)) {
             hero.unk30A = 1;
         }
     }
@@ -395,7 +395,7 @@ s32 FUN_L16_00210b60(s32 mode) {
     s32 mask;
     s32 i;
     u128_2133a8 *collision_output;
-    f32 h;
+    f32 collision_extent_or_displacement_length;
     if (hero.unk1CC != 0) {
         return 1;
     }
@@ -440,11 +440,11 @@ s32 FUN_L16_00210b60(s32 mode) {
                 break;
         } else {
             s32 collision_result;
-            h = hero.capsule_top - hero.unk224;
-            if (h < 0.05f) {
-                h = 0.05f;
+            collision_extent_or_displacement_length = hero.capsule_top - hero.unk224;
+            if (collision_extent_or_displacement_length < 0.05f) {
+                collision_extent_or_displacement_length = 0.05f;
             }
-            collision_result = coll2_2133a8(&hero.motion.pos.q, mask, hero.unk234, ((s32)hero.moby), h);
+            collision_result = coll2_2133a8(&hero.motion.pos.q, mask, hero.unk234, ((s32)hero.moby), collision_extent_or_displacement_length);
             if (!(collision_result | FUN_L00_001f3170(&hero.motion.pos.q, hero.unk234)))
                 break;
         }
@@ -457,8 +457,8 @@ s32 FUN_L16_00210b60(s32 mode) {
     }
     vsub_2133a8(&hero.motion.pos.q, &hero.motion.pos.q, &v);
     vsub_2133a8(&w, &hero.motion.pos.q, &old);
-    h = vlen_2133a8(&w);
-    if (hero.unk234 * 1.5f < h) {
+    collision_extent_or_displacement_length = vlen_2133a8(&w);
+    if (hero.unk234 * 1.5f < collision_extent_or_displacement_length) {
         if (mode == 0xF) {
             if (512.0f < w.f[0])
                 w.f[0] = 512.0f;

@@ -21,23 +21,23 @@ extern float D_0013CA40_2e89b0[] __asm__("D_0013CA40") __attribute__((section(".
 extern int FUN_001f96f8_2e89b0(int) __asm__("FUN_001f96f8");
 
 void follow_camera_read_stick(char *o, float *a, float *b) __asm__("FUN_L00_002e89b0");
-void follow_camera_read_stick(char *camera_object, float *a, float *b) {
+void follow_camera_read_stick(char *camera_object, float *turn_input_out, float *b) {
     S_2e89b0 *turn_pitch_state = (S_2e89b0 *)(*(char **)(camera_object + 0x70) + 0x1A8);
     struct UsageStats *g;
 
     if (turn_pitch_state->flags & 1) {
-        *a = 0.0f;
+        *turn_input_out = 0.0f;
     } else {
-        *a = D_0013CA40_2e89b0[0];
+        *turn_input_out = D_0013CA40_2e89b0[0];
         if (opt_cam_invert == 0) {
-            *a = -*a;
+            *turn_input_out = -*turn_input_out;
         }
     }
-    if (*a == 0.0f) {
+    if (*turn_input_out == 0.0f) {
         D_L00_00161D8C = 0;
         D_L00_00161D90 = 0;
         if (turn_pitch_state->f1C != 0.0f) {
-            *a = turn_pitch_state->f1C;
+            *turn_input_out = turn_pitch_state->f1C;
         }
     } else {
         turn_pitch_state->f14 = D_L00_0015EF44;
@@ -60,10 +60,10 @@ void follow_camera_read_stick(char *camera_object, float *a, float *b) {
         *b = 0.0f;
         *b = turn_pitch_state->f24 / 0.6981317f;
     } else {
-        float t = D_0013CA40_2e89b0[1];
-        *b = -t;
+        float raw_pitch_input = D_0013CA40_2e89b0[1];
+        *b = -raw_pitch_input;
         if (invert52 == 0) {
-            *b = t;
+            *b = raw_pitch_input;
         }
         if (*b == 0.0f) {
             *b = turn_pitch_state->f24 / 0.6981317f;
@@ -99,7 +99,7 @@ void follow_camera_turn_and_pitch(unsigned char *camera_object, float k, float i
     float r;
     float lim;
     float sel;
-    float a;
+    float reference_dot_product;
     float b;
     float ang;
     float z;
@@ -139,11 +139,11 @@ void follow_camera_turn_and_pitch(unsigned char *camera_object, float k, float i
     } else {
         FUN_00214890_2e8bb8(c, c, base + 0x20, *(float *)(c + 0x34));
     }
-    a = FUN_001f9ab0_2e8bb8(c, base + 0x20);
+    reference_dot_product = FUN_001f9ab0_2e8bb8(c, base + 0x20);
     b = FUN_001f9af0_2e8bb8(c);
     FUN_001f9ad8_2e8bb8(axis, base + 0x20, c);
     FUN_001f9bf8_2e8bb8(axis, axis, 1.0f);
-    ang = FUN_001f9e90_2e8bb8(b, a);
+    ang = FUN_001f9e90_2e8bb8(b, reference_dot_product);
     if (FUN_001f99c0_2e8bb8(ang) < FUN_001f99c0_2e8bb8(lim) && sel == D_L00_00161CC0) {
         *(float *)(turn_pitch_state + 8) = ang / 0.69813168f;
     }
@@ -181,15 +181,15 @@ extern void lerp_vector(float, void *, void *, void *) __asm__("FUN_001f9a40");
 extern void fast_vec_normalize(void *, void *, float) __asm__("FUN_001f9bf8");
 
 void follow_camera_auto_turn(int m) __asm__("FUN_L00_002e8f40");
-void follow_camera_auto_turn(int m) {
-    char *p = *(char **)(m + 0x70);
-    char *r = p + 0x1D0;
-    char *q = p + 0x130;
-    if (*(short *)(p + 0x10) > 0) {
+void follow_camera_auto_turn(int camera_object) {
+    char *camera_data = *(char **)(camera_object + 0x70);
+    char *r = camera_data + 0x1D0;
+    char *q = camera_data + 0x130;
+    if (*(short *)(camera_data + 0x10) > 0) {
         float v[4];
         float vector_length;
         float lim;
-        subtract_vector_xyz(v, (float *)p, (float *)(p + 0x90));
+        subtract_vector_xyz(v, (float *)camera_data, (float *)(camera_data + 0x90));
         lerp_vector(D_L00_0015EF40, q, q, v);
         vector_length = fast_vec_length(q);
         lim = *(float *)(q + 0x2C);

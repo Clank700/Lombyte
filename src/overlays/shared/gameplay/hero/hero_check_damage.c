@@ -210,7 +210,7 @@ void find_grind_rail(void) {
     V_cf58 proximity_or_rail_point, proximity_or_query_position, third_proximity_point;
 
     s32 rail_owner, b, rail_kind;
-    f32 c;
+    f32 rail_query_value;
     s32 control_mode;
     f32 height_above_rail;
     if (D_0013D4DD_cf58 == 0)
@@ -270,7 +270,7 @@ void find_grind_rail(void) {
         }
     }
     *(OvlQuad *)&proximity_or_query_position = *(OvlQuad *)&hero.motion.pos;
-    if (!nearest_rail_point((OvlQuad *)&proximity_or_query_position, &rail_owner, &proximity_or_rail_point, &b, &c, &rail_kind, 0, 0))
+    if (!nearest_rail_point((OvlQuad *)&proximity_or_query_position, &rail_owner, &proximity_or_rail_point, &b, &rail_query_value, &rail_kind, 0, 0))
         return;
     if (hero.state.current == 41 && hero.unk5C4 != 0 && rail_owner == hero.unk560)
         return;
@@ -282,7 +282,7 @@ void find_grind_rail(void) {
     qcopy(&hero.unk500, &proximity_or_rail_point);
     hero.unk560 = rail_owner;
     hero.unk564 = b;
-    hero.unk568 = c;
+    hero.unk568 = rail_query_value;
     hero.unk584 = rail_kind;
     hero.grind_rail = 1;
 }
@@ -420,10 +420,10 @@ zero:
     return 0;
 }
 /* Returns a, or the byte at p+0xA5 when a is 0xFF. */
-s32 FUN_L00_0020d5b8(u8 *p, s32 a) {
-    if (a == 0xFF)
-        a = p[0xA5];
-    return a;
+s32 FUN_L00_0020d5b8(u8 *moby_bytes, s32 animation_id) {
+    if (animation_id == 0xFF)
+        animation_id = moby_bytes[0xA5];
+    return animation_id;
 }
 /* FUN_L00_0020d5d0 -- per-mode angle helper.
  *
@@ -510,7 +510,7 @@ extern int FUN_L00_0025e3b8_c(void *) __asm__("FUN_L00_0025e3b8");
 float FUN_L00_0020d6b0(char *target_moby, float yaw, float range, float ylim, float plim, int *out) {
     float v[4] __attribute__((aligned(16)));
     struct Hero *g;
-    float target_distance, hero_yaw_error, angular_penalty, elevation_angle_error, m, r;
+    float target_distance, hero_yaw_error, angular_penalty, elevation_angle_error, angular_limit_error, r;
 
     *out = 0;
     qcopy(v, &hero.motion.pos);
@@ -523,7 +523,7 @@ float FUN_L00_0020d6b0(char *target_moby, float yaw, float range, float ylim, fl
         *out = 1;
     hero_yaw_error = adiff_20d6b0(atan2_20d6b0(*(float *)(target_moby + 0x10) - v[0], *(float *)(target_moby + 0x14) - v[1]), yaw);
     angular_penalty = hero_yaw_error;
-    m = hero_yaw_error;
+    angular_limit_error = hero_yaw_error;
     elevation_angle_error = adiff_20d6b0(atan2_20d6b0(hdist_20d6b0(v, target_moby + 0x10), *(float *)(target_moby + 0x18) - v[2]), 0.0f);
     if (g->state.current == 1 || g->state.current == 0x1E) {
         C_20d6b0 *camera = &player_camera;
@@ -533,12 +533,12 @@ float FUN_L00_0020d6b0(char *target_moby, float yaw, float range, float ylim, fl
         elevation_angle_error = adiff_20d6b0(
             atan2_20d6b0(hdist_20d6b0(camera->v140, target_moby + 0x10), *(float *)(target_moby + 0x18) - camera->v140[2]),
             -camera->f154);
-        m = elevation_angle_error;
+        angular_limit_error = elevation_angle_error;
         angular_penalty = b + elevation_angle_error;
         if (elevation_angle_error < b)
-            m = b;
+            angular_limit_error = b;
     }
-    if (0.0f < ylim && ylim < m)
+    if (0.0f < ylim && ylim < angular_limit_error)
         *out = 1;
     if (0.0f < plim && plim < elevation_angle_error)
         *out = 1;
@@ -556,8 +556,8 @@ char *FUN_L00_0020d8f8(float range_limit, float b, float angular_error_limit, fl
     int i = 0;
     char *candidate_moby;
     while ((candidate_moby = active_mobies[i]) != 0) {
-        float *f = FUN_002141f8_20d8f8(candidate_moby);
-        if (f != 0 && *f != 0.0f && (*(unsigned short *)(candidate_moby + 0x34) & 0x1000)) {
+        float *candidate_eligibility_value = FUN_002141f8_20d8f8(candidate_moby);
+        if (candidate_eligibility_value != 0 && *candidate_eligibility_value != 0.0f && (*(unsigned short *)(candidate_moby + 0x34) & 0x1000)) {
             int out;
             float dist = FUN_L00_0020d6b0(candidate_moby, b, range_limit, angular_error_limit, elevation_angle_limit, &out);
             if (out == 0 && dist < bd) {
@@ -596,8 +596,8 @@ void FUN_L00_0020da68(void) {
     int on, anim, r, hero_animation_id;
     float spd, t;
     unsigned char *m;
-    char *q;
-    char *q2;
+    char *animation_object;
+    char *reloaded_animation_object;
     anim = 0;
     spd = 1.0f;
     on = 0;
@@ -654,14 +654,14 @@ void FUN_L00_0020da68(void) {
             FUN_L00_0024f0e8_20da68((char *)hero.moby, (char **)&hero.unkD10);
         }
     }
-    q = hero.unkD10;
-    if (q && on) {
-        FUN_00213ed8_20da68(q + 8, spd, frame_scale * 0.05f);
-        q2 = hero.unkD10;
-        if ((unsigned char)q2[0x23] != anim) {
+    animation_object = hero.unkD10;
+    if (animation_object && on) {
+        FUN_00213ed8_20da68(animation_object + 8, spd, frame_scale * 0.05f);
+        reloaded_animation_object = hero.unkD10;
+        if ((unsigned char)reloaded_animation_object[0x23] != anim) {
             FUN_L00_0024f3e0_20da68((char *)hero.moby, hero.unkD10, anim, 0, FUN_001f96f8_20da68(8), 1);
         } else {
-            FUN_L00_0024f190_20da68((char *)hero.moby, q2);
+            FUN_L00_0024f190_20da68((char *)hero.moby, reloaded_animation_object);
         }
     }
 }
@@ -894,7 +894,7 @@ s32 FUN_L00_0020d498_0020e360(s32) __asm__("FUN_L00_0020d498");
 u8 *FUN_L00_0024f028_0020e360(u8 *, s32) __asm__("FUN_L00_0024f028");
 s32 FUN_001f96f8_0020e360(s32) __asm__("FUN_001f96f8");
 void FUN_L00_0024f3e0_0020e360(u8 *, u8 *, s32, s32, s32, s32) __asm__("FUN_L00_0024f3e0");
-void FUN_L00_0020e360(s32 a, s32 b) {
+void FUN_L00_0020e360(s32 suppress_slot_animation_creation, s32 b) {
     s32 item_id_or_animation_id, i;
     u8 *slot_animation_object;
     if (hero.vehicle_mode)
@@ -903,7 +903,7 @@ void FUN_L00_0020e360(s32 a, s32 b) {
         return;
     if (!hero.unk20AA)
         return;
-    if (a)
+    if (suppress_slot_animation_creation)
         return;
     if (!b)
         return;
@@ -1347,12 +1347,12 @@ void spawn_hero_item_mobies(void) {
 
 float absolute_float(float input) __asm__("func_001F99C0");
 
-float FUN_L00_0020f0b8(float *a, float *b) {
+float FUN_L00_0020f0b8(float *first_components, float *b) {
     float absolute_difference_sum = 0.0f;
     int i, j;
     for (i = 0; i < 3; i++) {
         float *second_component_cursor = (float *)((i << 4) + (int)b);
-        float *first_component_cursor = (float *)((i << 4) + (int)a);
+        float *first_component_cursor = (float *)((i << 4) + (int)first_components);
         for (j = 0; j < 3; j++) {
             absolute_difference_sum += absolute_float(*first_component_cursor++ - *second_component_cursor++);
         }
@@ -1968,12 +1968,12 @@ void hero_switch_item(int i) {
     {
         struct Hero *g = &hero;
         int *qb = g->restore_item;
-        int *q = qb + i;
-        if (*q != 0) {
+        int *restore_item_request = qb + i;
+        if (*restore_item_request != 0) {
             int *r;
             int *rb;
             int w;
-            *q = 0;
+            *restore_item_request = 0;
             rb = g->saved_item;
             r = rb + i;
             w = *r;
@@ -2022,8 +2022,8 @@ void hero_switch_item(int i) {
         int v;
         struct Hero *g = &hero;
         int *ab = g->pending_item;
-        int *a = ab + i;
-        v = *a;
+        int *pending_item_entry = ab + i;
+        v = *pending_item_entry;
         if (v != 0) {
             int *bb = g->selected_item;
             int *b = bb + i;
@@ -2050,7 +2050,7 @@ void hero_switch_item(int i) {
                 }
                 changed = 1;
             } else {
-                *a = 0;
+                *pending_item_entry = 0;
             }
         }
     }
@@ -2112,8 +2112,8 @@ void hero_switch_item(int i) {
             }
         }
         {
-            struct Hero *e = (struct Hero *)(((char *)&hero) + i * sizeof(struct HeroItemSlot));
-            e->items[0].state = 3;
+            struct Hero *slot_owner = (struct Hero *)(((char *)&hero) + i * sizeof(struct HeroItemSlot));
+            slot_owner->items[0].state = 3;
         }
     }
 }
@@ -2371,7 +2371,7 @@ s32 hero_check_damage(s32 arg) {
     u8 *mob;
     s32 flag;
     s32 id;
-    f32 horizontal_knockback_strength, b, e;
+    f32 horizontal_knockback_strength, b, knockback_scale;
     V_210ce8 v;
 
     if (hero.state.control_mode == 0x14) {
@@ -2482,12 +2482,12 @@ s32 hero_check_damage(s32 arg) {
         } else {
             hero_set_state(HERO_STATE_HURT, 1);
         }
-        e = D_0015ED6C_210ce8;
-        horizontal_knockback_strength = e * 5.7f;
-        b = e * 2.4f;
+        knockback_scale = D_0015ED6C_210ce8;
+        horizontal_knockback_strength = knockback_scale * 5.7f;
+        b = knockback_scale * 2.4f;
         if (hero.unk12E7 != 0) {
             horizontal_knockback_strength = 0.0f;
-            b = e * 1.7f;
+            b = knockback_scale * 1.7f;
         }
         FUN_L00_00210c80_210ce8(&v, flag, horizontal_knockback_strength, b);
         if (flag != 0 && tbl->b28 == 4) {
@@ -2613,11 +2613,11 @@ void FUN_L00_00211380(void) {
     }
     if (!hero.wall_hit || hero.state.prev_control_mode == 0x12 || hero.state.control_mode == 0x11 || hero.base_condition ||
         FUN_001f9b80_211380(hero.unk210.f, hero.motion.pos.f) > hero.unk234 * 0.5f) {
-        f32 *q = &hero.capsule_top;
+        f32 *capsule_top_ptr = &hero.capsule_top;
         struct Hero *b = &hero;
-        approach_value_211380(b->unk228, frame_scale * 0.02f, q);
-        approach_value_211380(b->unk22C, frame_scale * 0.02f, q + 1);
-        FUN_L00_0025b8c0_211380(q + 5, q + 6, b->unk230, frame_scale_sq * 0.02f,
+        approach_value_211380(b->unk228, frame_scale * 0.02f, capsule_top_ptr);
+        approach_value_211380(b->unk22C, frame_scale * 0.02f, capsule_top_ptr + 1);
+        FUN_L00_0025b8c0_211380(capsule_top_ptr + 5, capsule_top_ptr + 6, b->unk230, frame_scale_sq * 0.02f,
                                 frame_scale_sq * 0.3f, D_0015ED6C_211380 * 4.0f);
     }
 }
@@ -2730,9 +2730,9 @@ int FUN_L00_00211870(float animation_frame_threshold) {
 }
 /* Clears hero.target_speed and unk194 as words. */
 void FUN_L00_002118b0(void) {
-    struct Hero *p = &hero;
-    *(int *)&p->target_speed = 0;
-    *(int *)&p->ground_speed = 0;
+    struct Hero *hero_state = &hero;
+    *(int *)&hero_state->target_speed = 0;
+    *(int *)&hero_state->ground_speed = 0;
 }
 typedef union {
     OvlQuad q;
@@ -2910,17 +2910,17 @@ extern int FUN_L00_0020d498_u(int) __asm__("FUN_L00_0020d498");
 extern void turn_to(int, float, float, float) __asm__("FUN_L00_00211e30");
 
 void FUN_L00_00211e98(void) {
-    float a, b, time_scaled_turn_amount;
+    float frame_scaled_turn_coefficient, b, time_scaled_turn_amount;
     if (FUN_L00_0020d498_u(0) == 16) {
-        a = frame_scale_sq * 0.006f;
+        frame_scaled_turn_coefficient = frame_scale_sq * 0.006f;
         b = frame_scale_sq * 0.07f;
         time_scaled_turn_amount = frame_time * 13.962634086608887f;
     } else {
-        a = frame_scale_sq * 0.002f;
+        frame_scaled_turn_coefficient = frame_scale_sq * 0.002f;
         b = frame_scale_sq * 0.07f;
         time_scaled_turn_amount = frame_time * 6.981317043304443f;
     }
-    turn_to(0, a, b, time_scaled_turn_amount);
+    turn_to(0, frame_scaled_turn_coefficient, b, time_scaled_turn_amount);
 }
 extern float D_0015ED6C_211f38 __asm__("D_0015ED6C");
 extern int FUN_L00_0020d498_211f38(int) __asm__("FUN_L00_0020d498");
@@ -2928,27 +2928,27 @@ extern void FUN_L00_00211e30_211f38(int, float, float, float) __asm__("FUN_L00_0
 
 void FUN_L00_00211f38(void) {
     struct Hero *g = &hero;
-    float t, a, b, c;
-    t = (g->unk229C + 1.0f) * 0.5f;
-    a = frame_scale_sq * 0.019f * t;
+    float stick_turn_scale, frame_scaled_turn_coefficient, b, scaled_turn_amount;
+    stick_turn_scale = (g->unk229C + 1.0f) * 0.5f;
+    frame_scaled_turn_coefficient = frame_scale_sq * 0.019f * stick_turn_scale;
     b = frame_scale_sq * 0.1f;
-    c = D_0015ED6C_211f38 * 9.948377f * t;
+    scaled_turn_amount = D_0015ED6C_211f38 * 9.948377f * stick_turn_scale;
     if (g->unk3BE) {
-        a *= 1.1f;
-        c *= 1.2f;
+        frame_scaled_turn_coefficient *= 1.1f;
+        scaled_turn_amount *= 1.2f;
     }
     switch (FUN_L00_0020d498_211f38(0)) {
     case 15:
     case 16:
     case 21:
         if (g->unk20A8) {
-            a = frame_scale_sq * 0.003f;
+            frame_scaled_turn_coefficient = frame_scale_sq * 0.003f;
             b = frame_scale_sq * 0.04f;
-            c = D_0015ED6C_211f38 * 4.3633232f;
+            scaled_turn_amount = D_0015ED6C_211f38 * 4.3633232f;
         }
         break;
     }
-    FUN_L00_00211e30_211f38(0, a, b, c);
+    FUN_L00_00211e30_211f38(0, frame_scaled_turn_coefficient, b, scaled_turn_amount);
 }
 void FUN_00213ed8_00212088(f32 *, f32, f32) __asm__("FUN_00213ed8");
 /* Approaches field b toward a, at rate x while below it and y otherwise. */
@@ -3142,23 +3142,23 @@ void FUN_001f9a10_002126b8(void *, void *, void *) __asm__("FUN_001f9a10");
 void FUN_L00_0025d238_002126b8(Vec4_002126b8 *, void *) __asm__("FUN_L00_0025d238");
 void hero_get_collision_ray_endpoints(Vec4_002126b8 *, Vec4_002126b8 *, int, float, float) __asm__("FUN_L00_002126b8");
 void hero_get_collision_ray_endpoints(Vec4_002126b8 *ray_start, Vec4_002126b8 *b, int mode, float fa, float fb) {
-    Vec4_002126b8 t[2];
+    Vec4_002126b8 ray_scratch_vectors[2];
     if (mode) {
         char *up = (char *)&hero.gravity_dir;
         char *base = up - 0x210;
-        FUN_001f9bf8_002126b8(&t[0], up, -fb);
-        FUN_001f9a10_002126b8(b, base, &t[0]);
-        FUN_001f9bf8_002126b8(&t[0], up, -fa);
-        FUN_001f9a10_002126b8(ray_start, base, &t[0]);
-        *(u128_002126b8 *)&t[1] = *(u128_002126b8 *)ray_start;
-        FUN_L00_0025d238_002126b8(&t[1], b);
+        FUN_001f9bf8_002126b8(&ray_scratch_vectors[0], up, -fb);
+        FUN_001f9a10_002126b8(b, base, &ray_scratch_vectors[0]);
+        FUN_001f9bf8_002126b8(&ray_scratch_vectors[0], up, -fa);
+        FUN_001f9a10_002126b8(ray_start, base, &ray_scratch_vectors[0]);
+        *(u128_002126b8 *)&ray_scratch_vectors[1] = *(u128_002126b8 *)ray_start;
+        FUN_L00_0025d238_002126b8(&ray_scratch_vectors[1], b);
     } else {
-        qcopy(&t[0], &hero.motion.pos);
-        qcopy(b, &t[0]);
+        qcopy(&ray_scratch_vectors[0], &hero.motion.pos);
+        qcopy(b, &ray_scratch_vectors[0]);
         b->z += fb;
         if (b->z < 0.0f)
             b->z = 0.0f;
-        qcopy(ray_start, &t[0]);
+        qcopy(ray_start, &ray_scratch_vectors[0]);
         ray_start->z += fa;
     }
 }
@@ -3203,7 +3203,7 @@ void FUN_L00_002127b8(void) {
     f32 f;
     s32 r;
     s32 i;
-    f32 a;
+    f32 side_probe_angle;
     u8 *p;
 
     s32 k;
@@ -3352,12 +3352,12 @@ d1:
         hero.unk2E8.f = ground_offset_or_angles.f[0];
     }
     for (i = 0; i < 2; i++) {
-        a = 1.5707964f;
+        side_probe_angle = 1.5707964f;
         if (i == 1) {
-            a = -a;
+            side_probe_angle = -side_probe_angle;
         }
-        FUN_L00_002335c8(&side_ray_start, 0.2f, a, 0.45f);
-        FUN_L00_002335c8(&unused_side_probe_point, 0.2f, a, -0.45f);
+        FUN_L00_002335c8(&side_ray_start, 0.2f, side_probe_angle, 0.45f);
+        FUN_L00_002335c8(&unused_side_probe_point, 0.2f, side_probe_angle, -0.45f);
         if (collision_line(&side_ray_start, &collision_ray_end, 0x22, hero.moby, 0)) {
             f = HH.point.f[2] - hero.ground_z.f;
             hero.unk2C0.f[i] = f;
@@ -3422,8 +3422,8 @@ void FUN_L00_00212ff0(void) {
             float y = absolute_float(globals->motion.velocity.f[2]) + 0.01f;
             if (x < y) {
                 if (globals->wall_hit != 0) {
-                    float d = vector_distance(&globals->unk210, &globals->motion.pos);
-                    if (globals->unk234 * 0.5f < d) {
+                    float distance_to_hero_position = vector_distance(&globals->unk210, &globals->motion.pos);
+                    if (globals->unk234 * 0.5f < distance_to_hero_position) {
                         globals->motion.pos.f[2] = globals->ground_z.f;
                         return;
                     }
@@ -3518,7 +3518,7 @@ s32 FUN_L00_002133a8(s32 mode) {
     s32 mask;
     s32 i;
     u128_2133a8 *collision_result;
-    f32 h;
+    f32 probe_height_or_correction_length;
     if (hero.unk1CC != 0) {
         return 1;
     }
@@ -3556,11 +3556,11 @@ s32 FUN_L00_002133a8(s32 mode) {
                 break;
         } else {
             s32 collision_query_result;
-            h = hero.capsule_top - hero.unk224;
-            if (h < 0.05f) {
-                h = 0.05f;
+            probe_height_or_correction_length = hero.capsule_top - hero.unk224;
+            if (probe_height_or_correction_length < 0.05f) {
+                probe_height_or_correction_length = 0.05f;
             }
-            collision_query_result = coll2_2133a8(&hero.motion.pos.q, mask, hero.unk234, ((s32)hero.moby), h);
+            collision_query_result = coll2_2133a8(&hero.motion.pos.q, mask, hero.unk234, ((s32)hero.moby), probe_height_or_correction_length);
             if (!(collision_query_result | FUN_L00_001f3170(&hero.motion.pos.q, hero.unk234)))
                 break;
         }
@@ -3573,8 +3573,8 @@ s32 FUN_L00_002133a8(s32 mode) {
     }
     vsub_2133a8(&hero.motion.pos.q, &hero.motion.pos.q, &v);
     vsub_2133a8(&w, &hero.motion.pos.q, &old);
-    h = vlen_2133a8(&w);
-    if (hero.unk234 * 1.5f < h) {
+    probe_height_or_correction_length = vlen_2133a8(&w);
+    if (hero.unk234 * 1.5f < probe_height_or_correction_length) {
         if (mode == 0xF) {
             if (512.0f < w.f[0])
                 w.f[0] = 512.0f;
@@ -3807,15 +3807,15 @@ void FUN_L00_00213880(void)
 
 /* Scales four vectors and one float of the hero by s. */
 void FUN_L00_00213de8(float scale_factor) {
-    char *p = D_0013E533_lui + 0xF1D;
-    float *f;
+    char *movement_vector_base = D_0013E533_lui + 0xF1D;
+    float *hero_float_base;
 
-    fast_vec_scale(p, p, scale_factor);
-    fast_vec_scale(p + 0x10, p + 0x10, scale_factor);
-    fast_vec_scale(p - 0x20, p - 0x20, scale_factor);
-    fast_vec_scale(p + 0x50, p + 0x50, scale_factor);
-    f = (float *)(p - 0x100);
-    f[0x194 / 4] = f[0x194 / 4] * scale_factor;
+    fast_vec_scale(movement_vector_base, movement_vector_base, scale_factor);
+    fast_vec_scale(movement_vector_base + 0x10, movement_vector_base + 0x10, scale_factor);
+    fast_vec_scale(movement_vector_base - 0x20, movement_vector_base - 0x20, scale_factor);
+    fast_vec_scale(movement_vector_base + 0x50, movement_vector_base + 0x50, scale_factor);
+    hero_float_base = (float *)(movement_vector_base - 0x100);
+    hero_float_base[0x194 / 4] = hero_float_base[0x194 / 4] * scale_factor;
 }
 /* Ported from rac1-decomp (src/overlays/shared/help_0020CDF0.c: func_L00_00214520). */
 #define HERO_OF(v) ((struct Hero *)((char *)(v) - 0xE0))
@@ -3828,7 +3828,9 @@ static inline struct Hero *hero_ptr(void) { return &hero; }
 /* Steers the velocity's xy toward the move yaw at the target speed. */
 void FUN_L00_00213e68(f32 step) {
     enum {
-        GRAVITY_MODE_WORLD_DOWN = 0
+        GRAVITY_MODE_WORLD_DOWN = 0,
+        GRAVITY_MODE_NEGATIVE_GROUND_NORMAL = 1,
+        GRAVITY_MODE_TOWARD_REFERENCE_POINT = 2
     };
     struct Hero *player = &hero;
     f32 delta[4];
@@ -3901,8 +3903,8 @@ void FUN_L00_00213e68(f32 step) {
             owner->ground_speed = owner->motion.unk168 - ratio;
         }
         break;
-    case 1:
-    case 2: {
+    case GRAVITY_MODE_NEGATIVE_GROUND_NORMAL:
+    case GRAVITY_MODE_TOWARD_REFERENCE_POINT: {
         Vec4 *current_velocity = &hero_velocity;
 
         planar_speed = gravity_length_xy(current_velocity);
