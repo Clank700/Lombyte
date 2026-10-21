@@ -14,7 +14,7 @@ int set_state_fields(int *state_fields, int first_field, int second_field) __asm
 
 int get_state_field(int *state_fields) __asm__("func_0023CC80");
 
-int video_dec_abort(int *state_fields) __asm__("func_0023CC70");
+void video_dec_abort(int *state_fields) __asm__("func_0023CC70");
 
 void clear_state_field(int *state_fields) __asm__("func_0023CC30");
 

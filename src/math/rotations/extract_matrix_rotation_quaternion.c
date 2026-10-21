@@ -1,24 +1,16 @@
 #include "types.h"
-extern s32 copy_matrix_rotation() __asm__("func_001FA298");
-extern s32 copy_matrix3x4() __asm__("func_001FA2B8");
-extern s32 matrix_to_quaternion() __asm__("func_00214260");
-void extract_matrix_rotation_quaternion(s32 arg0, s32 arg1) __asm__("FUN_002144d8");
+extern void copy_matrix_rotation(void *, void *) __asm__("func_001FA298");
+extern void copy_matrix3x4(void *, void *) __asm__("func_001FA2B8");
+extern void matrix_to_quaternion(void *, void *) __asm__("func_00214260");
+void extract_matrix_rotation_quaternion(void *arg0, void *arg1) __asm__("FUN_002144d8");
 
-void extract_matrix_rotation_quaternion(s32 output_quaternion, s32 destination_matrix) {
-    u8 sp_slot[0x40];
-    u8 *buf;
+/* The matrix's rotation as a quaternion; the matrix keeps only its rotation. */
+void extract_matrix_rotation_quaternion(void *output_quaternion, void *matrix) {
+    u8 rotation[0x40];
 
-    buf = sp_slot;
-    copy_matrix_rotation(buf);
-    /* Fakematch: the single-iteration do/while wrappers compile to plain
-       calls but select retail's callee-saved register roles. */
-    do {
-        matrix_to_quaternion(output_quaternion, sp_slot);
-        /* Fakematch: see above. */
-        do {
-            copy_matrix3x4(destination_matrix, sp_slot);
-        } while (0);
-    } while (0);
+    copy_matrix_rotation(rotation, matrix);
+    matrix_to_quaternion(output_quaternion, rotation);
+    copy_matrix3x4(matrix, rotation);
 }
 
 extern __typeof__(extract_matrix_rotation_quaternion) func_002144D8 __attribute__((alias("FUN_002144d8")));

@@ -31,7 +31,7 @@ extern void read_buf_end_put(struct ReadBuf *, s32) __asm__("func_0023B990");
 extern s32 read_buf_begin_get(struct ReadBuf *, u8 **) __asm__("func_0023B9D8");
 extern s32 read_buf_end_get(struct ReadBuf *, s32) __asm__("GetStateTableWord");
 extern s32 read_cd_stream_sectors(struct MpegCdStream *, u8 *, s32, s32) __asm__("func_0023BA60");
-extern s32 video_dec_abort(s32) __asm__("func_0023CC70");
+extern void video_dec_abort(s32) __asm__("func_0023CC70");
 extern s32 video_dec_get_state(struct VideoDec *) __asm__("func_0023CC80");
 extern s32 video_dec_flush(struct VideoDec *) __asm__("func_0023CD08");
 extern s32 video_dec_is_flushed(struct VideoDec *) __asm__("FUN_0023cde0");

@@ -1,13 +1,8 @@
-/* Set the state field to one and report success. */
+/* Set the state field to one. Callers ignore the result: the 1 left in v0 is
+   only the stored value. */
 
-int video_dec_abort(int *state_fields) __asm__("func_0023CC70");
+void video_dec_abort(int *state_fields) __asm__("func_0023CC70");
 
-int video_dec_abort(int *state_fields) {
-    int value = 1;
-
-    /* Fakematch: the block makes the store and the return share one register. */
-    do {
-        state_fields[42] = value;
-    } while (0);
-    return value;
+void video_dec_abort(int *state_fields) {
+    state_fields[42] = 1;
 }
