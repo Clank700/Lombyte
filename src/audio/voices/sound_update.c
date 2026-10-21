@@ -308,9 +308,8 @@ s32 sound_update(void) {
             continue;
         }
         {
-            s32 voice_flags_byte = D_0013E550.voices[slot_index].flags;
-            /* Fakematch: the xor test gives retail's xori/andi flag test. */
-            if ((voice_flags_byte ^ 1) & 1) {
+            s32 bit0_clear = !(D_0013E550.voices[slot_index].flags & 1);
+            if (bit0_clear) {
                 voice_flags[slot_index] |= 2;
                 if (!(D_0013E550.voices[slot_index].flags & 0x20)) {
                     voice_flags[slot_index] |= 4;
