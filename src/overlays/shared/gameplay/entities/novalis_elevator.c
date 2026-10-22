@@ -2901,11 +2901,6 @@ void FUN_L01_002f5040(char *moby, float *out) {
         add_vector_xyz_q(out, out, vertical_plane_offset);
     }
 }
-#ifndef NON_MATCHING
-INCLUDE_ASM("config/us/overlays/asm/FUN_L01_002f5168.s", FUN_L01_002f5168);
-#else
-/* Near miss (game BYTES 48/996, size-exact): left are the case 13/17 argument order before the
- * FUN_0022da68 call and the register choice / &off[1] copy in the hit block. */
 #include "rnc/gameplay/entities/moby.h"
 
 typedef union { u128 q; f32 f[4]; struct { f32 x, y, z, w; } v; } QVec;
@@ -3100,12 +3095,15 @@ void gunship_follow_path(struct Moby *m) {
         break;
     case 13:
     case 17:
+        /* Fakematch: duplicating the reset preserves retail's voice-call argument scheduling. */
         if (v->unk138 != -1) {
             if (!FUN_001f9770(&v->unk138))
                 break;
             FUN_0022da68((FUN_00213260(100) & 1) ? 1 : 2, 0, (char *)m);
+            v->unk138 = FUN_001f96f8(FUN_L00_00257b90(v->unk13C, v->unk13C + v->unk13E));
+        } else {
+            v->unk138 = FUN_001f96f8(FUN_L00_00257b90(v->unk13C, v->unk13C + v->unk13E));
         }
-        v->unk138 = FUN_001f96f8(FUN_L00_00257b90(v->unk13C, v->unk13C + v->unk13E));
         break;
     }
 
@@ -3357,7 +3355,6 @@ void gunship_follow_path(struct Moby *m) {
     v->unk11E = -1;
     m->flags &= 0xEFFF;
 }
-#endif
 
 #include "rnc/rendering/dma_tag.h"
 extern void FUN_L01_00261c10(void *, void *) __asm__("FUN_L01_00261c10");
