@@ -2,7 +2,7 @@
 #include "rnc/ui/menus/menu_globals.h"
 /* Ported from rac1-decomp (src/overlays/shared/pause_00277208.c, func_L00_00284620). */
 extern void *func_00226720_a(int) __asm__("func_00225490");
-extern int select_next_stream_buffer(int) __asm__("FUN_00225c18");
+extern int acquire_menu_stream_buffer(int) __asm__("FUN_00225c18");
 extern void func_00225AB8(void *);
 /* sets up a pause-menu helper moby in front of the camera */
 int enter_streamed_moby_screen(char *h) __asm__("FUN_00225588");
@@ -29,7 +29,7 @@ int enter_streamed_moby_screen(char *screen_state) {
     } else {
         *(int *)(screen_state + 0x34) = 3;
     }
-    stream_buffer_address = select_next_stream_buffer(1);
+    stream_buffer_address = acquire_menu_stream_buffer(1);
     *(int *)(screen_state + 0x3C) = stream_buffer_address;
     if (stream_buffer_address == 0) {
         *(int *)(screen_state + 0x34) = 3;

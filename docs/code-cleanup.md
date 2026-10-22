@@ -158,6 +158,8 @@ edit fails at once.
 
 ## Moving files
 
+See [menu stream buffers](menu-stream-buffers.md) for a small module example.
+
 - Folders follow the subsystem, for example `ui/menus/<screen>` or
   `gameplay/...`.
 - In the same commit, update the unit path in `config/us/rnc1.us.yaml`, or in
